@@ -23,8 +23,8 @@ document.addEventListener('DOMContentLoaded', () => {
   initCompare();
   // OCR removed from v1 (Tesseract.js too large for extension)
   initGlobalDrop();
-  initEditCategoryTabs();
-  initLayoutToggle();
+  initGenerate();
+  initCollage();
 
   document.getElementById('btn-editor-settings').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
@@ -61,7 +61,7 @@ function openMode(mode) {
   if (panel) panel.classList.add('active');
 
   document.getElementById('btn-back').classList.add('visible');
-  const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', ocr:'OCR' };
+  const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', collage:'Collage' };
   document.getElementById('mode-label').textContent = labels[mode] || '';
 
   const showUndoRedo = mode === 'edit';
@@ -95,62 +95,104 @@ function initGlobalDrop() {
 }
 
 // ============================================================
-// Edit Mode: Category Tabs
+// MODE: Generate (standalone, no input image)
 // ============================================================
 
-function initEditCategoryTabs() {
-  const tabs = document.querySelectorAll('.edit-cat-tab');
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-      showEditCategory(tab.dataset.editCat);
+function initGenerate() {
+  const genCanvas = document.getElementById('gen-canvas');
+  if (!genCanvas) return;
+  const genCtx = genCanvas.getContext('2d');
+
+  function showGen(c, name) {
+    genCanvas.width = c.width; genCanvas.height = c.height;
+    genCtx.drawImage(c, 0, 0);
+    document.getElementById('gen-dims').textContent = `${c.width} x ${c.height}`;
+  }
+
+  document.getElementById('btn-gen-gradient')?.addEventListener('click', () => {
+    const w = +(document.getElementById('gen-w')?.value) || 800;
+    const h = +(document.getElementById('gen-h')?.value) || 600;
+    const type = document.getElementById('gen-grad-type')?.value || 'linear';
+    const c1 = document.getElementById('gen-grad-c1')?.value || '#F4C430';
+    const c2 = document.getElementById('gen-grad-c2')?.value || '#B8860B';
+    showGen(generateGradient(w, h, type, [{ pos: 0, color: c1 }, { pos: 1, color: c2 }]), 'gradient');
+  });
+
+  document.getElementById('btn-gen-pattern')?.addEventListener('click', () => {
+    const w = +(document.getElementById('gen-w')?.value) || 800;
+    const h = +(document.getElementById('gen-h')?.value) || 600;
+    const type = document.getElementById('gen-pat-type')?.value || 'checkerboard';
+    const c1 = document.getElementById('gen-pat-c1')?.value || '#e2e8f0';
+    const c2 = document.getElementById('gen-pat-c2')?.value || '#ffffff';
+    const cell = +(document.getElementById('gen-pat-cell')?.value) || 40;
+    showGen(generatePattern(w, h, type, c1, c2, cell), 'pattern');
+  });
+
+  document.getElementById('btn-gen-placeholder')?.addEventListener('click', () => {
+    const w = +(document.getElementById('gen-w')?.value) || 800;
+    const h = +(document.getElementById('gen-h')?.value) || 600;
+    const bg = document.getElementById('gen-ph-bg')?.value || '#94a3b8';
+    const tc = document.getElementById('gen-ph-text-color')?.value || '#ffffff';
+    const text = document.getElementById('gen-ph-text')?.value || '';
+    showGen(generatePlaceholder(w, h, bg, tc, text), 'placeholder');
+  });
+
+  document.getElementById('btn-gen-export')?.addEventListener('click', () => {
+    if (!genCanvas.width) return;
+    const fmt = document.getElementById('gen-export-fmt')?.value || 'png';
+    const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
+    genCanvas.toBlob(blob => {
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/generated.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+    }, mime, 0.92);
+  });
+}
+
+// ============================================================
+// MODE: Collage (multiple images)
+// ============================================================
+
+function initCollage() {
+  const collageCanvas = document.getElementById('collage-canvas');
+  if (!collageCanvas) return;
+  let collageImages = [];
+
+  setupDropzone(document.getElementById('collage-drop'), document.getElementById('collage-files'), async (file) => {
+    const img = await loadImg(file);
+    if (!img) return;
+    const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+    c.getContext('2d').drawImage(img, 0, 0);
+    collageImages.push(c);
+
+    // Thumbnail
+    const thumb = document.createElement('img');
+    thumb.src = c.toDataURL('image/jpeg', 0.5);
+    thumb.style.cssText = 'width:40px;height:40px;object-fit:cover;border-radius:3px;border:1px solid var(--slate-700);';
+    document.getElementById('collage-thumbs')?.appendChild(thumb);
+    document.getElementById('collage-count').textContent = `${collageImages.length} images loaded`;
+    document.getElementById('btn-collage-build').disabled = collageImages.length < 2;
+  }, { multiple: true });
+
+  document.getElementById('btn-collage-build')?.addEventListener('click', () => {
+    if (collageImages.length < 2) return;
+    const cols = +(document.getElementById('collage-cols')?.value) || 2;
+    const spacing = +(document.getElementById('collage-spacing')?.value) || 10;
+    const bg = document.getElementById('collage-bg')?.value || '#ffffff';
+    const result = createCollage(collageImages, cols, spacing, bg);
+    if (result) {
+      collageCanvas.width = result.width; collageCanvas.height = result.height;
+      collageCanvas.getContext('2d').drawImage(result, 0, 0);
+      collageCanvas.style.display = 'block';
+      document.getElementById('collage-drop').style.display = 'none';
+      document.getElementById('btn-collage-export').disabled = false;
+    }
+  });
+
+  document.getElementById('btn-collage-export')?.addEventListener('click', () => {
+    if (!collageCanvas.width) return;
+    collageCanvas.toBlob(blob => {
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: 'pixeroo/collage.png', saveAs: true });
     });
   });
-  // Show transform by default
-  showEditCategory('transform');
-}
-
-function showEditCategory(cat) {
-  const editControls = document.querySelector('.edit-controls');
-  if (!editControls) return;
-  editControls.querySelectorAll('.sidebar-section[data-cat]').forEach(s => {
-    s.style.display = s.dataset.cat === cat ? '' : 'none';
-  });
-}
-
-// ============================================================
-// Layout Toggle (Ribbon / Sidebar)
-// ============================================================
-
-let editLayout = 'sidebar';
-
-function initLayoutToggle() {
-  // Load preference
-  chrome.storage.sync.get({ editLayout: 'sidebar' }, (result) => {
-    editLayout = result.editLayout;
-    applyEditLayout();
-  });
-
-  document.getElementById('btn-layout-toggle')?.addEventListener('click', () => {
-    editLayout = editLayout === 'sidebar' ? 'ribbon' : 'sidebar';
-    applyEditLayout();
-    chrome.storage.sync.set({ editLayout });
-  });
-}
-
-function applyEditLayout() {
-  const panel = document.getElementById('mode-edit');
-  if (!panel) return;
-
-  panel.classList.remove('layout-sidebar', 'layout-ribbon');
-  panel.classList.add(`layout-${editLayout}`);
-
-  // Toggle icon
-  const iconRibbon = document.getElementById('icon-ribbon');
-  const iconSidebar = document.getElementById('icon-sidebar');
-  if (iconRibbon) iconRibbon.style.display = editLayout === 'sidebar' ? '' : 'none';
-  if (iconSidebar) iconSidebar.style.display = editLayout === 'ribbon' ? '' : 'none';
 }
 
 function triggerDrop(dropId, inputId, file) {
