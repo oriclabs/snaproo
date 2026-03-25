@@ -35,7 +35,7 @@ pub fn get_image_info(input: &[u8]) -> Result<JsValue, JsError> {
         .decode()
         .map_err(|e| JsError::new(&format!("Decode failed: {}", e)))?;
 
-    let mime = tree_magic_mini::from_u8(input).to_string();
+    let mime = crate::convert::detect_mime_from_bytes(input);
     let has_alpha = img.color().has_alpha();
     let color_type = format!("{:?}", img.color());
 
@@ -85,18 +85,17 @@ pub fn get_exif(input: &[u8]) -> Result<JsValue, JsError> {
 /// Get image dimensions without fully decoding
 #[wasm_bindgen]
 pub fn get_dimensions(input: &[u8]) -> Result<JsValue, JsError> {
-    match imagesize::blob_size(input) {
-        Ok(size) => {
-            let result = serde_wasm_bindgen::to_value(&(size.width, size.height))
-                .map_err(|e| JsError::new(&e.to_string()))?;
-            Ok(result)
-        }
-        Err(e) => Err(JsError::new(&format!("Failed to get dimensions: {:?}", e))),
-    }
+    let reader = image::ImageReader::new(Cursor::new(input))
+        .with_guessed_format()
+        .map_err(|e| JsError::new(&format!("Format detection failed: {}", e)))?;
+    let (w, h) = reader.into_dimensions()
+        .map_err(|e| JsError::new(&format!("Failed to get dimensions: {}", e)))?;
+    serde_wasm_bindgen::to_value(&(w, h))
+        .map_err(|e| JsError::new(&e.to_string()))
 }
 
 /// Detect MIME type from image bytes
 #[wasm_bindgen]
 pub fn detect_mime(input: &[u8]) -> String {
-    tree_magic_mini::from_u8(input).to_string()
+    crate::convert::detect_mime_from_bytes(input)
 }

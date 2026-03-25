@@ -23,9 +23,7 @@ image = { version = "0.25", default-features = false, features = [
   "qoi", "pnm", "hdr", "dds", "exr", "avif"
 ] }
 
-# Advanced image processing
-imageproc = { version = "0.26", default-features = false }
-imgref = "1.12"
+# imageproc/imgref removed -- all processing done via Canvas API in JS
 
 # PNG with APNG support
 png = "0.18"
@@ -53,24 +51,17 @@ ico = "0.5"
 # SVG
 resvg = "0.47"
 usvg = "0.47"
-tiny-skia = "0.11"
+# tiny-skia not needed separately -- resvg re-exports it as resvg::tiny_skia
 
-# QR Code (generate + read)
+# QR Code (generate only -- reading handled by bundled jsQR in JS)
 qrcode = { version = "0.14", default-features = false }
 qrcodegen = "1.8"
-rxing = { version = "0.6", default-features = false }
 
-# Metadata / EXIF
+# Metadata / EXIF (kamadak-exif only -- rexif/jfifdump/imagesize handled in JS)
 kamadak-exif = "0.6"
-rexif = "0.7"
-img-parts = "0.4"
-jfifdump = "0.6"
 
-# Image size probing (lightweight)
-imagesize = "0.14"
-
-# MIME type detection
-tree_magic_mini = { version = "3.2", default-features = false }
+# MIME type detection -- removed, uses filesystem (incompatible with WASM)
+# tree_magic_mini = { version = "3.2", default-features = false }
 
 [features]
 default = ["core"]

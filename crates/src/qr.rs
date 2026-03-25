@@ -121,41 +121,11 @@ pub fn generate_qr_png(
     }
 
     let mut output = Vec::new();
-    let encoder = image::codecs::png::PngEncoder::new(&mut output);
-    encoder
-        .encode(
-            imgbuf.as_raw(),
-            img_size,
-            img_size,
-            image::ExtendedColorType::Rgb8,
-        )
+    let mut cursor = std::io::Cursor::new(&mut output);
+    imgbuf.write_to(&mut cursor, image::ImageFormat::Png)
         .map_err(|e| JsError::new(&format!("PNG encode failed: {}", e)))?;
 
     Ok(output)
 }
 
-/// Read/decode QR code from image bytes (PNG, JPEG, etc.)
-/// Returns the decoded text or null if no QR found
-#[wasm_bindgen]
-pub fn read_qr(input: &[u8]) -> Result<Option<String>, JsError> {
-    let img = image::load_from_memory(input)
-        .map_err(|e| JsError::new(&format!("Failed to decode image: {}", e)))?;
-
-    let luma = img.to_luma8();
-    let (width, height) = luma.dimensions();
-
-    let mut hints = rxing::DecodingHintDictionary::new();
-    hints.insert(
-        rxing::DecodeHintType::TRY_HARDER,
-        rxing::DecodeHintValue::TryHarder(true),
-    );
-
-    let source = rxing::BinaryBitmap::new(rxing::common::HybridBinarizer::new(
-        rxing::BufferedImageLuminanceSource::new(luma.into_raw(), width, height),
-    ));
-
-    match rxing::multi_format_reader::MultiFormatReader::new().decode_with_hints(&source, &hints) {
-        Ok(result) => Ok(Some(result.getText().to_string())),
-        Err(_) => Ok(None),
-    }
-}
+// QR reading handled by bundled jsQR in JavaScript (no rxing dependency)

@@ -7,7 +7,7 @@ pub fn svg_to_png(svg_data: &str, width: u32, height: u32) -> Result<Vec<u8>, Js
     let tree = usvg::Tree::from_str(svg_data, &opt)
         .map_err(|e| JsError::new(&format!("SVG parse error: {}", e)))?;
 
-    let mut pixmap = tiny_skia::Pixmap::new(width, height)
+    let mut pixmap = resvg::tiny_skia::Pixmap::new(width, height)
         .ok_or_else(|| JsError::new("Failed to create pixmap"))?;
 
     let scale_x = width as f32 / tree.size().width();
@@ -16,7 +16,7 @@ pub fn svg_to_png(svg_data: &str, width: u32, height: u32) -> Result<Vec<u8>, Js
 
     resvg::render(
         &tree,
-        tiny_skia::Transform::from_scale(scale, scale),
+        usvg::Transform::from_scale(scale, scale),
         &mut pixmap.as_mut(),
     );
 
@@ -24,17 +24,13 @@ pub fn svg_to_png(svg_data: &str, width: u32, height: u32) -> Result<Vec<u8>, Js
         .map_err(|e| JsError::new(&format!("PNG encode error: {}", e)))
 }
 
-/// Get SVG dimensions and element count
+/// Get SVG dimensions
 #[wasm_bindgen]
 pub fn svg_info(svg_data: &str) -> Result<JsValue, JsError> {
     let opt = usvg::Options::default();
     let tree = usvg::Tree::from_str(svg_data, &opt)
         .map_err(|e| JsError::new(&format!("SVG parse error: {}", e)))?;
 
-    let info = serde_wasm_bindgen::to_value(&(
-        tree.size().width(),
-        tree.size().height(),
-    )).map_err(|e| JsError::new(&e.to_string()))?;
-
-    Ok(info)
+    serde_wasm_bindgen::to_value(&(tree.size().width(), tree.size().height()))
+        .map_err(|e| JsError::new(&e.to_string()))
 }
