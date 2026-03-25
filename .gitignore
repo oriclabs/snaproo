@@ -1,4 +1,6 @@
 research/
+.claude/
+cl.bat
 node_modules/
 dist/
 target/
