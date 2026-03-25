@@ -576,8 +576,8 @@ function initEdit() {
   }
 
   document.getElementById('btn-gen-gradient')?.addEventListener('click', () => {
-    const w = +document.getElementById('gen-w').value || 800;
-    const h = +document.getElementById('gen-h').value || 600;
+    const w = +(document.getElementById('gen-w')?.value || document.getElementById('bar-w')?.value) || 800;
+    const h = +(document.getElementById('gen-h')?.value || document.getElementById('bar-h')?.value) || 600;
     const type = document.getElementById('gen-grad-type').value;
     const c1 = document.getElementById('gen-grad-c1').value;
     const c2 = document.getElementById('gen-grad-c2').value;
@@ -585,8 +585,8 @@ function initEdit() {
   });
 
   document.getElementById('btn-gen-pattern')?.addEventListener('click', () => {
-    const w = +document.getElementById('gen-w').value || 800;
-    const h = +document.getElementById('gen-h').value || 600;
+    const w = +(document.getElementById('gen-w')?.value || document.getElementById('bar-w')?.value) || 800;
+    const h = +(document.getElementById('gen-h')?.value || document.getElementById('bar-h')?.value) || 600;
     const type = document.getElementById('gen-pat-type').value;
     const c1 = document.getElementById('gen-pat-c1').value;
     const c2 = document.getElementById('gen-pat-c2').value;
@@ -595,8 +595,8 @@ function initEdit() {
   });
 
   document.getElementById('btn-gen-placeholder')?.addEventListener('click', () => {
-    const w = +document.getElementById('gen-w').value || 800;
-    const h = +document.getElementById('gen-h').value || 600;
+    const w = +(document.getElementById('gen-w')?.value || document.getElementById('bar-w')?.value) || 800;
+    const h = +(document.getElementById('gen-h')?.value || document.getElementById('bar-h')?.value) || 600;
     const bg = document.getElementById('gen-ph-bg').value;
     const tc = document.getElementById('gen-ph-text-color').value;
     const text = document.getElementById('gen-ph-text').value || '';
@@ -733,16 +733,18 @@ function initInfoBar() {
   document.getElementById('bar-actual')?.addEventListener('click', () => {
     if (editCanvas) editCanvas.style.maxWidth = 'none';
   });
+
+  // Set defaults
+  if (barW) barW.value = 800;
+  if (barH) barH.value = 600;
 }
 
 function updateInfoBar() {
   const bar = document.getElementById('edit-info-bar');
-  if (!bar || !editCanvas.width) return;
-
-  bar.classList.add('visible');
+  if (!bar) return;
 
   // Track original dimensions (set once on first load)
-  if (!originalW) { originalW = editCanvas.width; originalH = editCanvas.height; }
+  if (editCanvas.width && !originalW) { originalW = editCanvas.width; originalH = editCanvas.height; }
 
   const barW = document.getElementById('bar-w');
   const barH = document.getElementById('bar-h');

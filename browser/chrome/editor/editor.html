@@ -103,9 +103,8 @@
     .asset-status.missing { background: #ef4444; }
     .asset-status.pending { background: var(--slate-600); }
 
-    /* Persistent info bar */
-    .edit-info-bar { display: none; align-items: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-bottom: 1px solid var(--slate-800); background: var(--slate-900); flex-shrink: 0; font-size: 0.6875rem; flex-wrap: wrap; }
-    .edit-info-bar.visible { display: flex; }
+    /* Persistent info bar -- always on top, full width, centered */
+    .edit-info-bar { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.25rem 0.75rem; border-bottom: 1px solid var(--slate-800); background: var(--slate-900); flex-shrink: 0; font-size: 0.6875rem; flex-wrap: wrap; }
     .edit-info-bar .dim-input { width: 55px; background: var(--slate-800); color: var(--slate-200); border: 1px solid var(--slate-700); border-radius: 3px; padding: 2px 5px; font-size: 0.6875rem; font-family: monospace; text-align: center; }
     .edit-info-bar .dim-input:focus { border-color: var(--saffron-400); outline: none; }
     .edit-info-bar .dim-sep { color: var(--slate-600); font-size: 0.625rem; }
@@ -131,16 +130,17 @@
     .edit-cat-content.active { display: block; }
 
     /* Sidebar layout (default) */
-    .edit-panel.layout-sidebar { display: flex; flex: 1; overflow: hidden; }
+    .edit-panel.layout-sidebar { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .edit-panel.layout-sidebar .edit-main { display: flex; flex: 1; overflow: hidden; }
     .edit-panel.layout-sidebar .edit-work { flex: 1; }
     .edit-panel.layout-sidebar .edit-controls { width: 280px; border-left: 1px solid var(--slate-800); overflow-y: auto; flex-shrink: 0; }
     .edit-panel.layout-sidebar .edit-cat-tabs { border-bottom: 1px solid var(--slate-800); }
     .edit-panel.layout-sidebar .edit-cat-content.active { padding: 0; }
     .edit-panel.layout-sidebar .sidebar-section { padding: 0.75rem 1rem; border-bottom: 1px solid var(--slate-800); }
-    .edit-panel.layout-sidebar .edit-info-bar { order: -1; }
 
     /* Ribbon layout -- compact horizontal strip */
     .edit-panel.layout-ribbon { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+    .edit-panel.layout-ribbon .edit-main { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
     .edit-panel.layout-ribbon .edit-controls { border-bottom: 1px solid var(--slate-800); flex-shrink: 0; overflow-x: auto; overflow-y: hidden; }
     .edit-panel.layout-ribbon .edit-work { flex: 1; }
     .edit-panel.layout-ribbon .edit-cat-content.active { display: flex; flex-wrap: nowrap; gap: 0; padding: 0; align-items: stretch; overflow-x: auto; }
@@ -309,6 +309,7 @@
       <button id="bar-actual" class="info-btn" title="Actual size (1:1)">1:1</button>
     </div>
 
+    <div class="edit-main">
     <div class="work-area" id="edit-work">
       <div id="edit-dropzone" class="dropzone">
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin:0 auto 0.75rem;display:block;"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
@@ -382,6 +383,7 @@
       <div class="sidebar-section" data-cat="export"><div class="sidebar-title">Image to PDF</div><button class="tool-btn" id="btn-to-pdf" style="width:100%;justify-content:center;font-size:0.6875rem;">Export as PDF</button></div>
       <div class="sidebar-section" data-cat="export"><div class="sidebar-title">Export</div><select id="export-format" class="select-field" style="margin-bottom:0.5rem;"><option value="png">PNG</option><option value="jpeg">JPEG (85%)</option><option value="webp">WebP</option><option value="avif">AVIF (WASM)</option><option value="bmp">BMP</option><option value="ico">ICO (WASM)</option></select><button id="btn-export" class="btn-primary" style="width:100%;">Export Image</button></div>
     </div>
+    </div><!-- /edit-main -->
   </div>
 
   <!-- ============================================================ -->
