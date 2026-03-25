@@ -581,26 +581,38 @@ function readDpiFromJpeg(bytes) {
 // ============================================================
 
 async function readQRFromFile(file) {
-  // Try WASM first (if loaded)
-  if (window.pixerooWasm?.read_qr) {
-    const buffer = await file.arrayBuffer();
-    const result = window.pixerooWasm.read_qr(new Uint8Array(buffer));
-    return result || null;
-  }
+  const img = await new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => resolve(img);
+      img.onerror = () => resolve(null);
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+  if (!img) return null;
 
-  // Fallback: basic canvas-based QR detection (limited)
-  // Full QR reading requires WASM engine with rxing crate
-  return null;
+  const canvas = document.createElement('canvas');
+  canvas.width = img.naturalWidth;
+  canvas.height = img.naturalHeight;
+  canvas.getContext('2d').drawImage(img, 0, 0);
+  return readQRFromCanvas(canvas);
 }
 
 async function readQRFromCanvas(canvas) {
-  if (window.pixerooWasm?.read_qr) {
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-    const buffer = await blob.arrayBuffer();
-    const result = window.pixerooWasm.read_qr(new Uint8Array(buffer));
-    return result || null;
-  }
-  return null;
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+  // Send to background service worker where jsQR is loaded
+  const result = await chrome.runtime.sendMessage({
+    action: 'readQR',
+    data: Array.from(imageData.data),
+    width: canvas.width,
+    height: canvas.height
+  });
+
+  return result?.text || null;
 }
 
 // ============================================================

@@ -1029,7 +1029,7 @@ function initQR() {
       if (data) {
         resultEl.innerHTML = `<div style="margin-bottom:0.25rem;color:#22c55e;font-size:0.6875rem;font-weight:600;">QR Code Found:</div><div class="copyable" style="color:var(--slate-200);font-size:0.75rem;word-break:break-all;cursor:pointer;" title="Click to copy">${esc(data)}</div>`;
       } else {
-        resultEl.textContent = window.pixerooWasm ? 'No QR code found in this image' : 'QR reading requires WASM engine. Build with: cd crates && wasm-pack build --target web';
+        resultEl.textContent = 'No QR code found in this image';
       }
     } catch (e) {
       resultEl.textContent = 'Failed to read QR: ' + e.message;

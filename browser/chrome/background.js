@@ -1,5 +1,8 @@
 // Pixeroo - Background Service Worker
-// Handles context menus, commands, and message routing
+// Handles context menus, commands, message routing, QR reading
+
+// Load jsQR locally (bundled, no CDN)
+importScripts('lib/jsQR.min.js');
 
 // --- Context Menu Setup ---
 chrome.runtime.onInstalled.addListener(() => {
@@ -129,6 +132,17 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: true, downloadId });
     });
     return true; // async response
+  }
+
+  if (message.action === 'readQR') {
+    try {
+      const data = new Uint8ClampedArray(message.data);
+      const result = jsQR(data, message.width, message.height);
+      sendResponse({ text: result?.data || null });
+    } catch (e) {
+      sendResponse({ text: null, error: e.message });
+    }
+    return true;
   }
 
   if (message.action === 'openEditor') {

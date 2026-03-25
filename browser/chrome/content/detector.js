@@ -308,7 +308,7 @@
     }
   }
 
-  // --- Read QR ---
+  // --- Read QR (sends image data to background for jsQR processing) ---
   async function readQRFromImage(src) {
     try {
       const img = new Image();
@@ -318,24 +318,25 @@
       const canvas = document.createElement('canvas');
       canvas.width = img.naturalWidth;
       canvas.height = img.naturalHeight;
-      canvas.getContext('2d').drawImage(img, 0, 0);
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
 
-      // Try WASM engine if available
-      if (typeof pixerooWasm !== 'undefined' && pixerooWasm.read_qr) {
-        const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
-        const buffer = await blob.arrayBuffer();
-        const result = pixerooWasm.read_qr(new Uint8Array(buffer));
-        if (result) {
-          showToast('QR: ' + result);
-          navigator.clipboard.writeText(result).catch(() => {});
-          return;
-        }
+      // Send pixel data to background service worker for QR reading
+      const result = await chrome.runtime.sendMessage({
+        action: 'readQR',
+        data: Array.from(imageData.data),
+        width: canvas.width,
+        height: canvas.height
+      });
+
+      if (result?.text) {
+        showToast('QR: ' + result.text);
+        navigator.clipboard.writeText(result.text).catch(() => {});
+      } else {
         showToast('No QR code found in this image');
-        return;
       }
-
-      showToast('QR reading requires WASM engine (build with wasm-pack)');
-    } catch {
+    } catch (e) {
       showToast('Could not read QR from this image', true);
     }
   }
