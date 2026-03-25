@@ -233,10 +233,16 @@ const Annotate = {
     this.tool = tool;
     this.overlay.width = this.canvas.width;
     this.overlay.height = this.canvas.height;
+
+    // Position overlay exactly over the canvas element
+    const canvasRect = this.canvas.getBoundingClientRect();
+    const parentRect = parentEl.getBoundingClientRect();
+    this.overlay.style.cssText = `position:absolute;cursor:${tool === 'text' ? 'text' : 'crosshair'};` +
+      `left:${canvasRect.left - parentRect.left}px;top:${canvasRect.top - parentRect.top}px;` +
+      `width:${canvasRect.width}px;height:${canvasRect.height}px;`;
+
     parentEl.style.position = 'relative';
     parentEl.appendChild(this.overlay);
-
-    this.overlay.style.cursor = tool === 'text' ? 'text' : 'crosshair';
 
     this._onDown = (e) => this.onDown(e);
     this._onMove = (e) => this.onMove(e);
