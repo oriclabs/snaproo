@@ -295,8 +295,7 @@ function initEdit() {
   document.getElementById('btn-apply-resize').addEventListener('click', () => {
     const w = +rw.value, h = +rh.value;
     if (!w || !h || (w === editCanvas.width && h === editCanvas.height)) return;
-    const t = document.createElement('canvas'); t.width = w; t.height = h;
-    const tc = t.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(editCanvas, 0, 0, w, h);
+    const t = steppedResize(editCanvas, w, h);
     editCanvas.width = w; editCanvas.height = h; editCtx.drawImage(t, 0, 0); updResize(); saveEdit();
   });
 
@@ -635,6 +634,33 @@ function saveEdit() {
   pulseExportButton();
 }
 
+// Stepped downscale for sharp resizing (halves until close, then final)
+function steppedResize(source, targetW, targetH) {
+  let current = source;
+  let cw = source.width, ch = source.height;
+
+  while (cw / 2 > targetW || ch / 2 > targetH) {
+    const halfW = Math.max(Math.floor(cw / 2), targetW);
+    const halfH = Math.max(Math.floor(ch / 2), targetH);
+    const step = document.createElement('canvas');
+    step.width = halfW; step.height = halfH;
+    const sc = step.getContext('2d');
+    sc.imageSmoothingEnabled = true;
+    sc.imageSmoothingQuality = 'high';
+    sc.drawImage(current, 0, 0, halfW, halfH);
+    current = step; cw = halfW; ch = halfH;
+  }
+
+  // Final step to exact target
+  const result = document.createElement('canvas');
+  result.width = targetW; result.height = targetH;
+  const rc = result.getContext('2d');
+  rc.imageSmoothingEnabled = true;
+  rc.imageSmoothingQuality = 'high';
+  rc.drawImage(current, 0, 0, targetW, targetH);
+  return result;
+}
+
 function updateDimensionBadge() {
   const badge = document.getElementById('dimension-badge');
   if (!badge || !editCanvas.width) return;
@@ -716,8 +742,7 @@ function initInfoBar() {
     if (!newW || !newH || newW < 1 || newH < 1) return;
     if (newW === editCanvas.width && newH === editCanvas.height) return;
 
-    const t = document.createElement('canvas'); t.width = newW; t.height = newH;
-    const tc = t.getContext('2d'); tc.imageSmoothingQuality = 'high'; tc.drawImage(editCanvas, 0, 0, newW, newH);
+    const t = steppedResize(editCanvas, newW, newH);
     editCanvas.width = newW; editCanvas.height = newH; editCtx.drawImage(t, 0, 0);
     updResize(); saveEdit();
   }
@@ -854,8 +879,9 @@ function initConvert() {
         }
       }
 
-      const c = document.createElement('canvas'); c.width = w; c.height = h;
-      const cx = c.getContext('2d'); cx.imageSmoothingQuality = 'high'; cx.drawImage(img, 0, 0, w, h);
+      const srcC = document.createElement('canvas'); srcC.width = img.naturalWidth; srcC.height = img.naturalHeight;
+      srcC.getContext('2d').drawImage(img, 0, 0);
+      const c = (w !== img.naturalWidth || h !== img.naturalHeight) ? steppedResize(srcC, w, h) : srcC;
       const blob = await new Promise(r => c.toBlob(r, mime, q));
       chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`pixeroo/${file.name.replace(/\.[^.]+$/,'')}.${fmt==='jpeg'?'jpg':fmt}`, saveAs: convertFiles.length === 1 });
     }
