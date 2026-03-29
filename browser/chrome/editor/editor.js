@@ -704,7 +704,212 @@ function initNavigation() {
   $('btn-back').addEventListener('click', goHome);
   initHomeSearch();
   initHomeHints();
+  initQuickActions();
+  initRecentFiles();
 }
+
+// ── Quick Actions ────────────────────────────────────────
+function initQuickActions() {
+  // Screenshot & Annotate — capture tab via background, open in editor
+  $('qa-screenshot')?.addEventListener('click', async () => {
+    // Show capture options
+    if (typeof pixDialog !== 'undefined') {
+      const ok = await pixDialog.confirm('Screenshot Capture',
+        '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">' +
+        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="_sc_mode" value="visible" checked style="accent-color:var(--saffron-400);">Visible Tab — capture what you see now</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="_sc_mode" value="region" style="accent-color:var(--saffron-400);">Region — select an area on the page</label>' +
+        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="_sc_mode" value="fullpage" style="accent-color:var(--saffron-400);">Full Page — scroll and stitch</label>' +
+        '</div>', { okText: 'Capture', html: true });
+      if (!ok) return;
+      const choice = document.querySelector('input[name="_sc_mode"]:checked')?.value || 'visible';
+      if (choice === 'region') { _captureRegion(); return; }
+      if (choice === 'fullpage') { _captureFullPage(); return; }
+    }
+    // Default: capture visible tab
+    _captureVisibleTab();
+  });
+
+  async function _captureVisibleTab() {
+    try {
+      const response = await chrome.runtime.sendMessage({ action: 'captureTab' });
+      if (response?.dataUrl) {
+        openMode('edit');
+        const img = new Image();
+        img.src = response.dataUrl;
+        img.onload = () => {
+          if (typeof window._loadEditImage === 'function')
+            window._loadEditImage(img, 'screenshot-' + new Date().toISOString().slice(0, 10));
+        };
+      } else { openMode('edit'); }
+    } catch { openMode('edit'); }
+  }
+
+  async function _captureRegion() {
+    try {
+      // Tell content script to show region selector
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) { _captureVisibleTab(); return; }
+      chrome.tabs.sendMessage(tab.id, { action: 'startRegionCapture' });
+      // Listen for the result
+      const handler = (msg) => {
+        if (msg.action === 'regionCaptured' && msg.dataUrl && msg.region) {
+          chrome.runtime.onMessage.removeListener(handler);
+          const { x, y, w, h } = msg.region;
+          const fullImg = new Image();
+          fullImg.src = msg.dataUrl;
+          fullImg.onload = () => {
+            // Crop to region
+            const c = document.createElement('canvas');
+            c.width = w; c.height = h;
+            const dpr = window.devicePixelRatio || 1;
+            c.getContext('2d').drawImage(fullImg, x * dpr, y * dpr, w * dpr, h * dpr, 0, 0, w, h);
+            openMode('edit');
+            setTimeout(() => {
+              const cropped = new Image();
+              cropped.src = c.toDataURL('image/png');
+              cropped.onload = () => {
+                if (typeof window._loadEditImage === 'function')
+                  window._loadEditImage(cropped, 'screenshot-region');
+              };
+            }, 100);
+          };
+        }
+      };
+      chrome.runtime.onMessage.addListener(handler);
+      // Timeout cleanup
+      setTimeout(() => chrome.runtime.onMessage.removeListener(handler), 30000);
+    } catch { _captureVisibleTab(); }
+  }
+
+  async function _captureFullPage() {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (!tab?.id) { _captureVisibleTab(); return; }
+      // Send message to content script to get full page dimensions and scroll-capture
+      chrome.tabs.sendMessage(tab.id, { action: 'startFullPageCapture' });
+      const handler = (msg) => {
+        if (msg.action === 'fullPageCaptured' && msg.dataUrl) {
+          chrome.runtime.onMessage.removeListener(handler);
+          openMode('edit');
+          const img = new Image();
+          img.src = msg.dataUrl;
+          img.onload = () => {
+            if (typeof window._loadEditImage === 'function')
+              window._loadEditImage(img, 'screenshot-fullpage');
+          };
+        }
+      };
+      chrome.runtime.onMessage.addListener(handler);
+      setTimeout(() => chrome.runtime.onMessage.removeListener(handler), 60000);
+    } catch { _captureVisibleTab(); }
+  }
+
+  // Resize for Social
+  $('qa-resize-social')?.addEventListener('click', () => openMode('social'));
+
+  // Compress Image — open convert tool (it handles quality/compression)
+  $('qa-compress')?.addEventListener('click', () => openMode('convert'));
+
+  // Convert Format
+  $('qa-convert')?.addEventListener('click', () => openMode('convert'));
+
+  // Generate QR
+  $('qa-qr')?.addEventListener('click', () => openMode('qr'));
+
+  // Blur / Redact — open edit (user drops image, uses mask or redact tool)
+  $('qa-blur')?.addEventListener('click', () => openMode('edit'));
+
+  // YouTube Thumbnail — open social with YT preset
+  $('qa-thumbnail')?.addEventListener('click', () => {
+    openMode('social');
+    setTimeout(() => {
+      const sel = $('social-platform');
+      if (sel) { sel.value = 'yt-thumb'; sel.dispatchEvent(new Event('change')); }
+    }, 100);
+  });
+
+  // Collage
+  $('qa-collage')?.addEventListener('click', () => openMode('collage'));
+}
+
+// ── Recent Files ─────────────────────────────────────────
+function initRecentFiles() {
+  renderRecentFiles();
+}
+
+async function renderRecentFiles() {
+  try {
+    const data = await chrome.storage.local.get({ recentFiles: [] });
+    const items = data.recentFiles || [];
+    const container = $('home-recent');
+    const row = $('recent-row');
+    if (!row || !container) return;
+    if (items.length === 0) { container.style.display = 'none'; return; }
+    container.style.display = '';
+    row.innerHTML = '';
+    items.slice(0, 8).forEach(item => {
+      const el = document.createElement('div');
+      el.className = 'recent-item';
+      el.title = item.name || 'Untitled';
+      const img = document.createElement('img');
+      img.src = item.thumb;
+      img.loading = 'lazy';
+      const label = document.createElement('span');
+      label.textContent = item.name || 'Untitled';
+      el.appendChild(img);
+      el.appendChild(label);
+      el.addEventListener('click', () => {
+        // Load full image from data URL
+        const fullImg = new Image();
+        fullImg.src = item.dataUrl;
+        fullImg.onload = () => {
+          openMode('edit');
+          setTimeout(() => {
+            if (typeof window._loadEditImage === 'function') {
+              window._loadEditImage(fullImg, item.name || 'recent');
+            }
+          }, 100);
+        };
+      });
+      row.appendChild(el);
+    });
+  } catch {}
+}
+
+// Call this when an image is loaded in the editor to save to recents
+window._addRecentFile = async function(img, name) {
+  try {
+    // Create thumbnail (64x48)
+    const tc = document.createElement('canvas');
+    const aspect = img.naturalWidth / img.naturalHeight;
+    tc.width = 64; tc.height = Math.round(64 / aspect);
+    tc.getContext('2d').drawImage(img, 0, 0, tc.width, tc.height);
+    const thumb = tc.toDataURL('image/jpeg', 0.5);
+
+    // Create smaller data URL for storage (max ~300KB)
+    const maxDim = 1200;
+    const sc = document.createElement('canvas');
+    if (img.naturalWidth > maxDim || img.naturalHeight > maxDim) {
+      const scale = Math.min(maxDim / img.naturalWidth, maxDim / img.naturalHeight);
+      sc.width = Math.round(img.naturalWidth * scale);
+      sc.height = Math.round(img.naturalHeight * scale);
+    } else {
+      sc.width = img.naturalWidth; sc.height = img.naturalHeight;
+    }
+    sc.getContext('2d').drawImage(img, 0, 0, sc.width, sc.height);
+    const dataUrl = sc.toDataURL('image/jpeg', 0.7);
+
+    const data = await chrome.storage.local.get({ recentFiles: [] });
+    let items = data.recentFiles || [];
+    // Remove duplicate by name
+    items = items.filter(i => i.name !== name);
+    // Add to front
+    items.unshift({ name, thumb, dataUrl, time: Date.now() });
+    // Keep max 8
+    items = items.slice(0, 8);
+    await chrome.storage.local.set({ recentFiles: items });
+  } catch {}
+};
 
 // ── Home grid search filter ──────────────────────────────
 function initHomeSearch() {
@@ -811,6 +1016,8 @@ function goHome() {
   // Ensure library manager is hidden
   const lm = $('library-manager');
   if (lm) { lm.style.display = 'none'; $('btn-open-library')?.classList.remove('active'); }
+  // Refresh recent files
+  renderRecentFiles();
 }
 
 // Global drop: drop file anywhere on home -> auto-detect best mode

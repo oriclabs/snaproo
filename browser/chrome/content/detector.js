@@ -86,11 +86,114 @@
         sendResponse({ colors: extractCSSColors() });
         break;
 
+      case 'startRegionCapture':
+        _showRegionSelector();
+        sendResponse({ ok: true });
+        break;
+
+      case 'startFullPageCapture':
+        _captureFullPage();
+        sendResponse({ ok: true });
+        break;
+
       default:
         sendResponse({ error: 'Unknown action' });
     }
     return true;
   });
+
+  // ── Region capture overlay ─────────────────────────────
+  function _showRegionSelector() {
+    // Create full-screen overlay for user to draw a rectangle
+    const overlay = document.createElement('div');
+    overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;cursor:crosshair;background:rgba(0,0,0,0.15);';
+    const hint = document.createElement('div');
+    hint.textContent = 'Click and drag to select a region. Press Escape to cancel.';
+    hint.style.cssText = 'position:fixed;top:16px;left:50%;transform:translateX(-50%);background:rgba(15,23,42,0.9);color:#e2e8f0;padding:8px 16px;border-radius:8px;font:13px Inter,system-ui,sans-serif;z-index:2147483647;pointer-events:none;';
+    overlay.appendChild(hint);
+    document.body.appendChild(overlay);
+
+    let startX, startY, selBox = null;
+
+    overlay.addEventListener('mousedown', (e) => {
+      startX = e.clientX; startY = e.clientY;
+      selBox = document.createElement('div');
+      selBox.style.cssText = 'position:fixed;border:2px solid #F4C430;background:rgba(244,196,48,0.08);pointer-events:none;z-index:2147483647;';
+      document.body.appendChild(selBox);
+    });
+
+    overlay.addEventListener('mousemove', (e) => {
+      if (!selBox) return;
+      const x = Math.min(startX, e.clientX), y = Math.min(startY, e.clientY);
+      const w = Math.abs(e.clientX - startX), h = Math.abs(e.clientY - startY);
+      selBox.style.left = x + 'px'; selBox.style.top = y + 'px';
+      selBox.style.width = w + 'px'; selBox.style.height = h + 'px';
+    });
+
+    overlay.addEventListener('mouseup', (e) => {
+      const x = Math.min(startX, e.clientX), y = Math.min(startY, e.clientY);
+      const w = Math.abs(e.clientX - startX), h = Math.abs(e.clientY - startY);
+      overlay.remove();
+      if (selBox) selBox.remove();
+      if (w < 10 || h < 10) return; // too small
+      // Request capture from background
+      try {
+        chrome.runtime.sendMessage({ action: 'captureRegion', region: { x, y, w, h } });
+      } catch {}
+    });
+
+    const escHandler = (e) => {
+      if (e.key === 'Escape') {
+        overlay.remove();
+        if (selBox) selBox.remove();
+        document.removeEventListener('keydown', escHandler);
+      }
+    };
+    document.addEventListener('keydown', escHandler);
+  }
+
+  // ── Full page capture (scroll-stitch) ──────────────────
+  async function _captureFullPage() {
+    const scrollH = document.documentElement.scrollHeight;
+    const viewH = window.innerHeight;
+    const viewW = window.innerWidth;
+    const origScrollY = window.scrollY;
+
+    // Stitch canvas
+    const stitchCanvas = document.createElement('canvas');
+    stitchCanvas.width = viewW * (window.devicePixelRatio || 1);
+    stitchCanvas.height = scrollH * (window.devicePixelRatio || 1);
+    const sctx = stitchCanvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+
+    let y = 0;
+    while (y < scrollH) {
+      window.scrollTo(0, y);
+      await new Promise(r => setTimeout(r, 150)); // wait for render
+      try {
+        const response = await chrome.runtime.sendMessage({ action: 'captureTab' });
+        if (response?.dataUrl) {
+          const img = await new Promise((resolve) => {
+            const i = new Image(); i.onload = () => resolve(i); i.onerror = () => resolve(null); i.src = response.dataUrl;
+          });
+          if (img) {
+            const captureH = Math.min(viewH, scrollH - y);
+            sctx.drawImage(img, 0, 0, img.naturalWidth, captureH * dpr, 0, y * dpr, img.naturalWidth, captureH * dpr);
+          }
+        }
+      } catch {}
+      y += viewH;
+    }
+
+    // Restore scroll
+    window.scrollTo(0, origScrollY);
+
+    // Send stitched result
+    const dataUrl = stitchCanvas.toDataURL('image/png');
+    try {
+      chrome.runtime.sendMessage({ action: 'fullPageCaptured', dataUrl });
+    } catch {}
+  }
 
   // --- Collect All Images on Page ---
   function collectPageImages() {
@@ -338,9 +441,8 @@
       showToast(`Saved as ${format.toUpperCase()}`);
     } catch (e) {
       showToast('Conversion failed', true);
-      // Note: AVIF/ICO conversion needs WASM module
       if (['avif', 'ico'].includes(format)) {
-        showToast('AVIF/ICO needs WASM engine (coming soon)', true);
+        showToast('AVIF/ICO conversion not supported in this format', true);
       }
     }
   }
@@ -380,8 +482,8 @@
 
   // --- Extract Colors (placeholder) ---
   function extractColorsFromImage(src) {
-    // TODO: Implement k-means color extraction via WASM
-    showToast('Color extraction loading... (WASM required)');
+    // TODO: Implement k-means color extraction
+    showToast('Color extraction coming soon');
   }
 
   // --- Extract CSS Colors from Page ---

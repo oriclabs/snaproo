@@ -45,6 +45,21 @@
     .home-search input:focus { border-color: var(--saffron-400); }
     .home-search input::placeholder { color: var(--slate-500); }
     .home-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); pointer-events: none; }
+    .home-recent { max-width: 640px; width: 100%; margin-bottom: 1rem; }
+    .home-recent-label { font-size: 0.65rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+    .home-recent-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 4px; }
+    .recent-item { flex-shrink: 0; width: 64px; cursor: pointer; text-align: center; transition: transform 0.12s; }
+    .recent-item:hover { transform: translateY(-2px); }
+    .recent-item img { width: 64px; height: 48px; object-fit: cover; border-radius: 6px; border: 1.5px solid var(--slate-700); display: block; }
+    .recent-item:hover img { border-color: var(--saffron-400); }
+    .recent-item span { display: block; color: var(--slate-400); font-size: 0.55rem; margin-top: 3px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .quick-actions { max-width: 640px; width: 100%; margin-bottom: 1.25rem; }
+    .quick-actions-label { font-size: 0.65rem; font-weight: 600; color: var(--slate-500); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+    .quick-actions-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .qa-btn { display: flex; align-items: center; gap: 5px; padding: 6px 12px; background: var(--slate-900); border: 1px solid var(--slate-800); border-radius: 8px; color: var(--slate-300); font-size: 0.7rem; font-weight: 500; cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+    .qa-btn:hover { border-color: var(--saffron-400); color: var(--saffron-400); background: rgba(244,196,48,0.04); }
+    .qa-btn svg { flex-shrink: 0; opacity: 0.7; }
+    .qa-btn:hover svg { opacity: 1; stroke: var(--saffron-400); }
     .home-hint-bar { width: 100%; min-height: 32px; padding: 6px 16px; background: var(--slate-900); border-top: 1px solid var(--slate-800); display: flex; align-items: center; justify-content: center; gap: 8px; flex-shrink: 0; transition: opacity 0.15s; }
     .home-hint-bar.empty { opacity: 0.6; }
     .home-hint-bar .hint-name { color: var(--saffron-400); font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
@@ -205,6 +220,25 @@
     <h1 class="home-title"><svg width="28" height="28" viewBox="0 0 128 128" style="vertical-align:-4px;margin-right:6px;"><rect width="128" height="128" rx="28" fill="#0f172a"/><g stroke="#F4C430" stroke-width="5.5" fill="none" opacity="0.8"><path d="M18,38 L18,18 L38,18"/><path d="M90,18 L110,18 L110,38"/><path d="M110,90 L110,110 L90,110"/><path d="M38,110 L18,110 L18,90"/></g><g transform="translate(134,10) scale(-0.058,0.058)" fill="#F4C430"><path fill-rule="evenodd" d="M 703.34375 554.960938 C 703.34375 554.960938 672.664062 568.761719 643.523438 613.238281 C 614.382812 657.71875 579.105469 671.53125 579.105469 697.601562 C 579.105469 723.679688 614.382812 757.421875 692.605469 712.941406 C 692.605469 712.941406 749.355469 709.871094 744.753906 751.28125 C 740.152344 792.699219 715.613281 893.929688 786.167969 970.621094 C 786.167969 970.621094 773.894531 1013.5625 714.078125 1071.847656 C 654.261719 1130.128906 697.207031 1219.089844 697.207031 1219.089844 L 712.546875 1193.015625 C 712.546875 1193.015625 715.613281 1081.050781 812.242188 1050.371094 C 812.242188 1050.371094 873.59375 1015.097656 895.066406 966.011719 C 895.066406 966.011719 887.144531 1005.382812 842.917969 1039.054688 C 842.917969 1039.054688 919.113281 1203.96875 1023.410156 1257.652344 C 1023.410156 1257.652344 941.097656 1037.296875 1049.480469 994.351562 C 1049.480469 994.351562 956.433594 1042.121094 1041.300781 1272.476562 C 1041.300781 1272.476562 1112.878906 1482.796875 1097.539062 1543.734375 C 1097.539062 1543.734375 1044.371094 1551.5 975.863281 1559.679688 C 907.351562 1567.859375 863.382812 1583.195312 853.160156 1600.578125 C 853.160156 1600.578125 1114.929688 1606.714844 1153.78125 1594.445312 C 1192.640625 1582.175781 1123.109375 1375.625 1138.441406 1338.8125 C 1153.78125 1302.003906 1233.539062 1311.203125 1263.191406 1286.664062 C 1263.191406 1286.664062 1251.738281 1308.410156 1202.109375 1314.410156 C 1202.109375 1314.410156 1175.941406 1316.589844 1167.210938 1335.132812 C 1167.210938 1335.132812 1226.320312 1337.332031 1246.558594 1375.675781 C 1266.800781 1414.019531 1337.089844 1536.511719 1452.128906 1550.355469 C 1567.160156 1564.203125 1741.839844 1555.683594 1833.441406 1557.8125 C 1925.050781 1559.941406 2088.011719 1553.550781 2043.28125 1537.574219 C 1998.539062 1521.597656 1808.949219 1508.816406 1735.449219 1506.6875 C 1661.960938 1504.554688 1470.238281 1469.40625 1428.691406 1396.976562 C 1387.160156 1324.550781 1389.289062 1220.167969 1365.851562 1131.761719 C 1342.421875 1043.355469 1274.988281 853.199219 1038.859375 836.71875 C 1038.859375 836.71875 922.757812 822.871094 871.632812 723.820312 C 820.507812 624.761719 874.828125 588.539062 789.617188 552.328125 C 789.617188 552.328125 786.421875 485.230469 739.554688 445.820312 C 739.554688 445.820312 720.382812 429.710938 711.863281 397.890625 C 711.863281 397.890625 671.386719 440.621094 706.535156 504.53125 C 706.535156 504.53125 721.449219 536.160156 703.34375 554.960938"/><path fill-rule="evenodd" d="M 1084.058594 1477.886719 C 1084.058594 1477.886719 1086.109375 1510.605469 1086.109375 1521.855469 C 1086.109375 1533.101562 895.917969 1512.652344 866.265625 1519.808594 C 866.265625 1519.808594 894.894531 1487.089844 939.886719 1495.269531 C 984.878906 1503.449219 1067.699219 1484.019531 1084.058594 1477.886719"/></g></svg><span style="background:linear-gradient(135deg,#FCD34D,#F4C430,#B8860B);-webkit-background-clip:text;-webkit-text-fill-color:transparent;">Pixeroo</span></h1>
     <p class="home-sub">Read. Optimise. Output.</p>
     <div class="home-search"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--slate-500)" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><input type="text" id="home-search" placeholder="Search tools..." autocomplete="off"></div>
+    <!-- Quick Actions -->
+    <div class="quick-actions">
+      <div class="quick-actions-label">Quick Actions</div>
+      <div class="quick-actions-row">
+        <button class="qa-btn" id="qa-screenshot" title="Capture tab and annotate"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M8 3v2M16 3v2M3 8h2M19 8h2"/></svg>Screenshot &amp; Annotate</button>
+        <button class="qa-btn" id="qa-resize-social" title="Resize image for social media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="10" r="3"/><path d="M6 21v-1a6 6 0 0 1 12 0v1"/></svg>Resize for Social</button>
+        <button class="qa-btn" id="qa-compress" title="Compress image for web"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Compress Image</button>
+        <button class="qa-btn" id="qa-convert" title="Convert image format"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg>Convert Format</button>
+        <button class="qa-btn" id="qa-qr" title="Generate QR code"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Generate QR</button>
+        <button class="qa-btn" id="qa-blur" title="Blur or redact sensitive info"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Blur / Redact</button>
+        <button class="qa-btn" id="qa-thumbnail" title="Make a YouTube thumbnail"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><polygon points="10 8 16 12 10 16"/></svg>YouTube Thumb</button>
+        <button class="qa-btn" id="qa-collage" title="Build an image collage"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="8" height="8" rx="1"/><rect x="13" y="3" width="8" height="8" rx="1"/><rect x="3" y="13" width="8" height="8" rx="1"/><rect x="13" y="13" width="8" height="8" rx="1"/></svg>Collage</button>
+      </div>
+    </div>
+    <!-- Recent Files -->
+    <div class="home-recent" id="home-recent" style="display:none;">
+      <div class="home-recent-label">Recent</div>
+      <div class="home-recent-row" id="recent-row"></div>
+    </div>
     <div class="home-grid">
       <div class="home-card" data-mode="edit"><div class="home-card-icon" style="background:rgba(244,196,48,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#F4C430" stroke-width="2"><path d="M12 20h9"/><path d="M16.376 3.622a1 1 0 0 1 3.002 3.002L7.368 18.635a2 2 0 0 1-.855.506l-2.872.838a.5.5 0 0 1-.62-.62l.838-2.872a2 2 0 0 1 .506-.854z"/></svg></div><div class="home-card-title">Edit</div><div class="home-card-desc">Resize, crop, rotate, adjust, filters, annotate</div></div>
       <div class="home-card" data-mode="convert"><div class="home-card-icon" style="background:rgba(34,197,94,0.1);"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2"><path d="M4 14a1 1 0 0 1-.78-1.63l9.9-10.2a.5.5 0 0 1 .86.46l-1.92 6.02A1 1 0 0 0 13 10h7a1 1 0 0 1 .78 1.63l-9.9 10.2a.5.5 0 0 1-.86-.46l1.92-6.02A1 1 0 0 0 11 14z"/></svg></div><div class="home-card-title">Convert</div><div class="home-card-desc">Batch format conversion with quality controls</div></div>
@@ -459,6 +493,35 @@
             <button id="btn-export" class="btn-primary" title="Export image (Ctrl+S)" style="padding:3px 10px;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>Export</button>
           </div>
           <div class="ribbon-row" id="export-quality-row" style="display:none;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" id="export-quality" min="1" max="100" value="85" title="Export quality (1-100)" style="width:55px;accent-color:var(--saffron-400);"><span class="range-value" id="export-quality-val" style="width:20px;">85</span></div>
+          <div class="ribbon-row"><select id="export-preset" class="select-field" title="Export as preset size" style="width:140px;">
+            <option value="">Export Presets...</option>
+            <optgroup label="Social Media">
+              <option value="1080,1080,instagram-post">Instagram Post (1080×1080)</option>
+              <option value="1080,1920,instagram-story">Instagram Story (1080×1920)</option>
+              <option value="1200,675,x-post">X / Twitter Post (1200×675)</option>
+              <option value="1500,500,x-header">X / Twitter Header (1500×500)</option>
+              <option value="1200,630,facebook-post">Facebook Post (1200×630)</option>
+              <option value="820,312,facebook-cover">Facebook Cover (820×312)</option>
+              <option value="1200,627,linkedin-post">LinkedIn Post (1200×627)</option>
+              <option value="1584,396,linkedin-banner">LinkedIn Banner (1584×396)</option>
+              <option value="1280,720,youtube-thumb">YouTube Thumbnail (1280×720)</option>
+              <option value="1000,1500,pinterest">Pinterest Pin (1000×1500)</option>
+            </optgroup>
+            <optgroup label="Presentation">
+              <option value="1920,1080,slide-16-9">Slide 16:9 (1920×1080)</option>
+              <option value="1024,768,slide-4-3">Slide 4:3 (1024×768)</option>
+              <option value="1200,630,og-image">OG Image (1200×630)</option>
+            </optgroup>
+            <optgroup label="Document">
+              <option value="2480,3508,a4-300dpi">A4 300dpi (2480×3508)</option>
+              <option value="2550,3300,letter-300dpi">US Letter 300dpi (2550×3300)</option>
+            </optgroup>
+            <optgroup label="App">
+              <option value="1242,2688,iphone-screenshot">iPhone Screenshot (1242×2688)</option>
+              <option value="2048,2732,ipad-screenshot">iPad Screenshot (2048×2732)</option>
+              <option value="512,512,app-icon">App Icon (512×512)</option>
+            </optgroup>
+          </select></div>
           <div style="display:grid;grid-template-columns:auto auto auto auto;gap:3px;">
             <button class="tool-btn" id="btn-strip-meta" title="Strip metadata and re-export"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/></svg></button>
             <button class="tool-btn" id="btn-to-pdf" title="Export as PDF"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></button>
@@ -1564,6 +1627,7 @@
       <div class="ribbon-group"><div class="ribbon-tools">
         <div class="ribbon-row"><select id="batch-format" class="select-field" style="width:72px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="original">Original</option></select><span class="ribbon-mini-label">Q</span><input type="range" id="batch-quality" class="range-input" min="1" max="100" value="85" style="width:40px;"><span class="range-value" id="batch-quality-val">85</span></div>
         <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="batch-strip-meta">Strip meta</label><label class="toggle-chip"><input type="checkbox" id="batch-add-copyright">Copyright</label><input type="text" id="batch-copyright-text" class="input-field" value="© {year} All Rights Reserved" style="width:110px;display:none;" title="Copyright text. {year} = current year"></div>
+        <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="batch-target-size">Max size</label><input type="number" id="batch-max-kb" class="input-field" value="200" min="10" max="10000" style="width:52px;display:none;" title="Target max file size in KB"><span id="batch-max-kb-unit" style="color:var(--slate-400);font-size:0.6rem;display:none;">KB</span></div>
       </div><div class="ribbon-label">Output</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Rename -->

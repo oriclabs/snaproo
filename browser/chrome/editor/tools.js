@@ -670,8 +670,7 @@ function readDpiFromJpeg(bytes) {
 }
 
 // ============================================================
-// QR Reader (Canvas-based fallback until WASM is loaded)
-// When WASM is available, use pixeroo_wasm.read_qr() instead
+// QR Reader (Canvas-based)
 // ============================================================
 
 async function readQRFromFile(file) {
@@ -792,7 +791,7 @@ async function imageToPdf(canvasList, filename) {
 
 // #32 PDF to Image - REMOVED
 // Requires PDF.js (400KB CDN load) which Chrome rejects as remote code.
-// Will revisit with Rust-based PDF parsing in future WASM update.
+// PDF parsing: basic canvas-to-PDF approach for now.
 
 // ============================================================
 // #33 Color Blindness Simulator

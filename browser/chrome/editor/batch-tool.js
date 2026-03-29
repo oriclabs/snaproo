@@ -21,6 +21,12 @@ function initBatch() {
     if (input) input.style.display = e.target.checked ? '' : 'none';
   });
 
+  // Show/hide target size input
+  $('batch-target-size')?.addEventListener('change', (e) => {
+    $('batch-max-kb').style.display = e.target.checked ? '' : 'none';
+    $('batch-max-kb-unit').style.display = e.target.checked ? '' : 'none';
+  });
+
   // Load logo image
   const wmImgBtn = $('batch-wm-img-btn');
   const wmImgInput = $('batch-wm-img-file');
@@ -475,7 +481,21 @@ function initBatch() {
       const filename = batchFilename(bf, index, w, h, ext);
       const subfolder = multiSize ? `${w}w/` : '';
 
-      const blob = await new Promise(r => c.toBlob(r, mime, q));
+      let blob = await new Promise(r => c.toBlob(r, mime, q));
+
+      // Compress to target size if enabled (iteratively reduce quality)
+      const targetSize = $('batch-target-size')?.checked;
+      const maxKB = +($('batch-max-kb')?.value) || 200;
+      if (targetSize && fmt !== 'png' && blob.size > maxKB * 1024) {
+        let lo = 0.05, hi = q || 0.85, attempts = 0;
+        while (attempts < 8 && blob.size > maxKB * 1024 && hi - lo > 0.02) {
+          const mid = (lo + hi) / 2;
+          blob = await new Promise(r => c.toBlob(r, mime, mid));
+          if (blob.size > maxKB * 1024) hi = mid; else lo = mid;
+          attempts++;
+        }
+      }
+
       results.push({ filename: subfolder + filename, blob });
     }
     return results;

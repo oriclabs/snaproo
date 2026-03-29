@@ -42,6 +42,7 @@ function initEdit() {
     _initEditGuides();
     showImageHandles();
     if (window.fitToView) window.fitToView();
+    if (window._addRecentFile) window._addRecentFile(img, editFilename);
   });
 
   // Drop-to-replace on work area
@@ -1309,6 +1310,36 @@ function initEdit() {
   // Export
   $('btn-export').addEventListener('click', editExport);
 
+  // Export preset — resize to target size and export
+  $('export-preset')?.addEventListener('change', () => {
+    const val = $('export-preset').value;
+    if (!val || !editCanvas.width) { $('export-preset').value = ''; return; }
+    const parts = val.split(',');
+    const tw = +parts[0], th = +parts[1], name = parts[2] || 'preset';
+    // Render current pipeline to a temp canvas at target size
+    const src = editCanvas;
+    const out = document.createElement('canvas');
+    out.width = tw; out.height = th;
+    const octx = out.getContext('2d');
+    // Cover-fit: fill target, crop overflow
+    const sa = src.width / src.height, ta = tw / th;
+    let sw, sh, sx, sy;
+    if (sa > ta) { sh = src.height; sw = sh * ta; sx = (src.width - sw) / 2; sy = 0; }
+    else { sw = src.width; sh = sw / ta; sx = 0; sy = (src.height - sh) / 2; }
+    octx.drawImage(src, sx, sy, sw, sh, 0, 0, tw, th);
+    // Flatten annotations if present
+    if (window._pixerooObjLayer?.hasObjects()) {
+      window._pixerooObjLayer.renderTo(octx, tw / src.width, th / src.height);
+    }
+    const fmt = $('export-format').value || 'png';
+    const quality = +($('export-quality')?.value || 85) / 100;
+    const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt] || 'image/png';
+    out.toBlob(blob => {
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}-${name}.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+    }, mime, quality);
+    $('export-preset').value = '';
+  });
+
   // Export annotations as SVG overlay
   $('btn-export-annotations-svg')?.addEventListener('click', () => {
     if (!window._pixerooObjLayer?.hasObjects()) return;
@@ -1862,6 +1893,24 @@ function initLibraryImport() {
     e.stopPropagation(); // prevent dropzone click from opening file browser
     _doLibraryImport();
   });
+
+  // Expose global function for Quick Actions and Library Manager
+  window._loadEditImage = function(img, name) {
+    editOriginal = img;
+    editFilename = name || 'image';
+    $('file-label').textContent = editFilename;
+    pipeline.setDisplayCanvas(editCanvas);
+    pipeline.loadImage(img);
+    editCanvas.style.display = 'block';
+    $('edit-ribbon')?.classList.remove('disabled');
+    $('edit-dropzone').style.display = 'none';
+    updResize(); originalW = 0; originalH = 0; saveEdit();
+    _initEditGuides();
+    showImageHandles();
+    if (window.fitToView) window.fitToView();
+    // Save to recent files
+    if (window._addRecentFile) window._addRecentFile(img, editFilename);
+  };
 }
 
 function updateDimensionBadge() {
