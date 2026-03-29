@@ -1,14 +1,14 @@
 // Pixeroo — Info Tool
 function initInfo() {
-  setupDropzone(document.getElementById('info-drop'), document.getElementById('info-file'), async (file) => {
-    document.getElementById('info-drop').style.display = 'none';
-    document.getElementById('info-preview').style.display = 'block';
-    document.getElementById('info-img').src = URL.createObjectURL(file);
-    const grid = document.getElementById('info-details-grid');
+  setupDropzone($('info-drop'), $('info-file'), async (file) => {
+    $('info-drop').style.display = 'none';
+    $('info-preview').style.display = 'block';
+    $('info-img').src = URL.createObjectURL(file);
+    const grid = $('info-details-grid');
     if (grid) { grid.style.display = 'grid'; grid.style.gridTemplateColumns = '1fr 1fr'; }
     const img = await loadImg(file);
 
-    document.getElementById('info-file-details').innerHTML = [
+    $('info-file-details').innerHTML = [
       ['Filename', file.name], ['Type', file.type || 'Unknown'], ['Size', formatBytes(file.size)],
       ['Dimensions', img ? `${img.naturalWidth} x ${img.naturalHeight}` : '?'],
       ['Ratio', img ? `${img.naturalWidth/gcd(img.naturalWidth,img.naturalHeight)}:${img.naturalHeight/gcd(img.naturalWidth,img.naturalHeight)}` : '?'],
@@ -17,14 +17,14 @@ function initInfo() {
 
     const bytes = new Uint8Array(await file.arrayBuffer());
     const exif = parseExif(bytes);
-    document.getElementById('info-exif').innerHTML = exif.length ? exif.map(([t,v]) => `<div class="info-row"><span class="info-label">${esc(t)}</span><span class="info-value" class="copyable">${esc(String(v))}</span></div>`).join('') : '<span style="color:var(--slate-500);">No EXIF data</span>';
+    $('info-exif').innerHTML = exif.length ? exif.map(([t,v]) => `<div class="info-row"><span class="info-label">${esc(t)}</span><span class="info-value" class="copyable">${esc(String(v))}</span></div>`).join('') : '<span style="color:var(--slate-500);">No EXIF data</span>';
 
     const structure = parseJpegStructure(bytes);
-    document.getElementById('info-structure').innerHTML = structure.length ? structure.map(s => `<div style="color:var(--slate-400);padding:2px 0;">${esc(s)}</div>`).join('') : '<span style="color:var(--slate-500);">Not JPEG</span>';
+    $('info-structure').innerHTML = structure.length ? structure.map(s => `<div style="color:var(--slate-400);padding:2px 0;">${esc(s)}</div>`).join('') : '<span style="color:var(--slate-500);">Not JPEG</span>';
 
     // DPI
     const dpi = readDpiFromPng(bytes) || readDpiFromJpeg(bytes);
-    document.getElementById('info-dpi').innerHTML = dpi
+    $('info-dpi').innerHTML = dpi
       ? `<div class="info-row"><span class="info-label">DPI</span><span class="info-value">${dpi.x} x ${dpi.y}</span></div>`
       : '<span style="color:var(--slate-500);">Not available</span>';
 
@@ -32,7 +32,7 @@ function initInfo() {
     if (img) {
       const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
       c.getContext('2d').drawImage(img, 0, 0);
-      const hashEl = document.getElementById('info-hash');
+      const hashEl = $('info-hash');
       hashEl.innerHTML = '<span style="color:var(--slate-500);">Computing...</span>';
       try {
         const sha = await computeImageHash(c, 'SHA-256');
@@ -44,7 +44,7 @@ function initInfo() {
       } catch { hashEl.innerHTML = '<span style="color:var(--slate-500);">Hash failed</span>'; }
 
       // Base64 button
-      const b64Btn = document.getElementById('btn-copy-base64');
+      const b64Btn = $('btn-copy-base64');
       b64Btn.disabled = false;
       b64Btn.onclick = () => {
         navigator.clipboard.writeText(c.toDataURL(file.type || 'image/png'));

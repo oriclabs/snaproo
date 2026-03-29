@@ -13,7 +13,7 @@ const CALLOUT_TEMPLATES = {
 };
 
 function initCallout() {
-  const canvas = document.getElementById('callout-canvas');
+  const canvas = $('callout-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let coImg = null;
@@ -25,50 +25,50 @@ function initCallout() {
     canvas.height = img.naturalHeight || img.height;
     ctx.drawImage(img, 0, 0);
     canvas.style.display = 'block';
-    document.getElementById('callout-dropzone').style.display = 'none';
+    $('callout-dropzone').style.display = 'none';
 
     // Create object layer for callouts
     coObjLayer = new ObjectLayer(canvas);
-    coObjLayer.attach(document.getElementById('callout-canvas-wrap'));
+    coObjLayer.attach($('callout-canvas-wrap'));
   }
 
-  setupDropzone(document.getElementById('callout-dropzone'), document.getElementById('callout-file'), async (file) => {
+  setupDropzone($('callout-dropzone'), $('callout-file'), async (file) => {
     const img = await loadImg(file);
     if (!img) return;
     loadImage(img);
   });
 
   // Template buttons
-  document.querySelectorAll('.callout-tpl').forEach(btn => {
+  $$('.callout-tpl').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!coObjLayer) return;
       const tpl = CALLOUT_TEMPLATES[btn.dataset.tpl];
       if (!tpl) return;
       coObjLayer.addCallout(canvas.width / 2 - 100, canvas.height / 2 - 40, 200, 80, {
         ...tpl,
-        fontSize: +document.getElementById('co-fontsize')?.value || 16,
+        fontSize: +$('co-fontsize')?.value || 16,
       });
     });
   });
 
   // Add button (custom callout)
-  document.getElementById('btn-co-add')?.addEventListener('click', () => {
+  $('btn-co-add')?.addEventListener('click', () => {
     if (!coObjLayer) return;
     coObjLayer.addCallout(canvas.width / 2 - 100, canvas.height / 2 - 40, 200, 80, {
-      shape: document.getElementById('co-shape')?.value || 'rounded',
-      tailDir: document.getElementById('co-tail')?.value || 'bottom',
-      icon: document.getElementById('co-icon')?.value || '',
-      bgColor: document.getElementById('co-bg')?.value || '#1e293b',
-      borderColor: document.getElementById('co-border')?.value || '#F4C430',
-      textColor: document.getElementById('co-text-color')?.value || '#ffffff',
-      fontSize: +document.getElementById('co-fontsize')?.value || 16,
-      radius: +document.getElementById('co-radius')?.value || 12,
+      shape: $('co-shape')?.value || 'rounded',
+      tailDir: $('co-tail')?.value || 'bottom',
+      icon: $('co-icon')?.value || '',
+      bgColor: $('co-bg')?.value || '#1e293b',
+      borderColor: $('co-border')?.value || '#F4C430',
+      textColor: $('co-text-color')?.value || '#ffffff',
+      fontSize: +$('co-fontsize')?.value || 16,
+      radius: +$('co-radius')?.value || 12,
       text: 'Type here...',
     });
   });
 
   // Export
-  document.getElementById('btn-co-export')?.addEventListener('click', () => {
+  $('btn-co-export')?.addEventListener('click', () => {
     if (!canvas.width || !coObjLayer) return;
     const out = document.createElement('canvas');
     out.width = canvas.width;
@@ -83,7 +83,7 @@ function initCallout() {
   });
 
   // Save to library
-  document.getElementById('btn-co-save-lib')?.addEventListener('click', () => {
+  $('btn-co-save-lib')?.addEventListener('click', () => {
     if (!canvas.width || !coObjLayer) return;
     const out = document.createElement('canvas');
     out.width = canvas.width;
@@ -95,7 +95,7 @@ function initCallout() {
   });
 
   // Library picker
-  document.getElementById('btn-co-from-lib')?.addEventListener('click', () => {
+  $('btn-co-from-lib')?.addEventListener('click', () => {
     openLibraryPicker(async (items) => {
       if (!items.length) return;
       const img = new Image();

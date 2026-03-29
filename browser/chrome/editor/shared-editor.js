@@ -1,3 +1,8 @@
+// DOM helpers — reduce verbosity across all tool files
+const $ = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+const on = (el, evt, fn) => el?.addEventListener(evt, fn);
+
 // Pixeroo — Shared Editor Utilities
 
 // ── Shared mutable globals ──

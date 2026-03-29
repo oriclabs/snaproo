@@ -7,14 +7,14 @@ let wmPreviewIdx = 0;
 let wmPreviewTimer = null;
 
 function initWatermark() {
-  const canvas = document.getElementById('wm-canvas');
+  const canvas = $('wm-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
-  const dropzone = document.getElementById('wm-dropzone');
-  const fileInput = document.getElementById('wm-files');
-  const logoInput = document.getElementById('wm-logo-file');
-  const thumbsEl = document.getElementById('wm-thumbs');
-  const countEl = document.getElementById('wm-count');
+  const dropzone = $('wm-dropzone');
+  const fileInput = $('wm-files');
+  const logoInput = $('wm-logo-file');
+  const thumbsEl = $('wm-thumbs');
+  const countEl = $('wm-count');
 
   function updateCount() {
     countEl.textContent = wmImages.length + ' image' + (wmImages.length !== 1 ? 's' : '') + ' loaded';
@@ -54,10 +54,10 @@ function initWatermark() {
   setupDropzone(dropzone, fileInput, addImage, { multiple: true });
 
   // Add Images button
-  document.getElementById('btn-wm-add').addEventListener('click', () => fileInput.click());
+  $('btn-wm-add').addEventListener('click', () => fileInput.click());
 
   // Add from Library button
-  document.getElementById('btn-wm-from-lib')?.addEventListener('click', () => {
+  $('btn-wm-from-lib')?.addEventListener('click', () => {
     openLibraryPicker(async (items) => {
       for (const item of items) {
         const img = new Image();
@@ -89,7 +89,7 @@ function initWatermark() {
   });
 
   // Clear button
-  document.getElementById('btn-wm-clear').addEventListener('click', async () => {
+  $('btn-wm-clear').addEventListener('click', async () => {
     if (wmImages.length) {
       const ok = await pixDialog.confirm('Clear Images', `Remove all ${wmImages.length} images?`, { danger: true, okText: 'Clear' });
       if (!ok) return;
@@ -104,38 +104,38 @@ function initWatermark() {
   });
 
   // Type toggle (Text / Logo)
-  document.getElementById('wm-type-text').addEventListener('click', () => {
+  $('wm-type-text').addEventListener('click', () => {
     wmType = 'text';
-    document.getElementById('wm-type-text').classList.add('active');
-    document.getElementById('wm-type-logo').classList.remove('active');
-    document.getElementById('wm-text-group').style.display = '';
-    document.getElementById('wm-logo-row').style.display = 'none';
+    $('wm-type-text').classList.add('active');
+    $('wm-type-logo').classList.remove('active');
+    $('wm-text-group').style.display = '';
+    $('wm-logo-row').style.display = 'none';
     wmDebouncedPreview();
   });
-  document.getElementById('wm-type-logo').addEventListener('click', () => {
+  $('wm-type-logo').addEventListener('click', () => {
     wmType = 'logo';
-    document.getElementById('wm-type-logo').classList.add('active');
-    document.getElementById('wm-type-text').classList.remove('active');
-    document.getElementById('wm-text-group').style.display = 'none';
-    document.getElementById('wm-logo-row').style.display = '';
+    $('wm-type-logo').classList.add('active');
+    $('wm-type-text').classList.remove('active');
+    $('wm-text-group').style.display = 'none';
+    $('wm-logo-row').style.display = '';
     wmDebouncedPreview();
   });
 
   // Logo upload
-  document.getElementById('btn-wm-logo-upload').addEventListener('click', () => logoInput.click());
+  $('btn-wm-logo-upload').addEventListener('click', () => logoInput.click());
   logoInput.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     wmLogo = await loadImg(file);
-    document.getElementById('wm-logo-name').textContent = file.name;
+    $('wm-logo-name').textContent = file.name;
     wmDebouncedPreview();
   });
 
   // Position grid
-  document.querySelectorAll('.wm-pos-btn').forEach(btn => {
+  $$('.wm-pos-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       wmPosition = btn.dataset.pos;
-      document.querySelectorAll('.wm-pos-btn').forEach(b => {
+      $$('.wm-pos-btn').forEach(b => {
         b.classList.remove('active');
         b.querySelector('span').style.background = 'var(--slate-500)';
       });
@@ -156,17 +156,17 @@ function initWatermark() {
   });
 
   // Mode dropdown — show/hide tile gap
-  document.getElementById('wm-mode').addEventListener('change', () => {
-    const mode = document.getElementById('wm-mode').value;
-    document.getElementById('wm-tile-row').style.display = mode === 'tile' ? '' : 'none';
-    document.getElementById('wm-position-group').style.display = mode === 'single' ? '' : 'none';
+  $('wm-mode').addEventListener('change', () => {
+    const mode = $('wm-mode').value;
+    $('wm-tile-row').style.display = mode === 'tile' ? '' : 'none';
+    $('wm-position-group').style.display = mode === 'single' ? '' : 'none';
     wmDebouncedPreview();
   });
 
   // Tile gap num-spin buttons
-  document.querySelectorAll('#wm-tile-row .num-spin-btn').forEach(btn => {
+  $$('#wm-tile-row .num-spin-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const inp = document.getElementById('wm-tile-gap');
+      const inp = $('wm-tile-gap');
       const step = btn.dataset.dir === 'up' ? 10 : -10;
       inp.value = Math.max(20, Math.min(500, parseInt(inp.value || 100) + step));
       wmDebouncedPreview();
@@ -182,13 +182,13 @@ function initWatermark() {
   });
 
   // Preview button
-  document.getElementById('btn-wm-preview').addEventListener('click', () => wmRenderPreview());
+  $('btn-wm-preview').addEventListener('click', () => wmRenderPreview());
 
   // Apply All button
-  document.getElementById('btn-wm-apply').addEventListener('click', () => wmApplyAll());
+  $('btn-wm-apply').addEventListener('click', () => wmApplyAll());
 
   // Download ZIP button
-  document.getElementById('btn-wm-download').addEventListener('click', () => wmDownloadZip());
+  $('btn-wm-download').addEventListener('click', () => wmDownloadZip());
 }
 
 function wmDebouncedPreview() {
@@ -199,19 +199,19 @@ function wmDebouncedPreview() {
 function getWmOptions() {
   return {
     type: wmType,
-    text: document.getElementById('wm-text').value || 'Watermark',
-    font: document.getElementById('wm-font').value,
-    textColor: document.getElementById('wm-text-color').value,
-    shadowEnabled: document.getElementById('wm-shadow').checked,
-    shadowColor: document.getElementById('wm-shadow-color').value,
+    text: $('wm-text').value || 'Watermark',
+    font: $('wm-font').value,
+    textColor: $('wm-text-color').value,
+    shadowEnabled: $('wm-shadow').checked,
+    shadowColor: $('wm-shadow-color').value,
     logoImg: wmLogo,
     position: wmPosition,
-    opacity: parseInt(document.getElementById('wm-opacity').value),
-    size: parseInt(document.getElementById('wm-size').value),
-    rotation: parseInt(document.getElementById('wm-rotation').value),
-    margin: parseInt(document.getElementById('wm-margin').value),
-    mode: document.getElementById('wm-mode').value,
-    tileGap: parseInt(document.getElementById('wm-tile-gap').value) || 100,
+    opacity: parseInt($('wm-opacity').value),
+    size: parseInt($('wm-size').value),
+    rotation: parseInt($('wm-rotation').value),
+    margin: parseInt($('wm-margin').value),
+    mode: $('wm-mode').value,
+    tileGap: parseInt($('wm-tile-gap').value) || 100,
   };
 }
 
@@ -221,7 +221,7 @@ function wmRenderPreview() {
   const sourceImg = wmImages[idx].img;
   const options = getWmOptions();
   const result = applyWatermark(sourceImg, options);
-  const canvas = document.getElementById('wm-canvas');
+  const canvas = $('wm-canvas');
   canvas.width = result.width;
   canvas.height = result.height;
   canvas.getContext('2d').drawImage(result, 0, 0);
@@ -401,14 +401,14 @@ function applyWatermark(sourceImg, options) {
 async function wmApplyAll() {
   if (!wmImages.length) { pixDialog.alert('No Images', 'Load images first.'); return; }
   const options = getWmOptions();
-  if (options.type === 'text' && !document.getElementById('wm-text').value.trim()) {
+  if (options.type === 'text' && !$('wm-text').value.trim()) {
     pixDialog.alert('No Text', 'Enter watermark text.'); return;
   }
   if (options.type === 'logo' && !wmLogo) {
     pixDialog.alert('No Logo', 'Upload a logo image first.'); return;
   }
 
-  const format = document.getElementById('wm-format').value;
+  const format = $('wm-format').value;
   const mime = format === 'jpeg' ? 'image/jpeg' : format === 'webp' ? 'image/webp' : 'image/png';
   const quality = format === 'jpeg' ? 0.85 : format === 'webp' ? 0.85 : undefined;
 

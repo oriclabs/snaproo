@@ -40,36 +40,36 @@ let storeIconImg = null, storeScreenImg = null, storeGenerated = {};
 
 function initStore() {
   // Store nav
-  document.querySelectorAll('.store-nav-item').forEach(item => {
+  $$('.store-nav-item').forEach(item => {
     item.addEventListener('click', () => {
-      document.querySelectorAll('.store-nav-item').forEach(i => i.classList.remove('active'));
+      $$('.store-nav-item').forEach(i => i.classList.remove('active'));
       item.classList.add('active');
       renderStoreAssets(item.dataset.store);
     });
   });
 
-  setupDropzone(document.getElementById('store-icon-drop'), document.getElementById('store-icon-file'), async (file) => {
+  setupDropzone($('store-icon-drop'), $('store-icon-file'), async (file) => {
     storeIconImg = await loadImg(file);
     if (!storeIconImg) return;
-    document.getElementById('store-icon-preview').style.display = 'block';
-    const c = document.getElementById('store-icon-canvas'); c.width = 128; c.height = 128;
+    $('store-icon-preview').style.display = 'block';
+    const c = $('store-icon-canvas'); c.width = 128; c.height = 128;
     c.getContext('2d').drawImage(storeIconImg, 0, 0, 128, 128);
-    document.getElementById('btn-store-generate').disabled = false;
+    $('btn-store-generate').disabled = false;
     validateStoreIcon();
   });
 
-  setupDropzone(document.getElementById('store-screenshot-drop'), document.getElementById('store-screenshot-file'), async (file) => {
+  setupDropzone($('store-screenshot-drop'), $('store-screenshot-file'), async (file) => {
     storeScreenImg = await loadImg(file);
   });
 
-  document.getElementById('btn-store-generate').addEventListener('click', generateStoreAssets);
-  document.getElementById('btn-store-export').addEventListener('click', exportStoreZip);
+  $('btn-store-generate').addEventListener('click', generateStoreAssets);
+  $('btn-store-export').addEventListener('click', exportStoreZip);
 
   updateStoreCounts();
 }
 
 function validateStoreIcon() {
-  const el = document.getElementById('store-validation');
+  const el = $('store-validation');
   if (!storeIconImg) { el.textContent = 'Upload source icon'; return; }
   const warnings = [];
   if (storeIconImg.naturalWidth < 1024 || storeIconImg.naturalHeight < 1024) warnings.push('Icon should be at least 1024x1024 for best quality');
@@ -82,17 +82,17 @@ function updateStoreCounts() {
   for (const [store, specs] of Object.entries(STORE_SPECS)) {
     const count = specs.length;
     total += count;
-    const el = document.getElementById(`store-count-${store}`);
+    const el = $(`store-count-${store}`);
     if (el) el.textContent = count;
   }
-  document.getElementById('store-count-all').textContent = total;
+  $('store-count-all').textContent = total;
 }
 
 async function generateStoreAssets() {
   if (!storeIconImg) return;
   storeGenerated = {};
-  const bg = document.getElementById('store-bg-color').value;
-  const radius = +document.getElementById('store-corner-radius').value;
+  const bg = $('store-bg-color').value;
+  const radius = +$('store-corner-radius').value;
 
   for (const [store, specs] of Object.entries(STORE_SPECS)) {
     storeGenerated[store] = [];
@@ -138,12 +138,12 @@ async function generateStoreAssets() {
     }
   }
 
-  document.getElementById('btn-store-export').disabled = false;
+  $('btn-store-export').disabled = false;
   renderStoreAssets(document.querySelector('.store-nav-item.active')?.dataset.store || 'all');
 }
 
 function renderStoreAssets(filter) {
-  const grid = document.getElementById('store-assets');
+  const grid = $('store-assets');
   grid.innerHTML = '';
 
   const stores = filter === 'all' ? Object.keys(STORE_SPECS) : [filter];

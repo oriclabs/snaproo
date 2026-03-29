@@ -1,3 +1,6 @@
+const $ = id => document.getElementById(id);
+const $$ = sel => document.querySelectorAll(sel);
+
 // Pixeroo Side Panel - Unified Gallery with Overlay
 
 let allImages = [];
@@ -32,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     checkIfEditorPage().then(isEditor => { if (!isEditor) scanPageImages(); });
   });
 
-  document.getElementById('btn-refresh').addEventListener('click', scanPageImages);
+  $('btn-refresh').addEventListener('click', scanPageImages);
 
   // Delegated click-to-copy for .copyable elements
   document.addEventListener('click', (e) => {
@@ -42,14 +45,14 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Quick Settings popover toggle
-  document.getElementById('btn-sp-settings').addEventListener('click', (e) => {
+  $('btn-sp-settings').addEventListener('click', (e) => {
     e.stopPropagation();
-    const pop = document.getElementById('sp-settings-popover');
+    const pop = $('sp-settings-popover');
     pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
     if (pop.style.display === 'block') initSPQuickSettings();
   });
   document.addEventListener('click', (e) => {
-    const pop = document.getElementById('sp-settings-popover');
+    const pop = $('sp-settings-popover');
     if (pop.style.display === 'block' && !pop.contains(e.target) && e.target.id !== 'btn-sp-settings') {
       pop.style.display = 'none';
     }
@@ -80,12 +83,12 @@ document.addEventListener('DOMContentLoaded', () => {
 // ============================================================
 
 function initMainTabs() {
-  document.querySelectorAll('.main-tab').forEach(tab => {
+  $$('.main-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+      $$('.main-tab').forEach(t => t.classList.remove('active'));
+      $$('.tab-content').forEach(c => c.classList.remove('active'));
       tab.classList.add('active');
-      document.getElementById(`tab-${tab.dataset.mainTab}`)?.classList.add('active');
+      $(`tab-${tab.dataset.mainTab}`)?.classList.add('active');
     });
   });
 }
@@ -95,9 +98,9 @@ function initMainTabs() {
 // ============================================================
 
 function initViewModes() {
-  document.querySelectorAll('[data-view]').forEach(btn => {
+  $$('[data-view]').forEach(btn => {
     btn.addEventListener('click', () => {
-      document.querySelectorAll('[data-view]').forEach(b => b.classList.remove('active'));
+      $$('[data-view]').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       currentView = btn.dataset.view;
       renderGallery();
@@ -113,11 +116,11 @@ function initViewModes() {
 let typeFilterSet = null; // null = all types, Set = specific types
 
 function initFilters() {
-  const btn = document.getElementById('btn-type-filter');
-  const dd = document.getElementById('type-filter-dropdown');
-  const allCb = document.getElementById('tf-all');
-  const typeCbs = document.querySelectorAll('.tf-type');
-  const label = document.getElementById('type-filter-label');
+  const btn = $('btn-type-filter');
+  const dd = $('type-filter-dropdown');
+  const allCb = $('tf-all');
+  const typeCbs = $$('.tf-type');
+  const label = $('type-filter-label');
 
   // Toggle dropdown
   btn.addEventListener('click', (e) => {
@@ -197,7 +200,7 @@ function getFilteredImages() {
 // ============================================================
 
 function initSort() {
-  document.getElementById('sort-by').addEventListener('change', (e) => {
+  $('sort-by').addEventListener('change', (e) => {
     currentSort = e.target.value;
     renderGallery();
     saveSession();
@@ -249,7 +252,7 @@ function applySorting(images) {
 // ============================================================
 
 function initSelection() {
-  document.getElementById('btn-toggle-select').addEventListener('click', () => {
+  $('btn-toggle-select').addEventListener('click', () => {
     const filtered = getFilteredImages();
     const allSelected = filtered.every(img => selectedSet.has(img.src));
 
@@ -268,8 +271,8 @@ function initSelection() {
 function updateToggleIcon() {
   const filtered = getFilteredImages();
   const allSelected = filtered.length > 0 && filtered.every(img => selectedSet.has(img.src));
-  document.getElementById('icon-select').style.display = allSelected ? 'none' : '';
-  document.getElementById('icon-deselect').style.display = allSelected ? '' : 'none';
+  $('icon-select').style.display = allSelected ? 'none' : '';
+  $('icon-deselect').style.display = allSelected ? '' : 'none';
 }
 
 function toggleSelection(src) {
@@ -285,16 +288,16 @@ function toggleSelection(src) {
 function updateSelectionCount() {
   const count = selectedSet.size;
   const total = allImages.length;
-  document.getElementById('sel-count-num').textContent = count;
-  document.getElementById('btn-dl-selected').disabled = count === 0;
+  $('sel-count-num').textContent = count;
+  $('btn-dl-selected').disabled = count === 0;
 
   // Update button labels with counts
-  const selLabel = document.getElementById('dl-sel-label');
-  const allLabel = document.getElementById('dl-all-label');
+  const selLabel = $('dl-sel-label');
+  const allLabel = $('dl-all-label');
   if (selLabel) selLabel.textContent = count ? `Selected (${count})` : 'Selected';
   if (allLabel) allLabel.textContent = total ? `All (${total})` : 'All';
 
-  document.querySelectorAll('.img-card').forEach(card => {
+  $$('.img-card').forEach(card => {
     const src = card.dataset.src;
     const cb = card.querySelector('.card-check input');
     card.classList.toggle('selected', selectedSet.has(src));
@@ -315,10 +318,10 @@ function hidePageColorsTabs() {
   if (pageTab) pageTab.style.display = 'none';
   if (colorsTab) colorsTab.style.display = 'none';
   // Auto-switch to Library
-  document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  $$('.main-tab').forEach(t => t.classList.remove('active'));
+  $$('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelector('[data-main-tab="library"]')?.classList.add('active');
-  document.getElementById('tab-library')?.classList.add('active');
+  $('tab-library')?.classList.add('active');
 }
 
 function showPageColorsTabs() {
@@ -329,10 +332,10 @@ function showPageColorsTabs() {
   // If Library was auto-selected (from restricted page), switch to Page tab
   const libTab = document.querySelector('[data-main-tab="library"]');
   if (libTab?.classList.contains('active') && pageTab) {
-    document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+    $$('.main-tab').forEach(t => t.classList.remove('active'));
+    $$('.tab-content').forEach(t => t.classList.remove('active'));
     pageTab.classList.add('active');
-    document.getElementById('tab-images')?.classList.add('active');
+    $('tab-images')?.classList.add('active');
   }
 }
 
@@ -348,8 +351,8 @@ async function checkIfEditorPage() {
 }
 
 async function scanPageImages() {
-  const gallery = document.getElementById('gallery');
-  const extMsg = document.getElementById('extension-tab-msg');
+  const gallery = $('gallery');
+  const extMsg = $('extension-tab-msg');
 
   gallery.style.display = '';
   extMsg.style.display = 'none';
@@ -412,7 +415,7 @@ async function scanPageImages() {
         hidePageColorsTabs();
         gallery.style.display = 'none';
         extMsg.style.display = 'none';
-        document.getElementById('image-count').textContent = '';
+        $('image-count').textContent = '';
         _setPageFooter(false);
       } else if (isConnectionErr) {
         // Normal page loaded before Pixeroo — show reload button
@@ -426,10 +429,10 @@ async function scanPageImages() {
           <p style="color:var(--slate-500);line-height:1.5;">The page was loaded before Pixeroo. Reload to enable page image scanning and color picking.</p>
           <p style="color:var(--slate-400);margin-top:0.25rem;">Your <b>My Library</b> is still accessible.</p>
           <button id="btn-reload-page" style="margin-top:0.75rem;background:var(--saffron-400);color:#1e293b;border:none;border-radius:6px;padding:6px 16px;font-weight:600;cursor:pointer;">Reload Page</button>`;
-        document.getElementById('btn-reload-page')?.addEventListener('click', async () => {
+        $('btn-reload-page')?.addEventListener('click', async () => {
           try { await chrome.tabs.reload(tab.id); await new Promise(r => setTimeout(r, 1500)); scanPageImages(); } catch {}
         });
-        document.getElementById('image-count').textContent = '';
+        $('image-count').textContent = '';
       } else {
         showScanError('Could not scan this page. Try refreshing the webpage.');
       }
@@ -449,7 +452,7 @@ async function scanPageImages() {
       unique.push(img);
     }
     allImages = unique.map((img, i) => ({ ...img, _index: i }));
-    document.getElementById('image-count').textContent = `${allImages.length} img`;
+    $('image-count').textContent = `${allImages.length} img`;
     renderGallery();
   } else {
     showScanError('No images found on this page');
@@ -457,7 +460,7 @@ async function scanPageImages() {
 }
 
 function showScanError(text) {
-  const gallery = document.getElementById('gallery');
+  const gallery = $('gallery');
   gallery.innerHTML = `<div style="text-align:center;padding:2rem 1rem;max-width:100%;">
     <div style="color:var(--slate-400);margin-bottom:0.5rem;word-wrap:break-word;">${escapeHtml(text)}</div>
     <div style="color:var(--slate-500);line-height:1.5;">Make sure you are on a website and the page has fully loaded. Try clicking Refresh.</div>
@@ -466,7 +469,7 @@ function showScanError(text) {
 }
 
 function _setPageFooter(visible) {
-  const bar = document.getElementById('page-bottom-bar');
+  const bar = $('page-bottom-bar');
   if (bar) bar.style.display = visible ? '' : 'none';
 }
 
@@ -498,7 +501,7 @@ function typeBadgeLabel(type) {
 // ============================================================
 
 async function renderGallery() {
-  const gallery = document.getElementById('gallery');
+  const gallery = $('gallery');
   const images = getFilteredImages();
 
   gallery.className = `gallery view-${currentView}`;
@@ -574,26 +577,26 @@ async function renderGallery() {
 // ============================================================
 
 function initOverlay() {
-  const backdrop = document.getElementById('overlay-backdrop');
+  const backdrop = $('overlay-backdrop');
   if (!backdrop) return;
 
-  document.getElementById('overlay-close')?.addEventListener('click', closeOverlay);
+  $('overlay-close')?.addEventListener('click', closeOverlay);
   backdrop.addEventListener('click', (e) => {
     if (e.target === backdrop) closeOverlay();
   });
 
   // Overlay tabs
-  document.querySelectorAll('.overlay-tab').forEach(tab => {
+  $$('.overlay-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.overlay-tab').forEach(t => t.classList.remove('active'));
-      document.querySelectorAll('.overlay-panel').forEach(p => p.classList.remove('active'));
+      $$('.overlay-tab').forEach(t => t.classList.remove('active'));
+      $$('.overlay-panel').forEach(p => p.classList.remove('active'));
       tab.classList.add('active');
-      document.getElementById(`overlay-${tab.dataset.overlayTab}`)?.classList.add('active');
+      $(`overlay-${tab.dataset.overlayTab}`)?.classList.add('active');
     });
   });
 
   // Save As format buttons
-  document.querySelectorAll('[data-save-fmt]').forEach(btn => {
+  $$('[data-save-fmt]').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!overlayImage) return;
       sendToContent('convertAndSave', { src: overlayImage.src, format: btn.dataset.saveFmt });
@@ -601,11 +604,11 @@ function initOverlay() {
   });
 
   // Action buttons
-  document.getElementById('overlay-copy-png').addEventListener('click', () => {
+  $('overlay-copy-png').addEventListener('click', () => {
     if (overlayImage) sendToContent('copyAsPng', { src: overlayImage.src });
   });
 
-  document.getElementById('overlay-download').addEventListener('click', () => {
+  $('overlay-download').addEventListener('click', () => {
     if (overlayImage) {
       const filename = overlayImage.filename || extractFilename(overlayImage.src) || 'image';
       chrome.runtime.sendMessage({
@@ -617,11 +620,11 @@ function initOverlay() {
     }
   });
 
-  document.getElementById('overlay-extract-colors').addEventListener('click', () => {
+  $('overlay-extract-colors').addEventListener('click', () => {
     if (overlayImage) sendToContent('extractColors', { src: overlayImage.src });
   });
 
-  document.getElementById('overlay-read-qr').addEventListener('click', () => {
+  $('overlay-read-qr').addEventListener('click', () => {
     if (overlayImage) sendToContent('readQR', { src: overlayImage.src });
   });
 
@@ -638,11 +641,11 @@ function openOverlay(img) {
   overlayImage = img;
   const filename = img.filename || extractFilename(img.src);
 
-  document.getElementById('overlay-title').textContent = filename;
-  document.getElementById('overlay-img').src = img.src;
+  $('overlay-title').textContent = filename;
+  $('overlay-img').src = img.src;
 
   // Build info rows
-  const infoPanel = document.getElementById('overlay-info');
+  const infoPanel = $('overlay-info');
   const rows = [
     ['Filename', filename],
     ['Type', img.type || 'Unknown'],
@@ -667,19 +670,19 @@ function openOverlay(img) {
   `).join('');
 
   // Reset to info tab
-  document.querySelectorAll('.overlay-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.overlay-panel').forEach(p => p.classList.remove('active'));
+  $$('.overlay-tab').forEach(t => t.classList.remove('active'));
+  $$('.overlay-panel').forEach(p => p.classList.remove('active'));
   document.querySelector('[data-overlay-tab="info"]')?.classList.add('active');
-  document.getElementById('overlay-info')?.classList.add('active');
+  $('overlay-info')?.classList.add('active');
 
-  document.getElementById('overlay-backdrop')?.classList.add('visible');
+  $('overlay-backdrop')?.classList.add('visible');
 
   // Load EXIF asynchronously
   loadExifData(img.src);
 }
 
 function closeOverlay() {
-  document.getElementById('overlay-backdrop')?.classList.remove('visible');
+  $('overlay-backdrop')?.classList.remove('visible');
   overlayImage = null;
 }
 
@@ -697,8 +700,8 @@ function navigateOverlay(direction) {
 // ============================================================
 
 async function loadExifData(src) {
-  const content = document.getElementById('exif-content');
-  const loading = document.getElementById('exif-loading');
+  const content = $('exif-content');
+  const loading = $('exif-loading');
   content.innerHTML = '';
   loading.style.display = 'block';
   loading.textContent = 'Loading EXIF data...';
@@ -872,20 +875,20 @@ function readTagValue(bytes, tiffStart, type, count, valOff, le) {
 // ============================================================
 
 function initDownload() {
-  document.getElementById('btn-dl-selected').addEventListener('click', () => {
+  $('btn-dl-selected').addEventListener('click', () => {
     const images = allImages.filter(img => selectedSet.has(img.src));
     if (images.length > 0) downloadImagesAsZip(images, 'pixeroo-selected.zip');
   });
 
-  document.getElementById('btn-dl-all').addEventListener('click', () => {
+  $('btn-dl-all').addEventListener('click', () => {
     const images = getFilteredImages();
     if (images.length > 0) downloadImagesAsZip(images, 'pixeroo-images.zip');
   });
 }
 
 async function downloadImagesAsZip(images, zipFilename) {
-  const btnSel = document.getElementById('btn-dl-selected');
-  const btnAll = document.getElementById('btn-dl-all');
+  const btnSel = $('btn-dl-selected');
+  const btnAll = $('btn-dl-all');
   const origSelText = btnSel.innerHTML;
   const origAllText = btnAll.innerHTML;
   btnSel.disabled = true;
@@ -933,8 +936,8 @@ async function downloadImagesAsZip(images, zipFilename) {
 }
 
 async function exportLibraryAsZip(ids, zipFilename) {
-  const btnSel = document.getElementById('btn-lib-export-selected');
-  const btnAll = document.getElementById('btn-lib-export-all');
+  const btnSel = $('btn-lib-export-selected');
+  const btnAll = $('btn-lib-export-all');
   const origSelHtml = btnSel.innerHTML;
   const origAllHtml = btnAll.innerHTML;
   btnSel.disabled = true;
@@ -1049,7 +1052,7 @@ function rgbToHsl(r, g, b) {
 let eyedropperActive = false;
 
 function initEyedropper() {
-  document.getElementById('btn-eyedropper').addEventListener('click', startEyedropper);
+  $('btn-eyedropper').addEventListener('click', startEyedropper);
   // Escape in side panel cancels eyedropper
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && eyedropperActive) {
@@ -1059,7 +1062,7 @@ function initEyedropper() {
 }
 
 async function startEyedropper() {
-  const btn = document.getElementById('btn-eyedropper');
+  const btn = $('btn-eyedropper');
 
   // Toggle off — cancel active eyedropper
   if (eyedropperActive) {
@@ -1134,10 +1137,10 @@ function showPickedColor(color) {
   renderPickedColors();
 
   // Switch to Colors tab
-  document.querySelectorAll('.main-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+  $$('.main-tab').forEach(t => t.classList.remove('active'));
+  $$('.tab-content').forEach(c => c.classList.remove('active'));
   document.querySelector('[data-main-tab="colors"]')?.classList.add('active');
-  document.getElementById('tab-colors')?.classList.add('active');
+  $('tab-colors')?.classList.add('active');
 }
 
 // ============================================================
@@ -1145,12 +1148,12 @@ function showPickedColor(color) {
 // ============================================================
 
 function initScreenshot() {
-  document.getElementById('btn-screenshot').addEventListener('click', captureScreenshot);
-  document.getElementById('btn-screenshot-close').addEventListener('click', () => {
-    document.getElementById('screenshot-result').style.display = 'none';
+  $('btn-screenshot').addEventListener('click', captureScreenshot);
+  $('btn-screenshot-close').addEventListener('click', () => {
+    $('screenshot-result').style.display = 'none';
   });
-  document.getElementById('btn-ss-copy').addEventListener('click', copyScreenshot);
-  document.getElementById('btn-ss-download').addEventListener('click', downloadScreenshot);
+  $('btn-ss-copy').addEventListener('click', copyScreenshot);
+  $('btn-ss-download').addEventListener('click', downloadScreenshot);
 }
 
 let lastScreenshotDataUrl = null;
@@ -1230,17 +1233,17 @@ function initColorsTab() {
   renderFavoritesFull();
 
   // Clear picked
-  document.getElementById('btn-colors-clear').addEventListener('click', () => {
+  $('btn-colors-clear').addEventListener('click', () => {
     recentPicks = [];
     saveSession();
     renderPickedColors();
   });
 
   // Extract page palette
-  document.getElementById('btn-extract-palette').addEventListener('click', extractPagePalette);
+  $('btn-extract-palette').addEventListener('click', extractPagePalette);
 
   // Export
-  document.getElementById('colors-export').addEventListener('change', (e) => {
+  $('colors-export').addEventListener('change', (e) => {
     const fmt = e.target.value;
     const allColors = [...recentPicks.map(c => c.hex), ...favColors];
     const unique = [...new Set(allColors)];
@@ -1352,17 +1355,17 @@ function createColorSwatch(hex, opts = {}) {
     if (contrastTarget) {
       if (contrastTarget === 'fg') {
         contrastFg = hex;
-        document.getElementById('contrast-fg').style.background = hex;
-        document.getElementById('contrast-fg').textContent = '';
+        $('contrast-fg').style.background = hex;
+        $('contrast-fg').textContent = '';
       } else {
         contrastBg = hex;
-        document.getElementById('contrast-bg').style.background = hex;
-        document.getElementById('contrast-bg').textContent = '';
+        $('contrast-bg').style.background = hex;
+        $('contrast-bg').textContent = '';
       }
       contrastTarget = null;
-      document.getElementById('contrast-fg').classList.remove('active');
-      document.getElementById('contrast-bg').classList.remove('active');
-      const hint = document.getElementById('contrast-hint');
+      $('contrast-fg').classList.remove('active');
+      $('contrast-bg').classList.remove('active');
+      const hint = $('contrast-hint');
       if (hint) hint.textContent = '';
       updateContrastResult();
       return;
@@ -1393,8 +1396,8 @@ function createColorSwatch(hex, opts = {}) {
         if (collection) saveColorToLibrary(hex, rgbStr, hslStr, collection);
       }},
       'sep',
-      { label: 'Set as Contrast FG', action: () => { contrastFg = hex; document.getElementById('contrast-fg').style.background = hex; document.getElementById('contrast-fg').textContent = ''; updateContrastResult(); }},
-      { label: 'Set as Contrast BG', action: () => { contrastBg = hex; document.getElementById('contrast-bg').style.background = hex; document.getElementById('contrast-bg').textContent = ''; updateContrastResult(); }},
+      { label: 'Set as Contrast FG', action: () => { contrastFg = hex; $('contrast-fg').style.background = hex; $('contrast-fg').textContent = ''; updateContrastResult(); }},
+      { label: 'Set as Contrast BG', action: () => { contrastBg = hex; $('contrast-bg').style.background = hex; $('contrast-bg').textContent = ''; updateContrastResult(); }},
     ];
     _showCtxMenu(e.clientX, e.clientY, items);
   });
@@ -1466,14 +1469,14 @@ function showColorDetail(hex, anchorEl) {
   if (contrastTarget) {
     if (contrastTarget === 'fg') {
       contrastFg = hex;
-      document.getElementById('contrast-fg').style.background = hex;
+      $('contrast-fg').style.background = hex;
     } else {
       contrastBg = hex;
-      document.getElementById('contrast-bg').style.background = hex;
+      $('contrast-bg').style.background = hex;
     }
     contrastTarget = null;
-    document.getElementById('contrast-fg').classList.remove('active');
-    document.getElementById('contrast-bg').classList.remove('active');
+    $('contrast-fg').classList.remove('active');
+    $('contrast-bg').classList.remove('active');
     updateContrastResult();
   }
 }
@@ -1481,7 +1484,7 @@ function showColorDetail(hex, anchorEl) {
 // ---- Extract page palette ----
 
 async function extractPagePalette() {
-  const btn = document.getElementById('btn-extract-palette');
+  const btn = $('btn-extract-palette');
   btn.style.color = '#F4C430';
 
   try {
@@ -1514,7 +1517,7 @@ async function extractPagePalette() {
 }
 
 function renderPagePalette() {
-  const list = document.getElementById('page-palette-list');
+  const list = $('page-palette-list');
   if (!list) return;
   list.innerHTML = '';
 
@@ -1535,7 +1538,7 @@ function renderPagePalette() {
 // ---- Render picked colors as swatch grid ----
 
 function renderPickedColors() {
-  const list = document.getElementById('picked-colors-list');
+  const list = $('picked-colors-list');
   if (!list) return;
   list.innerHTML = '';
 
@@ -1553,7 +1556,7 @@ function renderPickedColors() {
 // ---- Render favorites as swatch grid ----
 
 function renderFavoritesFull() {
-  const list = document.getElementById('fav-colors-list-full');
+  const list = $('fav-colors-list-full');
   if (!list) return;
   list.innerHTML = '';
 
@@ -1581,8 +1584,8 @@ function renderFavoritesFull() {
 // ---- Contrast checker ----
 
 function initContrastChecker() {
-  const fgEl = document.getElementById('contrast-fg');
-  const bgEl = document.getElementById('contrast-bg');
+  const fgEl = $('contrast-fg');
+  const bgEl = $('contrast-bg');
   if (!fgEl || !bgEl) return;
 
   function setContrastTarget(target) {
@@ -1590,7 +1593,7 @@ function initContrastChecker() {
     fgEl.classList.toggle('active', contrastTarget === 'fg');
     bgEl.classList.toggle('active', contrastTarget === 'bg');
     // Show instruction
-    const hint = document.getElementById('contrast-hint');
+    const hint = $('contrast-hint');
     if (hint) hint.textContent = contrastTarget ? `Click any color swatch to set ${contrastTarget === 'fg' ? 'foreground' : 'background'}` : '';
   }
 
@@ -1603,9 +1606,9 @@ function initContrastChecker() {
 function updateContrastResult() {
   const ratio = getContrastRatio(contrastFg, contrastBg);
   const ratioStr = ratio.toFixed(1) + ':1';
-  document.getElementById('contrast-ratio').textContent = ratioStr;
+  $('contrast-ratio').textContent = ratioStr;
 
-  const wcagEl = document.getElementById('contrast-wcag');
+  const wcagEl = $('contrast-wcag');
   if (ratio >= 7) {
     wcagEl.textContent = 'AAA';
     wcagEl.style.color = '#4ade80';
@@ -1640,18 +1643,18 @@ async function restoreSession() {
     recentPicks = session.recentPicks || [];
 
     // Apply restored view
-    document.querySelectorAll('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
-    document.getElementById('sort-by').value = currentSort;
+    $$('[data-view]').forEach(b => b.classList.toggle('active', b.dataset.view === currentView));
+    $('sort-by').value = currentSort;
 
     // Restore type filter (multi-select checkboxes)
     if (currentFilter && currentFilter !== 'all') {
       const types = currentFilter.split(',');
       typeFilterSet = new Set(types);
-      const allCb = document.getElementById('tf-all');
-      const typeCbs = document.querySelectorAll('.tf-type');
+      const allCb = $('tf-all');
+      const typeCbs = $$('.tf-type');
       if (allCb) allCb.checked = false;
       typeCbs.forEach(cb => { cb.checked = types.includes(cb.value); });
-      const label = document.getElementById('type-filter-label');
+      const label = $('type-filter-label');
       if (label) label.textContent = types.length === 1 ? types[0] : `${types.length} types`;
     }
   } catch {
@@ -1679,7 +1682,7 @@ async function initLibrary() {
   await renderLibrary();
 
   // Save page images to library (selected if any, otherwise all)
-  document.getElementById('btn-save-to-lib')?.addEventListener('click', async () => {
+  $('btn-save-to-lib')?.addEventListener('click', async () => {
     const hasSelection = selectedSet.size > 0;
     const imagesToSave = hasSelection
       ? allImages.filter(img => selectedSet.has(img.src))
@@ -1722,13 +1725,13 @@ async function initLibrary() {
       } catch {}
     }
     await renderLibrary();
-    if (saved) document.getElementById('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
+    if (saved) $('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
     // Re-render gallery to show bookmark indicators
     await renderGallery();
   });
 
   // Unsave — remove this page's images from library
-  document.getElementById('btn-unsave-from-lib')?.addEventListener('click', async () => {
+  $('btn-unsave-from-lib')?.addEventListener('click', async () => {
     // Get images to unsave: selected page images, or all page images
     const hasSelection = selectedSet.size > 0;
     const imagesToUnsave = hasSelection
@@ -1750,22 +1753,22 @@ async function initLibrary() {
     if (removed) {
       await renderLibrary();
       const u = await PixLibrary.getUsage();
-      document.getElementById('lib-count').textContent = u.count ? `(${u.count})` : '';
+      $('lib-count').textContent = u.count ? `(${u.count})` : '';
       await renderGallery(); // refresh bookmark indicators
     }
   });
 
   // Clear library
-  document.getElementById('btn-lib-clear')?.addEventListener('click', async () => {
+  $('btn-lib-clear')?.addEventListener('click', async () => {
     const ok = await pixDialog.confirm('Clear Library', 'Remove all items from your library? This cannot be undone.', { danger: true, okText: 'Clear All' });
     if (!ok) return;
     await PixLibrary.clear();
     await renderLibrary();
-    document.getElementById('lib-count').textContent = '';
+    $('lib-count').textContent = '';
   });
 
   // Delete selected library items
-  document.getElementById('btn-lib-delete-selected')?.addEventListener('click', async () => {
+  $('btn-lib-delete-selected')?.addEventListener('click', async () => {
     if (!libSelectedIds.size) return;
     const ok = await pixDialog.confirm('Delete Selected', `Remove ${libSelectedIds.size} selected item(s) from library?`, { danger: true, okText: 'Delete' });
     if (!ok) return;
@@ -1776,26 +1779,26 @@ async function initLibrary() {
     updateLibDeleteBtn();
     await renderLibrary();
     const u = await PixLibrary.getUsage();
-    document.getElementById('lib-count').textContent = u.count ? `(${u.count})` : '';
+    $('lib-count').textContent = u.count ? `(${u.count})` : '';
   });
 
   // Send to Edit/Collage/Batch
-  document.getElementById('btn-lib-send-edit')?.addEventListener('click', () => sendLibToTool('edit'));
-  document.getElementById('btn-lib-send-collage')?.addEventListener('click', () => sendLibToTool('collage'));
-  document.getElementById('btn-lib-send-batch')?.addEventListener('click', () => sendLibToTool('batch'));
+  $('btn-lib-send-edit')?.addEventListener('click', () => sendLibToTool('edit'));
+  $('btn-lib-send-collage')?.addEventListener('click', () => sendLibToTool('collage'));
+  $('btn-lib-send-batch')?.addEventListener('click', () => sendLibToTool('batch'));
 
   // Export library as ZIP
-  document.getElementById('btn-lib-export-selected')?.addEventListener('click', () => {
+  $('btn-lib-export-selected')?.addEventListener('click', () => {
     if (libSelectedIds.size) exportLibraryAsZip([...libSelectedIds], 'pixeroo-selected.zip');
   });
-  document.getElementById('btn-lib-export-all')?.addEventListener('click', async () => {
+  $('btn-lib-export-all')?.addEventListener('click', async () => {
     const allItems = await PixLibrary.getAll();
     const ids = allItems.filter(item => item.dataUrl).map(item => item.id);
     if (ids.length) exportLibraryAsZip(ids, 'pixeroo-library.zip');
   });
 
   // Select all / deselect all in library
-  document.getElementById('btn-lib-toggle-select')?.addEventListener('click', async () => {
+  $('btn-lib-toggle-select')?.addEventListener('click', async () => {
     const allItems = await PixLibrary.getAll();
     const allIds = allItems.map(item => item.id);
     const allSelected = allIds.length > 0 && allIds.every(id => libSelectedIds.has(id));
@@ -1814,7 +1817,7 @@ let libCollectionFilter = 'all';
 let libSelectedIds = new Set();
 
 function updateLibDeleteBtn() {
-  const btn = document.getElementById('btn-lib-delete-selected');
+  const btn = $('btn-lib-delete-selected');
   if (!btn) return;
   const n = libSelectedIds.size;
   btn.disabled = n === 0;
@@ -1822,26 +1825,26 @@ function updateLibDeleteBtn() {
   btn.style.color = n ? '#ef4444' : 'var(--slate-500)';
 
   // Update library footer selection count and export buttons with counts
-  const libSelCount = document.getElementById('lib-sel-count');
+  const libSelCount = $('lib-sel-count');
   if (libSelCount) libSelCount.textContent = n;
-  const btnExportSel = document.getElementById('btn-lib-export-selected');
+  const btnExportSel = $('btn-lib-export-selected');
   if (btnExportSel) btnExportSel.disabled = n === 0;
 
-  const selLabel = document.getElementById('lib-export-sel-label');
+  const selLabel = $('lib-export-sel-label');
   if (selLabel) selLabel.textContent = n ? `Selected (${n})` : 'Selected';
 
   // Get total library item count for All button
-  const totalEl = document.getElementById('lib-usage');
+  const totalEl = $('lib-usage');
   const totalMatch = totalEl?.textContent?.match(/^(\d+)/);
   const total = totalMatch ? parseInt(totalMatch[1]) : 0;
-  const allLabel = document.getElementById('lib-export-all-label');
+  const allLabel = $('lib-export-all-label');
   if (allLabel) allLabel.textContent = total ? `All (${total})` : 'All';
 }
 
 // Library filter buttons
-document.querySelectorAll('[data-lib-filter]').forEach(btn => {
+$$('[data-lib-filter]').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('[data-lib-filter]').forEach(b => b.classList.remove('active'));
+    $$('[data-lib-filter]').forEach(b => b.classList.remove('active'));
     btn.classList.add('active');
     libFilter = btn.dataset.libFilter;
     renderLibrary();
@@ -1849,13 +1852,13 @@ document.querySelectorAll('[data-lib-filter]').forEach(btn => {
 });
 
 // Collection filter dropdown
-document.getElementById('lib-collection-filter')?.addEventListener('change', (e) => {
+$('lib-collection-filter')?.addEventListener('change', (e) => {
   libCollectionFilter = e.target.value;
   renderLibrary();
 });
 
 async function renderLibrary() {
-  const gallery = document.getElementById('lib-gallery');
+  const gallery = $('lib-gallery');
   if (!gallery) return;
   const allItems = await PixLibrary.getAll();
   const usage = await PixLibrary.getUsage();
@@ -1868,11 +1871,11 @@ async function renderLibrary() {
     else imgCount++;
   });
 
-  document.getElementById('lib-usage').textContent = `${allItems.length} items (${PixLibrary.formatBytes(usage.bytes)})`;
-  document.getElementById('lib-count').textContent = allItems.length ? `(${allItems.length})` : '';
+  $('lib-usage').textContent = `${allItems.length} items (${PixLibrary.formatBytes(usage.bytes)})`;
+  $('lib-count').textContent = allItems.length ? `(${allItems.length})` : '';
 
   // Update filter counts
-  document.querySelectorAll('[data-lib-filter]').forEach(btn => {
+  $$('[data-lib-filter]').forEach(btn => {
     const f = btn.dataset.libFilter;
     if (f === 'all') btn.textContent = `All (${allItems.length})`;
     else if (f === 'image') btn.textContent = `Images (${imgCount})`;
@@ -1881,7 +1884,7 @@ async function renderLibrary() {
   });
 
   // Populate collection dropdown
-  const colDropdown = document.getElementById('lib-collection-filter');
+  const colDropdown = $('lib-collection-filter');
   if (colDropdown) {
     const collections = new Set();
     allItems.forEach(i => collections.add(i.collection || 'General'));
@@ -2011,10 +2014,10 @@ function openLibOverlay(item) {
   const filename = item.name || 'Library image';
   const addedDate = item.addedAt ? new Date(item.addedAt).toLocaleString() : 'Unknown';
 
-  document.getElementById('overlay-title').textContent = filename;
-  document.getElementById('overlay-img').src = item.dataUrl;
+  $('overlay-title').textContent = filename;
+  $('overlay-img').src = item.dataUrl;
 
-  const infoPanel = document.getElementById('overlay-info');
+  const infoPanel = $('overlay-info');
   const sourceDisplay = (item.source || '').replace('Page: unknown', 'Page').replace('unknown', '') || 'Saved locally';
   const rows = [
     ['Name', filename],
@@ -2035,12 +2038,12 @@ function openLibOverlay(item) {
   `).join('');
 
   // Reset to info tab
-  document.querySelectorAll('.overlay-tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.overlay-panel').forEach(p => p.classList.remove('active'));
+  $$('.overlay-tab').forEach(t => t.classList.remove('active'));
+  $$('.overlay-panel').forEach(p => p.classList.remove('active'));
   document.querySelector('[data-overlay-tab="info"]')?.classList.add('active');
-  document.getElementById('overlay-info')?.classList.add('active');
+  $('overlay-info')?.classList.add('active');
 
-  document.getElementById('overlay-backdrop')?.classList.add('visible');
+  $('overlay-backdrop')?.classList.add('visible');
 
   // Load EXIF data from the dataUrl
   loadExifData(item.dataUrl);
@@ -2061,7 +2064,7 @@ async function saveColorToLibrary(hex, rgb, hsl, collection) {
       collection: collection || 'General',
     });
     await renderLibrary();
-    document.getElementById('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
+    $('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
   } catch {}
 }
 
@@ -2080,8 +2083,8 @@ async function pickCollectionDialog(title) {
   `;
   const ok = await pixDialog.confirm(title || 'Choose Collection', body, { okText: 'Save', html: true });
   if (!ok) return null;
-  const sel = document.getElementById('_pc_select');
-  const newInput = document.getElementById('_pc_new');
+  const sel = $('_pc_select');
+  const newInput = $('_pc_new');
   let collection = sel?.value || 'General';
   if (collection === '__new__') {
     collection = newInput?.value?.trim() || 'General';
@@ -2092,7 +2095,7 @@ async function pickCollectionDialog(title) {
 // Wire collection picker dropdown toggle (needs to run after dialog shows)
 document.addEventListener('change', (e) => {
   if (e.target.id === '_pc_select') {
-    const newInput = document.getElementById('_pc_new');
+    const newInput = $('_pc_new');
     if (newInput) newInput.style.display = e.target.value === '__new__' ? '' : 'none';
   }
 });
@@ -2110,7 +2113,7 @@ async function saveScreenshotToLibrary(dataUrl) {
       collection: 'General',
     });
     await renderLibrary();
-    document.getElementById('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
+    $('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
   } catch {}
 }
 
@@ -2118,7 +2121,7 @@ async function sendLibToTool(tool) {
   // Collect selected library item IDs, fall back to all visible
   let ids = [...libSelectedIds];
   if (!ids.length) {
-    document.querySelectorAll('#lib-gallery [data-id]').forEach(card => {
+    $$('#lib-gallery [data-id]').forEach(card => {
       ids.push(Number(card.dataset.id));
     });
   }
@@ -2156,7 +2159,7 @@ async function captureRegionScreenshot() {
     await chrome.scripting.executeScript({
       target: { tabId: tab.id },
       func: () => {
-        if (document.getElementById('_pix_region_overlay')) return;
+        if ($('_pix_region_overlay')) return;
 
         // --- State ---
         let rx = 0, ry = 0, rw = 0, rh = 0; // region rect
@@ -2317,7 +2320,7 @@ async function captureRegionScreenshot() {
 }
 
 // Init region button
-document.getElementById('btn-screenshot-region')?.addEventListener('click', captureRegionScreenshot);
+$('btn-screenshot-region')?.addEventListener('click', captureRegionScreenshot);
 
 // Listen for region capture result from content script via background
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -2363,34 +2366,34 @@ async function initSPQuickSettings() {
 
   // Theme buttons
   const result = await chrome.storage.sync.get({ theme: 'dark', fontScale: 100, fontFamily: 'jetbrains' });
-  document.querySelectorAll('.sp-qs-theme').forEach(btn => {
+  $$('.sp-qs-theme').forEach(btn => {
     btn.classList.toggle('active', btn.dataset.theme === result.theme);
     btn.addEventListener('click', async () => {
       await chrome.storage.sync.set({ theme: btn.dataset.theme });
-      document.querySelectorAll('.sp-qs-theme').forEach(b => b.classList.remove('active'));
+      $$('.sp-qs-theme').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
     });
   });
 
   // Font size
   let scale = result.fontScale || 100;
-  const valEl = document.getElementById('sp-qs-font-val');
+  const valEl = $('sp-qs-font-val');
   valEl.textContent = scale + '%';
   function applyScale() {
     document.documentElement.style.fontSize = (scale / 100 * 100) + '%';
     valEl.textContent = scale + '%';
     chrome.storage.sync.set({ fontScale: scale });
   }
-  document.getElementById('sp-qs-font-down').addEventListener('click', () => {
+  $('sp-qs-font-down').addEventListener('click', () => {
     if (scale > 70) { scale -= 10; applyScale(); }
   });
-  document.getElementById('sp-qs-font-up').addEventListener('click', () => {
+  $('sp-qs-font-up').addEventListener('click', () => {
     if (scale < 150) { scale += 10; applyScale(); }
   });
   applyScale();
 
   // Font family
-  const ffEl = document.getElementById('sp-qs-font-family');
+  const ffEl = $('sp-qs-font-family');
   if (ffEl) {
     ffEl.value = result.fontFamily || 'system';
     ffEl.addEventListener('change', () => {
@@ -2399,7 +2402,7 @@ async function initSPQuickSettings() {
   }
 
   // Tooltips toggle
-  const ttCb = document.getElementById('sp-qs-tooltips');
+  const ttCb = $('sp-qs-tooltips');
   const ttResult = await chrome.storage.sync.get({ showTooltips: true });
   showTooltips = ttResult.showTooltips;
   ttCb.checked = showTooltips;
@@ -2410,9 +2413,9 @@ async function initSPQuickSettings() {
   });
 
   // Advanced settings
-  document.getElementById('sp-qs-advanced').addEventListener('click', () => {
+  $('sp-qs-advanced').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
-    document.getElementById('sp-settings-popover').style.display = 'none';
+    $('sp-settings-popover').style.display = 'none';
   });
 }
 
@@ -2429,8 +2432,8 @@ chrome.storage.sync.get({ fontScale: 100, showTooltips: true }, (r) => {
 // ============================================================
 
 function _updateSaveToLibBtn() {
-  const saveBtn = document.getElementById('btn-save-to-lib');
-  const unsaveBtn = document.getElementById('btn-unsave-from-lib');
+  const saveBtn = $('btn-save-to-lib');
+  const unsaveBtn = $('btn-unsave-from-lib');
   const hasSelection = selectedSet.size > 0;
   if (saveBtn) saveBtn.title = hasSelection ? 'Save selected to Library' : 'Save all to Library';
   if (unsaveBtn) unsaveBtn.title = hasSelection ? 'Remove selected from Library' : 'Remove all from Library';
@@ -2503,7 +2506,7 @@ const _ctxIcons = {
 // Page Image Context Menu
 // ============================================================
 
-document.getElementById('gallery')?.addEventListener('contextmenu', (e) => {
+$('gallery')?.addEventListener('contextmenu', (e) => {
   const card = e.target.closest('.img-card');
   if (!card) return;
   e.preventDefault();
@@ -2538,7 +2541,7 @@ document.getElementById('gallery')?.addEventListener('contextmenu', (e) => {
           collection,
         });
         await renderLibrary();
-        document.getElementById('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
+        $('lib-count').textContent = `(${(await PixLibrary.getUsage()).count})`;
         await renderGallery();
       }
     },
@@ -2596,7 +2599,7 @@ document.getElementById('gallery')?.addEventListener('contextmenu', (e) => {
 // Library Item Context Menu
 // ============================================================
 
-document.getElementById('lib-gallery')?.addEventListener('contextmenu', (e) => {
+$('lib-gallery')?.addEventListener('contextmenu', (e) => {
   const card = e.target.closest('[data-id]');
   if (!card) return;
   e.preventDefault();
@@ -2696,7 +2699,7 @@ document.getElementById('lib-gallery')?.addEventListener('contextmenu', (e) => {
         updateLibDeleteBtn();
         await renderLibrary();
         const u = await PixLibrary.getUsage();
-        document.getElementById('lib-count').textContent = u.count ? `(${u.count})` : '';
+        $('lib-count').textContent = u.count ? `(${u.count})` : '';
         // Re-render page gallery to update bookmark indicators
         await renderGallery();
       }
@@ -2763,14 +2766,14 @@ function _attachColorCtxMenu(container, getColorData) {
 }
 
 // Attach to picked colors list
-_attachColorCtxMenu(document.getElementById('picked-colors-list'), (item) => {
+_attachColorCtxMenu($('picked-colors-list'), (item) => {
   const hexEl = item.querySelector('.color-item-hex');
   if (!hexEl) return null;
   return { hex: hexEl.textContent.trim(), canSaveToLib: true };
 });
 
 // Attach to favorites list
-_attachColorCtxMenu(document.getElementById('fav-colors-list-full'), (item) => {
+_attachColorCtxMenu($('fav-colors-list-full'), (item) => {
   const hexEl = item.querySelector('.color-item-hex');
   if (!hexEl) return null;
   return { hex: hexEl.textContent.trim(), canSaveToLib: false };
@@ -2900,13 +2903,13 @@ document.addEventListener('keydown', (e) => {
 });
 
 // Wire tour button
-document.getElementById('btn-sp-tour')?.addEventListener('click', startSPTour);
+$('btn-sp-tour')?.addEventListener('click', startSPTour);
 
 // Show tour hint on first use — points to the ? button
 chrome.storage.sync.get({ spTourSeen: false }, (r) => {
   if (!r.spTourSeen) {
     setTimeout(() => {
-      const btn = document.getElementById('btn-sp-tour');
+      const btn = $('btn-sp-tour');
       if (!btn) return;
       const hint = document.createElement('div');
       hint.style.cssText = 'position:fixed;z-index:2000;background:var(--saffron-400);color:#1e293b;font-weight:600;padding:6px 12px;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.3);cursor:pointer;white-space:nowrap;';

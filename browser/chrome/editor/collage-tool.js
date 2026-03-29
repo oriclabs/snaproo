@@ -1,6 +1,6 @@
 // Pixeroo — Collage Tool
 function initCollage() {
-  const canvas = document.getElementById('collage-canvas');
+  const canvas = $('collage-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
 
@@ -40,8 +40,8 @@ function initCollage() {
 
   function restoreState(state) {
     // Restore canvas dimensions
-    if (state.canvasW) { canvas.width = state.canvasW; document.getElementById('collage-w').value = state.canvasW; }
-    if (state.canvasH) { canvas.height = state.canvasH; document.getElementById('collage-h').value = state.canvasH; }
+    if (state.canvasW) { canvas.width = state.canvasW; $('collage-w').value = state.canvasW; }
+    if (state.canvasH) { canvas.height = state.canvasH; $('collage-h').value = state.canvasH; }
     // Restore images
     const imgList = state.images || state; // backwards compat with old format
     images = imgList.map(s => {
@@ -97,7 +97,7 @@ function initCollage() {
 
   function getContrastColor() {
     // Sample background color at center of canvas
-    const bg = document.getElementById('collage-bg')?.value || '#ffffff';
+    const bg = $('collage-bg')?.value || '#ffffff';
     const r = parseInt(bg.slice(1,3),16)||0, g = parseInt(bg.slice(3,5),16)||0, b = parseInt(bg.slice(5,7),16)||0;
     // Luminance formula
     const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
@@ -112,9 +112,9 @@ function initCollage() {
   let bgImage = null; // background image canvas
 
   function drawBg() {
-    const bgType = document.getElementById('collage-bg-type')?.value || 'solid';
-    const bg1 = document.getElementById('collage-bg')?.value || '#ffffff';
-    const bg2 = document.getElementById('collage-bg2')?.value || '#e2e8f0';
+    const bgType = $('collage-bg-type')?.value || 'solid';
+    const bg1 = $('collage-bg')?.value || '#ffffff';
+    const bg2 = $('collage-bg2')?.value || '#e2e8f0';
     if (bgType === 'image' && bgImage) {
       ctx.drawImage(bgImage, 0, 0, canvas.width, canvas.height);
     } else if (bgType === 'gradient') {
@@ -379,7 +379,7 @@ function initCollage() {
   }
 
   function updateHint() {
-    const hint = document.getElementById('collage-hint');
+    const hint = $('collage-hint');
     if (!hint) return;
     if (canvas.style.display === 'none') { hint.style.display = 'none'; return; }
     hint.style.display = '';
@@ -514,14 +514,14 @@ function initCollage() {
     if (textPlaceMode) {
       textPlaceMode = false;
       canvas.style.cursor = 'default';
-      document.getElementById('btn-coll-add-text')?.classList.remove('active');
+      $('btn-coll-add-text')?.classList.remove('active');
       saveState();
       const t = makeTextObj(x, y, '');
       images.push(t);
       selection = [t]; selected = t;
       t.editing = true;
       // Sync text color picker
-      const tcPicker = document.getElementById('coll-text-color');
+      const tcPicker = $('coll-text-color');
       if (tcPicker) tcPicker.value = t.color;
       updateCount(); render();
       return;
@@ -643,7 +643,7 @@ function initCollage() {
   window.addEventListener('mouseup', () => { if (dragging) { dragging = false; dragWhat = null; snapGuides = []; render(); } });
 
   // --- Right-click context menu ---
-  function closeCtxMenu() { document.querySelectorAll('.ctx-menu').forEach(m => m.remove()); }
+  function closeCtxMenu() { $$('.ctx-menu').forEach(m => m.remove()); }
 
   canvas.addEventListener('contextmenu', (e) => {
     e.preventDefault();
@@ -687,8 +687,8 @@ function initCollage() {
       { sep: true },
       // Order
       { header: 'Order' },
-      { label: 'Front', enabled: hasSelection, action: () => document.getElementById('btn-coll-front')?.click() },
-      { label: 'Back', enabled: hasSelection, action: () => document.getElementById('btn-coll-back')?.click() },
+      { label: 'Front', enabled: hasSelection, action: () => $('btn-coll-front')?.click() },
+      { label: 'Back', enabled: hasSelection, action: () => $('btn-coll-back')?.click() },
       { sep: true },
       // Group
       { header: 'Group' },
@@ -698,18 +698,18 @@ function initCollage() {
       { sep: true },
       // Align (only show header if 2+)
       { header: 'Align', enabled: multi },
-      { label: 'Align Left', enabled: multi, action: () => document.getElementById('btn-align-left')?.click() },
-      { label: 'Align Center H', enabled: multi, action: () => document.getElementById('btn-align-center-h')?.click() },
-      { label: 'Align Right', enabled: multi, action: () => document.getElementById('btn-align-right')?.click() },
-      { label: 'Align Top', enabled: multi, action: () => document.getElementById('btn-align-top')?.click() },
-      { label: 'Align Center V', enabled: multi, action: () => document.getElementById('btn-align-center-v')?.click() },
-      { label: 'Align Bottom', enabled: multi, action: () => document.getElementById('btn-align-bottom')?.click() },
-      { label: 'Center on Canvas', enabled: hasSelection, action: () => { document.getElementById('btn-center-canvas-h')?.click(); document.getElementById('btn-center-canvas-v')?.click(); } },
+      { label: 'Align Left', enabled: multi, action: () => $('btn-align-left')?.click() },
+      { label: 'Align Center H', enabled: multi, action: () => $('btn-align-center-h')?.click() },
+      { label: 'Align Right', enabled: multi, action: () => $('btn-align-right')?.click() },
+      { label: 'Align Top', enabled: multi, action: () => $('btn-align-top')?.click() },
+      { label: 'Align Center V', enabled: multi, action: () => $('btn-align-center-v')?.click() },
+      { label: 'Align Bottom', enabled: multi, action: () => $('btn-align-bottom')?.click() },
+      { label: 'Center on Canvas', enabled: hasSelection, action: () => { $('btn-center-canvas-h')?.click(); $('btn-center-canvas-v')?.click(); } },
       { sep: true },
       // Style
       { header: 'Style', enabled: hasSelection },
-      { label: 'Copy Style', enabled: hasSelection && !selected?.type, action: () => document.getElementById('btn-coll-copy-style')?.click() },
-      { label: 'Paste Style', enabled: !!copiedStyle && hasSelection, action: () => document.getElementById('btn-coll-paste-style')?.click() },
+      { label: 'Copy Style', enabled: hasSelection && !selected?.type, action: () => $('btn-coll-copy-style')?.click() },
+      { label: 'Paste Style', enabled: !!copiedStyle && hasSelection, action: () => $('btn-coll-paste-style')?.click() },
       { sep: true },
       // Reset options — only show when there's something to reset
       { header: 'Reset', enabled: hasSelection && (selected?.rotation || selected?.panX || selected?.panY || selected?.borderWidth || selected?.shadowEnabled || selected?.fadeLeft || selected?.fadeRight || selected?.fadeTop || selected?.fadeBottom || selected?.imgFilter !== 'none') },
@@ -964,16 +964,16 @@ function initCollage() {
   }
 
   function updateCount() {
-    document.getElementById('collage-count').textContent = images.length.toString();
+    $('collage-count').textContent = images.length.toString();
   }
 
   // --- Init canvas ---
   function initCanvas() {
-    const w = +(document.getElementById('collage-w')?.value) || 1200;
-    const h = +(document.getElementById('collage-h')?.value) || 800;
+    const w = +($('collage-w')?.value) || 1200;
+    const h = +($('collage-h')?.value) || 800;
     canvas.width = w; canvas.height = h;
     canvas.style.display = 'block';
-    document.getElementById('collage-drop').style.display = 'none';
+    $('collage-drop').style.display = 'none';
     render();
   }
 
@@ -1001,13 +1001,13 @@ function initCollage() {
   }
 
   // --- Drop zone ---
-  setupDropzone(document.getElementById('collage-drop'), document.getElementById('collage-files-drop'), async (file) => {
+  setupDropzone($('collage-drop'), $('collage-files-drop'), async (file) => {
     await addImageFile(file);
   }, { multiple: true });
 
   // --- Add button ---
-  const addBtn = document.getElementById('collage-add-btn');
-  const addInput = document.getElementById('collage-files');
+  const addBtn = $('collage-add-btn');
+  const addInput = $('collage-files');
   addBtn?.addEventListener('click', () => addInput?.click());
   addInput?.addEventListener('change', async (e) => {
     for (const f of e.target.files) await addImageFile(f);
@@ -1015,7 +1015,7 @@ function initCollage() {
   });
 
   // --- Add from Library ---
-  document.getElementById('btn-collage-from-lib')?.addEventListener('click', () => {
+  $('btn-collage-from-lib')?.addEventListener('click', () => {
     openLibraryPicker(async (items) => {
       for (const item of items) {
         const img = new Image();
@@ -1044,11 +1044,11 @@ function initCollage() {
 
   // --- Add text ---
   let textPlaceMode = false;
-  document.getElementById('btn-coll-add-text')?.addEventListener('click', () => {
+  $('btn-coll-add-text')?.addEventListener('click', () => {
     if (canvas.style.display === 'none') initCanvas();
     textPlaceMode = true;
     canvas.style.cursor = 'text';
-    document.getElementById('btn-coll-add-text')?.classList.add('active');
+    $('btn-coll-add-text')?.classList.add('active');
   });
 
   // Double-click to edit text
@@ -1102,8 +1102,8 @@ function initCollage() {
   });
 
   // --- Background image ---
-  const bgImgBtn = document.getElementById('collage-bg-img-btn');
-  const bgImgInput = document.getElementById('collage-bg-file');
+  const bgImgBtn = $('collage-bg-img-btn');
+  const bgImgInput = $('collage-bg-file');
   bgImgBtn?.addEventListener('click', () => bgImgInput?.click());
   bgImgInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0]; if (!file) return;
@@ -1112,20 +1112,20 @@ function initCollage() {
     bgImage.getContext('2d').drawImage(img, 0, 0);
     bgImgInput.value = ''; render();
   });
-  document.getElementById('collage-bg-type')?.addEventListener('change', (e) => {
+  $('collage-bg-type')?.addEventListener('change', (e) => {
     if (bgImgBtn) bgImgBtn.style.display = e.target.value === 'image' ? '' : 'none';
   });
 
   // --- Canvas resize + BG ---
-  document.getElementById('btn-collage-resize')?.addEventListener('click', () => {
+  $('btn-collage-resize')?.addEventListener('click', () => {
     saveState();
-    canvas.width = +(document.getElementById('collage-w')?.value) || 1200;
-    canvas.height = +(document.getElementById('collage-h')?.value) || 800;
+    canvas.width = +($('collage-w')?.value) || 1200;
+    canvas.height = +($('collage-h')?.value) || 800;
     render();
   });
 
   // Fit canvas to content bounds
-  document.getElementById('btn-collage-fit')?.addEventListener('click', () => {
+  $('btn-collage-fit')?.addEventListener('click', () => {
     if (!images.length) return; saveState();
     let maxX = 0, maxY = 0;
     for (const o of images) {
@@ -1135,8 +1135,8 @@ function initCollage() {
     }
     canvas.width = Math.round(maxX);
     canvas.height = Math.round(maxY);
-    document.getElementById('collage-w').value = canvas.width;
-    document.getElementById('collage-h').value = canvas.height;
+    $('collage-w').value = canvas.width;
+    $('collage-h').value = canvas.height;
     render();
   });
   ['collage-bg', 'collage-bg2', 'collage-bg-type'].forEach(id => {
@@ -1155,7 +1155,7 @@ function initCollage() {
     else { o.h = maxH; o.w = Math.round(maxH * r); }
   }
 
-  document.getElementById('btn-arrange-grid')?.addEventListener('click', () => {
+  $('btn-arrange-grid')?.addEventListener('click', () => {
     const imgs = (selection.length > 1 ? selection : images).filter(o => !o.type); if (!imgs.length) return; saveState();
     const cols = Math.ceil(Math.sqrt(imgs.length)); const gap = 15;
     const cellW = Math.floor((canvas.width * 0.85 - (cols + 1) * gap) / cols);
@@ -1172,7 +1172,7 @@ function initCollage() {
     render();
   });
 
-  document.getElementById('btn-arrange-row')?.addEventListener('click', () => {
+  $('btn-arrange-row')?.addEventListener('click', () => {
     const imgs = (selection.length > 1 ? selection : images).filter(o => !o.type); if (!imgs.length) return; saveState();
     const gap = 15; const pad = 20;
     const targetH = 300; // reasonable image height
@@ -1181,8 +1181,8 @@ function initCollage() {
     let totalW = imgs.reduce((s, o) => s + o.w, 0) + (imgs.length - 1) * gap + pad * 2;
     let totalH = Math.max(...imgs.map(o => o.h)) + pad * 2;
     // Expand canvas if needed
-    if (totalW > canvas.width) { canvas.width = totalW; document.getElementById('collage-w').value = totalW; }
-    if (totalH > canvas.height) { canvas.height = totalH; document.getElementById('collage-h').value = totalH; }
+    if (totalW > canvas.width) { canvas.width = totalW; $('collage-w').value = totalW; }
+    if (totalH > canvas.height) { canvas.height = totalH; $('collage-h').value = totalH; }
     let x = (canvas.width - totalW + pad * 2) / 2 + pad;
     imgs.forEach(o => {
       o.x = x; o.y = (canvas.height - o.h) / 2;
@@ -1191,7 +1191,7 @@ function initCollage() {
     render();
   });
 
-  document.getElementById('btn-arrange-col')?.addEventListener('click', () => {
+  $('btn-arrange-col')?.addEventListener('click', () => {
     const imgs = (selection.length > 1 ? selection : images).filter(o => !o.type); if (!imgs.length) return; saveState();
     const gap = 15; const pad = 20;
     const targetW = 400; // reasonable image width
@@ -1199,8 +1199,8 @@ function initCollage() {
     let totalH = imgs.reduce((s, o) => s + o.h, 0) + (imgs.length - 1) * gap + pad * 2;
     let totalW = Math.max(...imgs.map(o => o.w)) + pad * 2;
     // Expand canvas if needed
-    if (totalH > canvas.height) { canvas.height = totalH; document.getElementById('collage-h').value = totalH; }
-    if (totalW > canvas.width) { canvas.width = totalW; document.getElementById('collage-w').value = totalW; }
+    if (totalH > canvas.height) { canvas.height = totalH; $('collage-h').value = totalH; }
+    if (totalW > canvas.width) { canvas.width = totalW; $('collage-w').value = totalW; }
     let y = (canvas.height - totalH + pad * 2) / 2 + pad;
     imgs.forEach(o => {
       o.x = (canvas.width - o.w) / 2; o.y = y;
@@ -1209,7 +1209,7 @@ function initCollage() {
     render();
   });
 
-  document.getElementById('btn-arrange-stack')?.addEventListener('click', () => {
+  $('btn-arrange-stack')?.addEventListener('click', () => {
     const imgs = (selection.length > 1 ? selection : images).filter(o => !o.type); if (!imgs.length) return; saveState();
     const maxW = canvas.width * 0.5, maxH = canvas.height * 0.5;
     imgs.forEach((o, i) => {
@@ -1221,7 +1221,7 @@ function initCollage() {
   });
 
   // --- Templates ---
-  document.getElementById('btn-tpl-polaroid')?.addEventListener('click', () => {
+  $('btn-tpl-polaroid')?.addEventListener('click', () => {
     const imgs = (selection.length > 1 ? selection : images).filter(o => !o.type); if (!imgs.length) return; saveState();
     const sz = Math.min(canvas.width, canvas.height) * 0.35;
     imgs.forEach((o, i) => {
@@ -1236,7 +1236,7 @@ function initCollage() {
     render();
   });
 
-  document.getElementById('btn-tpl-filmstrip')?.addEventListener('click', () => {
+  $('btn-tpl-filmstrip')?.addEventListener('click', () => {
     const imgs = images.filter(o => !o.type); if (!imgs.length) return; saveState();
     const gap = 8;
     const cellH = canvas.height - gap * 2;
@@ -1251,7 +1251,7 @@ function initCollage() {
     render();
   });
 
-  document.getElementById('btn-tpl-magazine')?.addEventListener('click', () => {
+  $('btn-tpl-magazine')?.addEventListener('click', () => {
     const imgs = images.filter(o => !o.type); if (!imgs.length) return; saveState();
     const gap = 12;
     if (imgs.length >= 1) { const o = imgs[0]; o.x = gap; o.y = gap; o.w = canvas.width * 0.6 - gap; o.h = canvas.height - gap * 2; o.rotation = 0; }
@@ -1302,9 +1302,9 @@ function initCollage() {
   }
 
   const propMap = [
-    ['coll-item-border', (o,el) => { o.borderWidth = el.checked ? (+(document.getElementById('coll-item-border-width')?.value)||6) : 0; }],
+    ['coll-item-border', (o,el) => { o.borderWidth = el.checked ? (+($('coll-item-border-width')?.value)||6) : 0; }],
     ['coll-item-border-color', (o,el) => { o.borderColor = el.value; }],
-    ['coll-item-border-width', (o,el) => { if (document.getElementById('coll-item-border')?.checked) o.borderWidth = +el.value||0; }],
+    ['coll-item-border-width', (o,el) => { if ($('coll-item-border')?.checked) o.borderWidth = +el.value||0; }],
     ['coll-item-shadow', (o,el) => { o.shadowEnabled = el.checked; }],
     ['coll-item-shadow-color', (o,el) => { o.shadowColor = el.value; }],
     ['coll-item-shadow-blur', (o,el) => { o.shadowBlur = +el.value||12; }],
@@ -1333,16 +1333,16 @@ function initCollage() {
     if (!selected || from < 0 || to < 0 || to >= images.length) return;
     saveState(); images.splice(from, 1); images.splice(to, 0, selected); render();
   }
-  document.getElementById('btn-coll-front')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, images.length-1); });
-  document.getElementById('btn-coll-forward')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, i+1); });
-  document.getElementById('btn-coll-backward')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, i-1); });
-  document.getElementById('btn-coll-back')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, 0); });
-  document.getElementById('btn-coll-delete')?.addEventListener('click', () => {
+  $('btn-coll-front')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, images.length-1); });
+  $('btn-coll-forward')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, i+1); });
+  $('btn-coll-backward')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, i-1); });
+  $('btn-coll-back')?.addEventListener('click', () => { const i = images.indexOf(selected); if (i >= 0) moveLayer(i, 0); });
+  $('btn-coll-delete')?.addEventListener('click', () => {
     saveState();
     images = images.filter(o => !selection.includes(o));
     selection = []; selected = null; updateCount(); render();
   });
-  document.getElementById('btn-coll-deselect')?.addEventListener('click', () => { selection = []; selected = null; render(); });
+  $('btn-coll-deselect')?.addEventListener('click', () => { selection = []; selected = null; render(); });
 
   // --- Group / Ungroup ---
   function groupSelected() {
@@ -1402,13 +1402,13 @@ function initCollage() {
     updateCount(); render();
   }
 
-  document.getElementById('btn-coll-group')?.addEventListener('click', groupSelected);
-  document.getElementById('btn-coll-ungroup')?.addEventListener('click', ungroupSelected);
+  $('btn-coll-group')?.addEventListener('click', groupSelected);
+  $('btn-coll-ungroup')?.addEventListener('click', ungroupSelected);
 
   // Rotate/Flip buttons
   // --- Copy/Paste Style ---
   let copiedStyle = null;
-  document.getElementById('btn-coll-copy-style')?.addEventListener('click', () => {
+  $('btn-coll-copy-style')?.addEventListener('click', () => {
     if (!selected) return;
     copiedStyle = {
       borderWidth: selected.borderWidth, borderColor: selected.borderColor,
@@ -1417,20 +1417,20 @@ function initCollage() {
       opacity: selected.opacity, blendMode: selected.blendMode,
       fadeLeft: selected.fadeLeft, fadeRight: selected.fadeRight, fadeTop: selected.fadeTop, fadeBottom: selected.fadeBottom, edgeColor: selected.edgeColor,
     };
-    document.getElementById('footer-status').textContent = 'Style copied';
+    $('footer-status').textContent = 'Style copied';
   });
-  document.getElementById('btn-coll-paste-style')?.addEventListener('click', () => {
+  $('btn-coll-paste-style')?.addEventListener('click', () => {
     if (!copiedStyle || !selection.length) return; saveState();
     for (const o of selection) {
       if (o.type === 'text') continue; // skip text objects
       Object.assign(o, copiedStyle);
     }
     render();
-    document.getElementById('footer-status').textContent = `Style pasted to ${selection.length} image(s)`;
+    $('footer-status').textContent = `Style pasted to ${selection.length} image(s)`;
   });
 
   // --- Shadow Presets ---
-  document.getElementById('coll-shadow-preset')?.addEventListener('change', (e) => {
+  $('coll-shadow-preset')?.addEventListener('change', (e) => {
     if (!selected || selected.type === 'text') return; saveState();
     const preset = e.target.value;
     if (preset === 'float') {
@@ -1446,19 +1446,19 @@ function initCollage() {
     render();
   });
 
-  document.getElementById('btn-coll-rot-left')?.addEventListener('click', () => {
+  $('btn-coll-rot-left')?.addEventListener('click', () => {
     if (!selected) return; saveState();
     selected.rotation = ((selected.rotation || 0) - 90) % 360; render();
   });
-  document.getElementById('btn-coll-rot-right')?.addEventListener('click', () => {
+  $('btn-coll-rot-right')?.addEventListener('click', () => {
     if (!selected) return; saveState();
     selected.rotation = ((selected.rotation || 0) + 90) % 360; render();
   });
-  document.getElementById('btn-coll-flip-h')?.addEventListener('click', () => {
+  $('btn-coll-flip-h')?.addEventListener('click', () => {
     if (!selected) return; saveState();
     selected.flipH = !selected.flipH; render();
   });
-  document.getElementById('btn-coll-flip-v')?.addEventListener('click', () => {
+  $('btn-coll-flip-v')?.addEventListener('click', () => {
     if (!selected) return; saveState();
     selected.flipV = !selected.flipV; render();
   });
@@ -1505,22 +1505,22 @@ function initCollage() {
     }
 
     // Apply join blend effect to the overlapping image
-    const joinEffect = document.getElementById('coll-join-effect')?.value || 'source-over';
+    const joinEffect = $('coll-join-effect')?.value || 'source-over';
     b.blendMode = joinEffect;
 
     render();
   }
 
   let joinMode = false;
-  document.getElementById('btn-coll-join')?.addEventListener('click', () => {
+  $('btn-coll-join')?.addEventListener('click', () => {
     joinMode = !joinMode;
-    document.getElementById('btn-coll-join').classList.toggle('active', joinMode);
+    $('btn-coll-join').classList.toggle('active', joinMode);
     // If turning on and already have 2 selected, apply immediately
     if (joinMode && selection.length === 2) joinBlend();
   });
 
   // --- Clear ---
-  document.getElementById('btn-collage-clear')?.addEventListener('click', async () => {
+  $('btn-collage-clear')?.addEventListener('click', async () => {
     if (images.length) {
       const ok = await pixDialog.confirm('Clear Collage', `Remove all ${images.length} images from the collage?`, { danger: true, okText: 'Clear' });
       if (!ok) return;
@@ -1528,7 +1528,7 @@ function initCollage() {
     images = []; selection = []; selected = null; snapGuides = [];
     updateCount(); render();
     canvas.style.display = 'none';
-    document.getElementById('collage-drop').style.display = '';
+    $('collage-drop').style.display = '';
   });
 
   // --- Align functions ---
@@ -1541,43 +1541,43 @@ function initCollage() {
     return { minX, minY, maxX, maxY };
   }
 
-  document.getElementById('btn-align-left')?.addEventListener('click', () => {
+  $('btn-align-left')?.addEventListener('click', () => {
     if (selection.length < 2) return; saveState();
     const target = Math.min(...selection.map(o => o.x));
     for (const o of selection) o.x = target;
     render();
   });
-  document.getElementById('btn-align-right')?.addEventListener('click', () => {
+  $('btn-align-right')?.addEventListener('click', () => {
     if (selection.length < 2) return; saveState();
     const target = Math.max(...selection.map(o => o.x + o.w));
     for (const o of selection) o.x = target - o.w;
     render();
   });
-  document.getElementById('btn-align-top')?.addEventListener('click', () => {
+  $('btn-align-top')?.addEventListener('click', () => {
     if (selection.length < 2) return; saveState();
     const target = Math.min(...selection.map(o => o.y));
     for (const o of selection) o.y = target;
     render();
   });
-  document.getElementById('btn-align-bottom')?.addEventListener('click', () => {
+  $('btn-align-bottom')?.addEventListener('click', () => {
     if (selection.length < 2) return; saveState();
     const target = Math.max(...selection.map(o => o.y + o.h));
     for (const o of selection) o.y = target - o.h;
     render();
   });
-  document.getElementById('btn-align-center-h')?.addEventListener('click', () => {
+  $('btn-align-center-h')?.addEventListener('click', () => {
     if (selection.length < 2) return; saveState();
     const avg = selection.reduce((s, o) => s + o.x + o.w / 2, 0) / selection.length;
     for (const o of selection) o.x = avg - o.w / 2;
     render();
   });
-  document.getElementById('btn-align-center-v')?.addEventListener('click', () => {
+  $('btn-align-center-v')?.addEventListener('click', () => {
     if (selection.length < 2) return; saveState();
     const avg = selection.reduce((s, o) => s + o.y + o.h / 2, 0) / selection.length;
     for (const o of selection) o.y = avg - o.h / 2;
     render();
   });
-  document.getElementById('btn-distribute-h')?.addEventListener('click', () => {
+  $('btn-distribute-h')?.addEventListener('click', () => {
     if (selection.length < 3) return; saveState();
     const sorted = [...selection].sort((a, b) => a.x - b.x);
     const totalW = sorted.reduce((s, o) => s + o.w, 0);
@@ -1586,7 +1586,7 @@ function initCollage() {
     for (const o of sorted) { o.x = x; x += o.w + space; }
     render();
   });
-  document.getElementById('btn-distribute-v')?.addEventListener('click', () => {
+  $('btn-distribute-v')?.addEventListener('click', () => {
     if (selection.length < 3) return; saveState();
     const sorted = [...selection].sort((a, b) => a.y - b.y);
     const totalH = sorted.reduce((s, o) => s + o.h, 0);
@@ -1595,14 +1595,14 @@ function initCollage() {
     for (const o of sorted) { o.y = y; y += o.h + space; }
     render();
   });
-  document.getElementById('btn-center-canvas-h')?.addEventListener('click', () => {
+  $('btn-center-canvas-h')?.addEventListener('click', () => {
     if (!selection.length) return; saveState();
     const b = getSelBounds();
     const dx = (canvas.width - (b.maxX - b.minX)) / 2 - b.minX;
     for (const o of selection) o.x += dx;
     render();
   });
-  document.getElementById('btn-center-canvas-v')?.addEventListener('click', () => {
+  $('btn-center-canvas-v')?.addEventListener('click', () => {
     if (!selection.length) return; saveState();
     const b = getSelBounds();
     const dy = (canvas.height - (b.maxY - b.minY)) / 2 - b.minY;
@@ -1624,13 +1624,13 @@ function initCollage() {
              h: Math.min(canvas.height, maxY + pad) - Math.max(0, minY - pad) };
   }
 
-  document.getElementById('btn-collage-export')?.addEventListener('click', () => {
+  $('btn-collage-export')?.addEventListener('click', () => {
     if (!canvas.width || !images.length) return;
     const savedSel = selected; const savedSnap = snapGuides;
     selected = null; snapGuides = []; selection = []; render();
 
-    const trim = document.getElementById('collage-trim-export')?.checked;
-    const fmt = document.getElementById('collage-export-fmt')?.value || 'png';
+    const trim = $('collage-trim-export')?.checked;
+    const fmt = $('collage-export-fmt')?.value || 'png';
     const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt] || 'image/png';
     const q = fmt === 'png' ? undefined : 0.92;
 
@@ -1653,18 +1653,18 @@ function initCollage() {
   });
 
   // --- Save Project ---
-  document.getElementById('btn-collage-save')?.addEventListener('click', () => {
+  $('btn-collage-save')?.addEventListener('click', () => {
     if (!images.length) return;
-    const footer = document.getElementById('footer-status');
+    const footer = $('footer-status');
     if (footer) footer.textContent = 'Saving project...';
 
     const project = {
       version: 1,
       canvas: {
         w: canvas.width, h: canvas.height,
-        bg: document.getElementById('collage-bg')?.value || '#ffffff',
-        bg2: document.getElementById('collage-bg2')?.value || '#e2e8f0',
-        bgType: document.getElementById('collage-bg-type')?.value || 'solid',
+        bg: $('collage-bg')?.value || '#ffffff',
+        bg2: $('collage-bg2')?.value || '#e2e8f0',
+        bgType: $('collage-bg-type')?.value || 'solid',
       },
       images: images.map(o => ({
         data: o.src.toDataURL('image/png'),
@@ -1685,14 +1685,14 @@ function initCollage() {
   });
 
   // --- Load Project ---
-  const loadBtn = document.getElementById('btn-collage-load');
-  const loadInput = document.getElementById('collage-load-file');
+  const loadBtn = $('btn-collage-load');
+  const loadInput = $('collage-load-file');
   loadBtn?.addEventListener('click', () => loadInput?.click());
   loadInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     loadInput.value = '';
-    const footer = document.getElementById('footer-status');
+    const footer = $('footer-status');
     if (footer) footer.textContent = 'Loading project...';
 
     try {
@@ -1702,14 +1702,14 @@ function initCollage() {
 
       // Restore canvas
       const cw = project.canvas?.w || 1200, ch = project.canvas?.h || 800;
-      document.getElementById('collage-w').value = cw;
-      document.getElementById('collage-h').value = ch;
-      if (project.canvas?.bg) document.getElementById('collage-bg').value = project.canvas.bg;
-      if (project.canvas?.bg2) document.getElementById('collage-bg2').value = project.canvas.bg2;
-      if (project.canvas?.bgType) document.getElementById('collage-bg-type').value = project.canvas.bgType;
+      $('collage-w').value = cw;
+      $('collage-h').value = ch;
+      if (project.canvas?.bg) $('collage-bg').value = project.canvas.bg;
+      if (project.canvas?.bg2) $('collage-bg2').value = project.canvas.bg2;
+      if (project.canvas?.bgType) $('collage-bg-type').value = project.canvas.bgType;
       canvas.width = cw; canvas.height = ch;
       canvas.style.display = 'block';
-      document.getElementById('collage-drop').style.display = 'none';
+      $('collage-drop').style.display = 'none';
 
       // Restore images
       images = [];

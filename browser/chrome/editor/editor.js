@@ -34,7 +34,7 @@ const toolHelp = {
 
 function showHelpPopover(btn, mode, group) {
   // Close any existing popover
-  document.querySelectorAll('.help-popover').forEach(p => p.remove());
+  $$('.help-popover').forEach(p => p.remove());
 
   const tips = toolHelp[mode]?.[group];
   if (!tips) return;
@@ -65,7 +65,7 @@ function showHelpPopover(btn, mode, group) {
 
 function showShortcutsOverlay() {
   // Remove existing
-  document.querySelectorAll('.shortcuts-overlay').forEach(o => o.remove());
+  $$('.shortcuts-overlay').forEach(o => o.remove());
 
   const shortcuts = [
     ['General', [
@@ -127,23 +127,23 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Shortcuts button
-  document.getElementById('btn-shortcuts')?.addEventListener('click', showShortcutsOverlay);
+  $('btn-shortcuts')?.addEventListener('click', showShortcutsOverlay);
 
   // Help page — opens in new tab with current mode section
-  document.getElementById('btn-help-page')?.addEventListener('click', () => {
+  $('btn-help-page')?.addEventListener('click', () => {
     const hash = currentMode || 'overview';
     chrome.tabs.create({ url: chrome.runtime.getURL(`help/help.html#${hash}`) });
   });
 
   // Guided tour
-  document.getElementById('btn-tour')?.addEventListener('click', () => {
+  $('btn-tour')?.addEventListener('click', () => {
     if (typeof startTour === 'function' && currentMode) startTour(currentMode);
     else if (typeof startTour === 'function') startTour('edit'); // default
   });
 
   // Inject ? help buttons into ribbon group labels
   // Add ? help indicator next to each ribbon group label
-  document.querySelectorAll('.ribbon-label').forEach(label => {
+  $$('.ribbon-label').forEach(label => {
     const groupName = label.textContent.trim();
     const modeEl = label.closest('.mode-view');
     const modeId = modeEl?.id?.replace('mode-', '') || 'edit';
@@ -160,7 +160,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Also inject ? into tool-ribbon titles
-  document.querySelectorAll('.tool-ribbon .ribbon-title').forEach(title => {
+  $$('.tool-ribbon .ribbon-title').forEach(title => {
     const groupName = title.textContent.trim();
     const modeEl = title.closest('.mode-view');
     const modeId = modeEl?.id?.replace('mode-', '') || '';
@@ -185,7 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Collapsible ribbon groups — click label to toggle
-  document.querySelectorAll('.ribbon-label').forEach(label => {
+  $$('.ribbon-label').forEach(label => {
     label.addEventListener('click', (e) => {
       if (e.target.classList?.contains('help-btn')) return; // don't toggle when clicking ? button
       const group = label.closest('.ribbon-group');
@@ -195,7 +195,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Collapse non-essential groups by default (Edit mode)
   const collapseByDefault = ['View'];
-  document.querySelectorAll('.ribbon-group .ribbon-label').forEach(label => {
+  $$('.ribbon-group .ribbon-label').forEach(label => {
     if (collapseByDefault.includes(label.textContent.trim())) {
       label.closest('.ribbon-group')?.classList.add('collapsed');
     }
@@ -245,69 +245,69 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Quick settings popover toggle
-  document.getElementById('btn-editor-settings').addEventListener('click', () => {
-    const pop = document.getElementById('settings-popover');
+  $('btn-editor-settings').addEventListener('click', () => {
+    const pop = $('settings-popover');
     pop.style.display = pop.style.display === 'none' ? 'block' : 'none';
   });
 
   // Close popover when clicking outside
   document.addEventListener('click', (e) => {
-    const pop = document.getElementById('settings-popover');
+    const pop = $('settings-popover');
     if (pop.style.display !== 'none' && !pop.contains(e.target) && e.target.id !== 'btn-editor-settings' && !e.target.closest('#btn-editor-settings')) {
       pop.style.display = 'none';
     }
   });
 
   // Theme toggle
-  document.querySelectorAll('.qs-theme').forEach(btn => {
+  $$('.qs-theme').forEach(btn => {
     btn.addEventListener('click', () => {
       chrome.storage.sync.set({ theme: btn.dataset.theme });
     });
   });
 
   // Default format
-  document.getElementById('qs-format')?.addEventListener('change', (e) => {
+  $('qs-format')?.addEventListener('change', (e) => {
     chrome.storage.sync.set({ defaultFormat: e.target.value });
   });
 
   // Download folder
-  document.getElementById('qs-folder')?.addEventListener('change', (e) => {
+  $('qs-folder')?.addEventListener('change', (e) => {
     chrome.storage.sync.set({ downloadPrefix: e.target.value });
   });
 
   // Advanced settings opens in new tab
-  document.getElementById('qs-advanced')?.addEventListener('click', () => {
+  $('qs-advanced')?.addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
-    document.getElementById('settings-popover').style.display = 'none';
+    $('settings-popover').style.display = 'none';
   });
 
   // Font family
-  document.getElementById('qs-font-family')?.addEventListener('change', (e) => {
+  $('qs-font-family')?.addEventListener('change', (e) => {
     chrome.storage.sync.set({ fontFamily: e.target.value });
   });
 
   // Load saved settings into popover
   chrome.storage.sync.get({ defaultFormat: 'png', downloadPrefix: 'pixeroo', fontSize: 100, fontFamily: 'jetbrains' }, (r) => {
-    const fmtEl = document.getElementById('qs-format'); if (fmtEl) fmtEl.value = r.defaultFormat;
-    const folderEl = document.getElementById('qs-folder'); if (folderEl) folderEl.value = r.downloadPrefix;
-    const ffEl = document.getElementById('qs-font-family'); if (ffEl) ffEl.value = r.fontFamily || 'system';
+    const fmtEl = $('qs-format'); if (fmtEl) fmtEl.value = r.defaultFormat;
+    const folderEl = $('qs-folder'); if (folderEl) folderEl.value = r.downloadPrefix;
+    const ffEl = $('qs-font-family'); if (ffEl) ffEl.value = r.fontFamily || 'system';
     applyFontSize(r.fontSize || 100);
   });
 
   // Font size A- / A+
   function applyFontSize(pct) {
     document.documentElement.style.fontSize = (pct / 100 * 16) + 'px';
-    const label = document.getElementById('qs-font-val');
+    const label = $('qs-font-val');
     if (label) label.textContent = pct + '%';
   }
-  document.getElementById('qs-font-down')?.addEventListener('click', () => {
+  $('qs-font-down')?.addEventListener('click', () => {
     chrome.storage.sync.get({ fontSize: 100 }, (r) => {
       const v = Math.max(70, (r.fontSize || 100) - 5);
       chrome.storage.sync.set({ fontSize: v });
       applyFontSize(v);
     });
   });
-  document.getElementById('qs-font-up')?.addEventListener('click', () => {
+  $('qs-font-up')?.addEventListener('click', () => {
     chrome.storage.sync.get({ fontSize: 100 }, (r) => {
       const v = Math.min(150, (r.fontSize || 100) + 5);
       chrome.storage.sync.set({ fontSize: v });
@@ -420,14 +420,14 @@ document.addEventListener('DOMContentLoaded', () => {
       set('wm-margin', ws.watermark.margin); set('wm-mode', ws.watermark.mode);
       set('wm-tile-gap', ws.watermark.tileGap);
       if (ws.watermark.position) {
-        document.querySelectorAll('.wm-pos-btn').forEach(b => b.classList.remove('active'));
+        $$('.wm-pos-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`.wm-pos-btn[data-pos="${ws.watermark.position}"]`)?.classList.add('active');
       }
     }
 
     if (ws.convert) {
       if (ws.convert.format) {
-        document.querySelectorAll('#convert-formats .format-btn').forEach(b => b.classList.remove('active'));
+        $$('#convert-formats .format-btn').forEach(b => b.classList.remove('active'));
         document.querySelector(`#convert-formats .format-btn[data-fmt="${ws.convert.format}"]`)?.classList.add('active');
       }
       set('convert-quality', ws.convert.quality);
@@ -451,7 +451,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Save workspace to file
-  document.getElementById('btn-workspace-save')?.addEventListener('click', () => {
+  $('btn-workspace-save')?.addEventListener('click', () => {
     const ws = collectWorkspace();
     const blob = new Blob([JSON.stringify(ws, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
@@ -459,15 +459,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const timestamp = new Date().toISOString().slice(0, 10);
     a.href = url; a.download = `pixeroo-workspace-${timestamp}.json`; a.click();
     URL.revokeObjectURL(url);
-    document.getElementById('settings-popover').style.display = 'none';
+    $('settings-popover').style.display = 'none';
   });
 
   // Load workspace from file
-  document.getElementById('btn-workspace-load')?.addEventListener('click', () => {
-    document.getElementById('workspace-file-input').click();
+  $('btn-workspace-load')?.addEventListener('click', () => {
+    $('workspace-file-input').click();
   });
 
-  document.getElementById('workspace-file-input')?.addEventListener('change', async (e) => {
+  $('workspace-file-input')?.addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
@@ -483,7 +483,7 @@ document.addEventListener('DOMContentLoaded', () => {
       await pixDialog.alert('Error', 'Could not read workspace file.');
     }
     e.target.value = '';
-    document.getElementById('settings-popover').style.display = 'none';
+    $('settings-popover').style.display = 'none';
   });
 
   // Auto-save workspace to chrome.storage every 30 seconds (debounced)
@@ -514,10 +514,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.ctrlKey && e.key === '/') { e.preventDefault(); showShortcutsOverlay(); }
     // Guide toggles (only when not typing in an input)
     if (currentMode === 'edit' && !e.ctrlKey && !e.metaKey && !e.altKey && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
-      if (e.key === 'r' || e.key === 'R') { document.getElementById('btn-toggle-ruler')?.click(); }
-      if (e.key === 'g' || e.key === 'G') { document.getElementById('btn-toggle-grid')?.click(); }
-      if (e.key === 'c' || e.key === 'C') { document.getElementById('btn-toggle-center')?.click(); }
-      if (e.key === 'h' || e.key === 'H') { document.getElementById('btn-history')?.click(); }
+      if (e.key === 'r' || e.key === 'R') { $('btn-toggle-ruler')?.click(); }
+      if (e.key === 'g' || e.key === 'G') { $('btn-toggle-grid')?.click(); }
+      if (e.key === 'c' || e.key === 'C') { $('btn-toggle-center')?.click(); }
+      if (e.key === 'h' || e.key === 'H') { $('btn-history')?.click(); }
     }
   });
 
@@ -542,10 +542,10 @@ document.addEventListener('DOMContentLoaded', () => {
           pipeline.setDisplayCanvas(editCanvas);
           pipeline.loadImage(img);
           editCanvas.style.display = 'block';
-          document.getElementById('edit-ribbon')?.classList.remove('disabled');
-          document.getElementById('edit-dropzone').style.display = 'none';
+          $('edit-ribbon')?.classList.remove('disabled');
+          $('edit-dropzone').style.display = 'none';
           editFilename = 'library-image';
-          document.getElementById('file-label').textContent = 'Library Image';
+          $('file-label').textContent = 'Library Image';
           updResize(); originalW = 0; originalH = 0; saveEdit();
           _initEditGuides();
         };
@@ -581,42 +581,42 @@ document.addEventListener('DOMContentLoaded', () => {
 // currentMode declared in shared-editor.js
 
 function initNavigation() {
-  document.querySelectorAll('.home-card').forEach(card => {
+  $$('.home-card').forEach(card => {
     card.addEventListener('click', () => openMode(card.dataset.mode));
   });
-  document.getElementById('btn-back').addEventListener('click', goHome);
+  $('btn-back').addEventListener('click', goHome);
 }
 
 function openMode(mode) {
   currentMode = mode;
-  document.getElementById('home').classList.add('hidden');
-  document.querySelectorAll('.mode-view').forEach(v => v.classList.remove('active'));
-  const panel = document.getElementById(`mode-${mode}`);
+  $('home').classList.add('hidden');
+  $$('.mode-view').forEach(v => v.classList.remove('active'));
+  const panel = $(`mode-${mode}`);
   if (panel) panel.classList.add('active');
 
-  document.getElementById('btn-back').classList.add('visible');
+  $('btn-back').classList.add('visible');
   document.body.classList.add('tool-active');
   const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
-  document.getElementById('mode-label').textContent = labels[mode] || '';
+  $('mode-label').textContent = labels[mode] || '';
 
   // Undo/Redo/Reset now live in ribbon Size group, always visible in edit mode
 }
 
 function goHome() {
   currentMode = null;
-  document.getElementById('home').classList.remove('hidden');
-  document.querySelectorAll('.mode-view').forEach(v => v.classList.remove('active'));
-  document.getElementById('btn-back').classList.remove('visible');
+  $('home').classList.remove('hidden');
+  $$('.mode-view').forEach(v => v.classList.remove('active'));
+  $('btn-back').classList.remove('visible');
   document.body.classList.remove('tool-active');
-  document.getElementById('mode-label').textContent = '';
-  document.getElementById('btn-undo').style.display = 'none';
-  document.getElementById('btn-redo').style.display = 'none';
-  document.getElementById('file-label').textContent = '';
+  $('mode-label').textContent = '';
+  $('btn-undo').style.display = 'none';
+  $('btn-redo').style.display = 'none';
+  $('file-label').textContent = '';
 }
 
 // Global drop: drop file anywhere on home -> auto-detect best mode
 function initGlobalDrop() {
-  const home = document.getElementById('home');
+  const home = $('home');
   home.addEventListener('dragover', (e) => e.preventDefault());
   home.addEventListener('drop', (e) => {
     e.preventDefault();
@@ -641,11 +641,11 @@ async function openLibraryPicker(onAdd, options) {
   // onAdd receives array of { dataUrl, name, width, height }
   // options: { singleSelect: true } for compare tool
   const singleSelect = options?.singleSelect || false;
-  const backdrop = document.getElementById('lib-picker-backdrop');
-  const grid = document.getElementById('lib-picker-grid');
-  const countEl = document.getElementById('lib-picker-count');
-  const selectedEl = document.getElementById('lib-picker-selected');
-  const selectAllBtn = document.getElementById('lib-picker-select-all');
+  const backdrop = $('lib-picker-backdrop');
+  const grid = $('lib-picker-grid');
+  const countEl = $('lib-picker-count');
+  const selectedEl = $('lib-picker-selected');
+  const selectAllBtn = $('lib-picker-select-all');
 
   // Load library items (images only, not colors)
   const allItems = await PixLibrary.getAll();
@@ -720,9 +720,9 @@ async function openLibraryPicker(onAdd, options) {
   function cleanup() {
     backdrop.style.display = 'none';
     selectAllBtn.removeEventListener('click', selectAllHandler);
-    document.getElementById('lib-picker-cancel').removeEventListener('click', cancelHandler);
-    document.getElementById('lib-picker-add').removeEventListener('click', addHandler);
-    document.getElementById('lib-picker-close').removeEventListener('click', cancelHandler);
+    $('lib-picker-cancel').removeEventListener('click', cancelHandler);
+    $('lib-picker-add').removeEventListener('click', addHandler);
+    $('lib-picker-close').removeEventListener('click', cancelHandler);
     backdrop.removeEventListener('click', backdropHandler);
     document.removeEventListener('keydown', escHandler);
   }
@@ -745,9 +745,9 @@ async function openLibraryPicker(onAdd, options) {
   };
 
   selectAllBtn.addEventListener('click', selectAllHandler);
-  document.getElementById('lib-picker-cancel').addEventListener('click', cancelHandler);
-  document.getElementById('lib-picker-add').addEventListener('click', addHandler);
-  document.getElementById('lib-picker-close').addEventListener('click', cancelHandler);
+  $('lib-picker-cancel').addEventListener('click', cancelHandler);
+  $('lib-picker-add').addEventListener('click', addHandler);
+  $('lib-picker-close').addEventListener('click', cancelHandler);
   backdrop.addEventListener('click', backdropHandler);
   document.addEventListener('keydown', escHandler);
 }
@@ -758,24 +758,24 @@ async function openLibraryPicker(onAdd, options) {
 
 async function saveToLibraryDialog(dataUrl, metadata = {}) {
   // metadata: { name, width, height, source, type }
-  const overlay = document.getElementById('stl-overlay');
+  const overlay = $('stl-overlay');
   if (!overlay) return false;
 
   const collections = await PixLibrary.getCollections();
 
   // Populate thumbnail
-  document.getElementById('stl-thumb').src = dataUrl;
+  $('stl-thumb').src = dataUrl;
 
   // Populate name
-  document.getElementById('stl-name').value = metadata.name || 'image';
+  $('stl-name').value = metadata.name || 'image';
 
   // Populate collection dropdown
-  const sel = document.getElementById('stl-collection');
+  const sel = $('stl-collection');
   sel.innerHTML = collections.map(c => `<option value="${c}"${c === 'General' ? ' selected' : ''}>${c}</option>`).join('') +
     '<option value="__new__">+ New Collection...</option>';
 
   // Reset new collection input
-  const newInput = document.getElementById('stl-new-collection');
+  const newInput = $('stl-new-collection');
   newInput.value = '';
   newInput.style.display = 'none';
 
@@ -787,21 +787,21 @@ async function saveToLibraryDialog(dataUrl, metadata = {}) {
   sel.addEventListener('change', onSelChange);
 
   overlay.style.display = 'flex';
-  document.getElementById('stl-name').focus();
+  $('stl-name').focus();
 
   return new Promise((resolve) => {
     const cleanup = (result) => {
       overlay.style.display = 'none';
       sel.removeEventListener('change', onSelChange);
-      document.getElementById('stl-save').removeEventListener('click', onSave);
-      document.getElementById('stl-cancel').removeEventListener('click', onCancel);
+      $('stl-save').removeEventListener('click', onSave);
+      $('stl-cancel').removeEventListener('click', onCancel);
       overlay.removeEventListener('click', onBackdrop);
       document.removeEventListener('keydown', onKey);
       resolve(result);
     };
 
     const doSave = async () => {
-      const name = document.getElementById('stl-name').value || metadata.name || 'image';
+      const name = $('stl-name').value || metadata.name || 'image';
       let collection = sel.value;
       if (collection === '__new__') {
         collection = newInput.value.trim() || 'General';
@@ -826,8 +826,8 @@ async function saveToLibraryDialog(dataUrl, metadata = {}) {
       if (e.key === 'Escape') { e.preventDefault(); onCancel(); }
     };
 
-    document.getElementById('stl-save').addEventListener('click', onSave);
-    document.getElementById('stl-cancel').addEventListener('click', onCancel);
+    $('stl-save').addEventListener('click', onSave);
+    $('stl-cancel').addEventListener('click', onCancel);
     overlay.addEventListener('click', onBackdrop);
     document.addEventListener('keydown', onKey);
   });
@@ -839,54 +839,54 @@ async function saveToLibraryDialog(dataUrl, metadata = {}) {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Edit mode
-  document.getElementById('btn-edit-save-lib')?.addEventListener('click', async () => {
+  $('btn-edit-save-lib')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
     const dataUrl = editCanvas.toDataURL('image/png');
     await saveToLibraryDialog(dataUrl, { name: editFilename || 'edit-export', source: 'Edit', width: editCanvas.width, height: editCanvas.height });
   });
 
   // Generate mode
-  document.getElementById('btn-gen-save-lib')?.addEventListener('click', async () => {
-    const canvas = document.getElementById('gen-canvas');
+  $('btn-gen-save-lib')?.addEventListener('click', async () => {
+    const canvas = $('gen-canvas');
     if (!canvas || !canvas.width) return;
     const dataUrl = canvas.toDataURL('image/png');
     await saveToLibraryDialog(dataUrl, { name: 'generated', source: 'Generate', width: canvas.width, height: canvas.height });
   });
 
   // Collage mode
-  document.getElementById('btn-collage-save-lib')?.addEventListener('click', async () => {
-    const canvas = document.getElementById('collage-canvas');
+  $('btn-collage-save-lib')?.addEventListener('click', async () => {
+    const canvas = $('collage-canvas');
     if (!canvas || !canvas.width) return;
     const dataUrl = canvas.toDataURL('image/png');
     await saveToLibraryDialog(dataUrl, { name: 'collage', source: 'Collage', width: canvas.width, height: canvas.height });
   });
 
   // QR mode
-  document.getElementById('btn-qr-save-lib')?.addEventListener('click', async () => {
-    const canvas = document.getElementById('qr-canvas');
+  $('btn-qr-save-lib')?.addEventListener('click', async () => {
+    const canvas = $('qr-canvas');
     if (!canvas || !canvas.width) return;
     const dataUrl = canvas.toDataURL('image/png');
     await saveToLibraryDialog(dataUrl, { name: 'qrcode', source: 'QR Code', width: canvas.width, height: canvas.height });
   });
 
   // Social media mode
-  document.getElementById('btn-social-save-lib')?.addEventListener('click', async () => {
-    const canvas = document.getElementById('social-canvas');
+  $('btn-social-save-lib')?.addEventListener('click', async () => {
+    const canvas = $('social-canvas');
     if (!canvas || !canvas.width || !canvas.height) return;
     const dataUrl = canvas.toDataURL('image/png');
     await saveToLibraryDialog(dataUrl, { name: 'social-banner', source: 'Social Media', width: canvas.width, height: canvas.height });
   });
 
   // Watermark mode — save the preview canvas
-  document.getElementById('btn-wm-save-lib')?.addEventListener('click', async () => {
-    const canvas = document.getElementById('wm-canvas');
+  $('btn-wm-save-lib')?.addEventListener('click', async () => {
+    const canvas = $('wm-canvas');
     if (!canvas || !canvas.width) return;
     const dataUrl = canvas.toDataURL('image/png');
     await saveToLibraryDialog(dataUrl, { name: 'watermarked', source: 'Watermark', width: canvas.width, height: canvas.height });
   });
 
   // SVG Trace mode — render SVG to canvas for library save
-  document.getElementById('btn-trace-save-lib')?.addEventListener('click', async () => {
+  $('btn-trace-save-lib')?.addEventListener('click', async () => {
     const svgEl = document.querySelector('#trace-preview svg');
     if (!svgEl) return;
     const svgData = new XMLSerializer().serializeToString(svgEl);

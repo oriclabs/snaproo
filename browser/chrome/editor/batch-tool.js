@@ -5,25 +5,25 @@ function initBatch() {
   let previewIndex = 0; // which image to preview
 
   // Slider labels
-  document.getElementById('batch-wm-opacity')?.addEventListener('input', (e) => {
-    const v = document.getElementById('batch-wm-opacity-val'); if (v) v.textContent = e.target.value;
+  $('batch-wm-opacity')?.addEventListener('input', (e) => {
+    const v = $('batch-wm-opacity-val'); if (v) v.textContent = e.target.value;
   });
 
   // Show/hide logo button based on watermark mode
-  document.getElementById('batch-wm-mode')?.addEventListener('change', (e) => {
-    const logoBtn = document.getElementById('batch-wm-img-btn');
+  $('batch-wm-mode')?.addEventListener('change', (e) => {
+    const logoBtn = $('batch-wm-img-btn');
     if (logoBtn) logoBtn.style.display = e.target.value === 'image' ? '' : 'none';
   });
 
   // Show/hide copyright text input
-  document.getElementById('batch-add-copyright')?.addEventListener('change', (e) => {
-    const input = document.getElementById('batch-copyright-text');
+  $('batch-add-copyright')?.addEventListener('change', (e) => {
+    const input = $('batch-copyright-text');
     if (input) input.style.display = e.target.checked ? '' : 'none';
   });
 
   // Load logo image
-  const wmImgBtn = document.getElementById('batch-wm-img-btn');
-  const wmImgInput = document.getElementById('batch-wm-img-file');
+  const wmImgBtn = $('batch-wm-img-btn');
+  const wmImgInput = $('batch-wm-img-file');
   wmImgBtn?.addEventListener('click', () => wmImgInput?.click());
   wmImgInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0]; if (!file) return;
@@ -34,12 +34,12 @@ function initBatch() {
     wmImgInput.value = '';
   });
 
-  document.getElementById('batch-quality')?.addEventListener('input', (e) => {
-    const v = document.getElementById('batch-quality-val'); if (v) v.textContent = e.target.value;
+  $('batch-quality')?.addEventListener('input', (e) => {
+    const v = $('batch-quality-val'); if (v) v.textContent = e.target.value;
   });
 
   // Drop zone
-  setupDropzone(document.getElementById('batch-drop'), document.getElementById('batch-files'), async (file) => {
+  setupDropzone($('batch-drop'), $('batch-files'), async (file) => {
     const img = await loadImg(file);
     if (!img) return;
     const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
@@ -49,9 +49,9 @@ function initBatch() {
   }, { multiple: true });
 
   function _updateBatchUI() {
-    const queue = document.getElementById('batch-queue');
-    const items = document.getElementById('batch-items');
-    const drop = document.getElementById('batch-drop');
+    const queue = $('batch-queue');
+    const items = $('batch-items');
+    const drop = $('batch-drop');
     if (batchFiles.length > 0) { queue.style.display = ''; drop.style.display = 'none'; }
     else { queue.style.display = 'none'; drop.style.display = ''; }
 
@@ -98,11 +98,11 @@ function initBatch() {
       thumb.addEventListener('dblclick', (e) => {
         e.stopPropagation();
         previewIndex = i;
-        document.querySelectorAll('#batch-items > div').forEach((c, ci) => {
+        $$('#batch-items > div').forEach((c, ci) => {
           c.style.borderColor = ci === i ? 'var(--saffron-400)' : 'var(--slate-700)';
         });
-        document.getElementById('batch-preview-area').style.display = 'none';
-        document.getElementById('btn-batch-preview')?.click();
+        $('batch-preview-area').style.display = 'none';
+        $('btn-batch-preview')?.click();
       });
 
       // Drag reorder
@@ -141,9 +141,9 @@ function initBatch() {
       addInput.value = ''; _updateBatchUI();
     });
     items.appendChild(addBtn);
-    document.getElementById('batch-status').textContent = `${batchFiles.length} images`;
-    document.getElementById('btn-batch-process').disabled = batchFiles.length === 0;
-    document.getElementById('btn-batch-preview').disabled = batchFiles.length === 0;
+    $('batch-status').textContent = `${batchFiles.length} images`;
+    $('btn-batch-process').disabled = batchFiles.length === 0;
+    $('btn-batch-preview').disabled = batchFiles.length === 0;
     updateRenamePreview();
   }
 
@@ -151,31 +151,31 @@ function initBatch() {
 
   function updateBatchCount() {
     const checked = getChecked().length;
-    document.getElementById('batch-status').textContent = `${checked}/${batchFiles.length} selected`;
-    document.getElementById('btn-batch-process').disabled = checked === 0;
-    document.getElementById('btn-batch-preview').disabled = checked === 0;
+    $('batch-status').textContent = `${checked}/${batchFiles.length} selected`;
+    $('btn-batch-process').disabled = checked === 0;
+    $('btn-batch-preview').disabled = checked === 0;
   }
 
   function updateRenamePreview() {
-    const preview = document.getElementById('batch-rename-preview');
+    const preview = $('batch-rename-preview');
     if (!preview) return;
     if (!batchFiles.length) { preview.textContent = ''; return; }
-    const fmt = document.getElementById('batch-format')?.value || 'png';
+    const fmt = $('batch-format')?.value || 'png';
     const ext = fmt === 'original' ? batchFiles[0].file.name.split('.').pop() : (fmt === 'jpeg' ? 'jpg' : fmt);
-    const w = +(document.getElementById('batch-w')?.value) || batchFiles[0].img.naturalWidth;
-    const h = +(document.getElementById('batch-h')?.value) || batchFiles[0].img.naturalHeight;
+    const w = +($('batch-w')?.value) || batchFiles[0].img.naturalWidth;
+    const h = +($('batch-h')?.value) || batchFiles[0].img.naturalHeight;
     const name = batchFilename(batchFiles[0], 0, w, h, ext);
     preview.textContent = name;
     preview.title = name;
   }
 
   // Update rename preview on input
-  document.getElementById('batch-rename')?.addEventListener('input', updateRenamePreview);
+  $('batch-rename')?.addEventListener('input', updateRenamePreview);
 
   // Token insert buttons
-  document.querySelectorAll('#batch-rename-tokens [data-token]').forEach(btn => {
+  $$('#batch-rename-tokens [data-token]').forEach(btn => {
     btn.addEventListener('click', () => {
-      const input = document.getElementById('batch-rename');
+      const input = $('batch-rename');
       if (!input) return;
       input.value += btn.dataset.token;
       input.dispatchEvent(new Event('input'));
@@ -183,18 +183,18 @@ function initBatch() {
   });
 
   // --- 1. Import Pipeline from Edit mode ---
-  document.getElementById('btn-batch-import-pipeline')?.addEventListener('click', () => {
+  $('btn-batch-import-pipeline')?.addEventListener('click', () => {
     if (!pipeline || !pipeline.operations.length) {
-      document.getElementById('batch-pipeline-info').innerHTML = 'Go to <b>Edit</b> first, apply operations, then come back here to import';
+      $('batch-pipeline-info').innerHTML = 'Go to <b>Edit</b> first, apply operations, then come back here to import';
       return;
     }
     importedPipeline = JSON.parse(JSON.stringify(pipeline.operations));
     const opNames = importedPipeline.map(op => op.type).join(', ');
-    document.getElementById('batch-pipeline-info').textContent = `${importedPipeline.length} ops: ${opNames}`;
+    $('batch-pipeline-info').textContent = `${importedPipeline.length} ops: ${opNames}`;
   });
 
   // --- 4. Batch Consistency Check ---
-  document.getElementById('btn-batch-check')?.addEventListener('click', () => {
+  $('btn-batch-check')?.addEventListener('click', () => {
     if (!batchFiles.length) return;
 
     // Group by dimensions
@@ -249,7 +249,7 @@ function initBatch() {
 
   // --- Smart rename helper ---
   function batchFilename(bf, index, w, h, ext) {
-    const pattern = document.getElementById('batch-rename')?.value || '{name}';
+    const pattern = $('batch-rename')?.value || '{name}';
     const baseName = bf.file.name.replace(/\.[^.]+$/, '');
     const origExt = bf.file.name.split('.').pop();
     const date = new Date().toISOString().slice(0, 10);
@@ -268,10 +268,10 @@ function initBatch() {
   let wmImage = null; // loaded logo image for image watermark
 
   function applyPositionedWatermark(c, ctx, text, opts) {
-    const mode = document.getElementById('batch-wm-mode')?.value || 'text';
-    const pos = document.getElementById('batch-wm-position')?.value || 'center';
-    const color = document.getElementById('batch-wm-color')?.value || '#ffffff';
-    const fontFamily = document.getElementById('batch-wm-font')?.value || 'Inter, system-ui, sans-serif';
+    const mode = $('batch-wm-mode')?.value || 'text';
+    const pos = $('batch-wm-position')?.value || 'center';
+    const color = $('batch-wm-color')?.value || '#ffffff';
+    const fontFamily = $('batch-wm-font')?.value || 'Inter, system-ui, sans-serif';
     const fontSize = Math.round(Math.min(c.width, c.height) * 0.05);
     const opacity = opts.opacity || 0.3;
 
@@ -356,28 +356,28 @@ function initBatch() {
   // --- Process single image through all operations ---
   async function processOne(bf, index) {
     const results = []; // { filename, blob }
-    const targetW = +(document.getElementById('batch-w')?.value) || 0;
-    const targetH = +(document.getElementById('batch-h')?.value) || 0;
-    const lockRatio = document.getElementById('batch-lock')?.checked;
-    const filterName = document.getElementById('batch-filter')?.value || 'none';
-    const watermark = document.getElementById('batch-watermark')?.value || '';
-    const wmOpacity = (+(document.getElementById('batch-wm-opacity')?.value) || 30) / 100;
-    const format = document.getElementById('batch-format')?.value || 'png';
-    const quality = (+(document.getElementById('batch-quality')?.value) || 85) / 100;
-    const multiSize = document.getElementById('batch-multi-size')?.checked;
-    const sizes = (document.getElementById('batch-sizes')?.value || '150,600,1200').split(',').map(s => +s.trim()).filter(s => s > 0);
-    const addCopyright = document.getElementById('batch-add-copyright')?.checked;
-    const ratioEnforce = document.getElementById('batch-ratio-enforce')?.value || 'none';
-    const normalize = document.getElementById('batch-normalize')?.checked;
+    const targetW = +($('batch-w')?.value) || 0;
+    const targetH = +($('batch-h')?.value) || 0;
+    const lockRatio = $('batch-lock')?.checked;
+    const filterName = $('batch-filter')?.value || 'none';
+    const watermark = $('batch-watermark')?.value || '';
+    const wmOpacity = (+($('batch-wm-opacity')?.value) || 30) / 100;
+    const format = $('batch-format')?.value || 'png';
+    const quality = (+($('batch-quality')?.value) || 85) / 100;
+    const multiSize = $('batch-multi-size')?.checked;
+    const sizes = ($('batch-sizes')?.value || '150,600,1200').split(',').map(s => +s.trim()).filter(s => s > 0);
+    const addCopyright = $('batch-add-copyright')?.checked;
+    const ratioEnforce = $('batch-ratio-enforce')?.value || 'none';
+    const normalize = $('batch-normalize')?.checked;
 
     const filterCSS = { none:'', grayscale:'grayscale(100%)', sepia:'sepia(100%)', sharpen:'contrast(150%) brightness(110%)', blur:'blur(2px)', invert:'invert(100%)' };
 
     // Pre-process: batch crop (trim edges)
     let srcImg = bf.img;
-    const cropT = +(document.getElementById('batch-crop-t')?.value) || 0;
-    const cropR = +(document.getElementById('batch-crop-r')?.value) || 0;
-    const cropB = +(document.getElementById('batch-crop-b')?.value) || 0;
-    const cropL = +(document.getElementById('batch-crop-l')?.value) || 0;
+    const cropT = +($('batch-crop-t')?.value) || 0;
+    const cropR = +($('batch-crop-r')?.value) || 0;
+    const cropB = +($('batch-crop-b')?.value) || 0;
+    const cropL = +($('batch-crop-l')?.value) || 0;
     if (cropT || cropR || cropB || cropL) {
       const cw = bf.img.naturalWidth - cropL - cropR;
       const ch = bf.img.naturalHeight - cropT - cropB;
@@ -483,13 +483,13 @@ function initBatch() {
 
   // --- Preview first image ---
   // Close preview
-  document.getElementById('batch-preview-close')?.addEventListener('click', () => {
-    document.getElementById('batch-preview-area').style.display = 'none';
+  $('batch-preview-close')?.addEventListener('click', () => {
+    $('batch-preview-area').style.display = 'none';
   });
 
-  document.getElementById('btn-batch-preview')?.addEventListener('click', async () => {
+  $('btn-batch-preview')?.addEventListener('click', async () => {
     if (!batchFiles.length) return;
-    const area = document.getElementById('batch-preview-area');
+    const area = $('batch-preview-area');
     // Toggle off if already visible
     if (area.style.display !== 'none') { area.style.display = 'none'; return; }
     const idx = Math.min(previewIndex, batchFiles.length - 1);
@@ -497,11 +497,11 @@ function initBatch() {
     area.style.display = '';
 
     // Update title with image name
-    const titleEl = document.getElementById('batch-preview-title');
+    const titleEl = $('batch-preview-title');
     if (titleEl) titleEl.textContent = `Preview: ${bf.file.name}`;
 
     // Show original (scaled to fit 250px max dimension)
-    const origCanvas = document.getElementById('batch-preview-original');
+    const origCanvas = $('batch-preview-original');
     const previewMax = 250;
     const origScale = Math.min(previewMax / bf.img.naturalWidth, previewMax / bf.img.naturalHeight, 1);
     origCanvas.width = Math.round(bf.img.naturalWidth * origScale);
@@ -509,13 +509,13 @@ function initBatch() {
     origCanvas.getContext('2d').drawImage(bf.img, 0, 0, origCanvas.width, origCanvas.height);
 
     // Process it (same logic as processOne but capture the result instead of downloading)
-    const targetW = +(document.getElementById('batch-w')?.value) || 0;
-    const targetH = +(document.getElementById('batch-h')?.value) || 0;
-    const lockRatio = document.getElementById('batch-lock')?.checked;
-    const filterName = document.getElementById('batch-filter')?.value || 'none';
-    const watermark = document.getElementById('batch-watermark')?.value || '';
-    const wmOpacity = (+(document.getElementById('batch-wm-opacity')?.value) || 30) / 100;
-    const addCopyright = document.getElementById('batch-add-copyright')?.checked;
+    const targetW = +($('batch-w')?.value) || 0;
+    const targetH = +($('batch-h')?.value) || 0;
+    const lockRatio = $('batch-lock')?.checked;
+    const filterName = $('batch-filter')?.value || 'none';
+    const watermark = $('batch-watermark')?.value || '';
+    const wmOpacity = (+($('batch-wm-opacity')?.value) || 30) / 100;
+    const addCopyright = $('batch-add-copyright')?.checked;
     const filterCSS = { none:'', grayscale:'grayscale(100%)', sepia:'sepia(100%)', sharpen:'contrast(150%) brightness(110%)', blur:'blur(2px)', invert:'invert(100%)' };
 
     let w = targetW || bf.img.naturalWidth, h;
@@ -541,7 +541,7 @@ function initBatch() {
 
     if (watermark) applyPositionedWatermark(c, ctx, watermark, { opacity: wmOpacity });
     if (addCopyright) {
-      const crText = (document.getElementById('batch-copyright-text')?.value || '\u00a9 {year}').replace(/\{year\}/g, new Date().getFullYear());
+      const crText = ($('batch-copyright-text')?.value || '\u00a9 {year}').replace(/\{year\}/g, new Date().getFullYear());
       const crSize = Math.max(10, Math.round(Math.min(c.width, c.height) * 0.025));
       ctx.save(); ctx.globalAlpha = 0.6; ctx.fillStyle = '#ffffff';
       ctx.font = `${crSize}px Inter, system-ui, sans-serif`; ctx.textAlign = 'right'; ctx.textBaseline = 'bottom';
@@ -551,7 +551,7 @@ function initBatch() {
     }
 
     // Show result (scaled to same max dimension for consistent comparison)
-    const resCanvas = document.getElementById('batch-preview-result');
+    const resCanvas = $('batch-preview-result');
     const resScale = Math.min(previewMax / c.width, previewMax / c.height, 1);
     resCanvas.width = Math.round(c.width * resScale);
     resCanvas.height = Math.round(c.height * resScale);
@@ -560,9 +560,9 @@ function initBatch() {
     // Get result blob for size info
     const origSize = bf.file.size;
     const resultBlob = await new Promise(r => {
-      const fmt = document.getElementById('batch-format')?.value || 'png';
+      const fmt = $('batch-format')?.value || 'png';
       const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt === 'original' ? 'png' : fmt] || 'image/png';
-      const q = fmt === 'png' ? undefined : (+(document.getElementById('batch-quality')?.value) || 85) / 100;
+      const q = fmt === 'png' ? undefined : (+($('batch-quality')?.value) || 85) / 100;
       c.toBlob(r, mime, q);
     });
 
@@ -581,24 +581,24 @@ function initBatch() {
     resCanvas.style.cursor = 'pointer'; resCanvas.onclick = viewBoth;
 
     // Info
-    const info = document.getElementById('batch-preview-info');
+    const info = $('batch-preview-info');
     info.textContent = `Original: ${bf.img.naturalWidth}\u00d7${bf.img.naturalHeight} (${(origSize/1024).toFixed(0)} KB) \u2192 Result: ${c.width}\u00d7${c.height} (${(resultBlob.size/1024).toFixed(0)} KB) | ${importedPipeline ? importedPipeline.length + ' pipeline ops' : 'No pipeline'} | Click to compare full size`;
   });
 
   // --- Auto-refresh preview when settings change ---
   let previewTimer = null;
   function schedulePreviewRefresh() {
-    if (document.getElementById('batch-preview-area')?.style.display === 'none') return;
+    if ($('batch-preview-area')?.style.display === 'none') return;
     clearTimeout(previewTimer);
-    previewTimer = setTimeout(() => { document.getElementById('btn-batch-preview')?.click(); document.getElementById('btn-batch-preview')?.click(); }, 300);
+    previewTimer = setTimeout(() => { $('btn-batch-preview')?.click(); $('btn-batch-preview')?.click(); }, 300);
   }
   // Hmm double-click would toggle off then on. Let me use a direct refresh instead:
   async function refreshPreview() {
-    if (document.getElementById('batch-preview-area')?.style.display === 'none') return;
+    if ($('batch-preview-area')?.style.display === 'none') return;
     if (!batchFiles.length) return;
     // Force show and re-render
-    document.getElementById('batch-preview-area').style.display = 'none';
-    document.getElementById('btn-batch-preview')?.click();
+    $('batch-preview-area').style.display = 'none';
+    $('btn-batch-preview')?.click();
   }
   const batchSettingIds = ['batch-w','batch-h','batch-filter','batch-watermark','batch-wm-opacity','batch-wm-mode','batch-wm-position','batch-wm-color','batch-wm-font','batch-format','batch-quality','batch-lock','batch-multi-size','batch-sizes','batch-strip-meta','batch-add-copyright','batch-copyright-text','batch-rename','batch-crop-t','batch-crop-r','batch-crop-b','batch-crop-l','batch-ratio-enforce','batch-normalize'];
   batchSettingIds.forEach(id => {
@@ -610,18 +610,18 @@ function initBatch() {
   });
 
   // --- Process all ---
-  document.getElementById('btn-batch-process')?.addEventListener('click', async () => {
+  $('btn-batch-process')?.addEventListener('click', async () => {
     const checked = getChecked();
     if (!checked.length) return;
-    const btn = document.getElementById('btn-batch-process');
+    const btn = $('btn-batch-process');
     btn.disabled = true; btn.textContent = 'Processing...';
 
-    const progress = document.getElementById('batch-progress');
-    const bar = document.getElementById('batch-progress-bar');
-    const text = document.getElementById('batch-progress-text');
+    const progress = $('batch-progress');
+    const bar = $('batch-progress-bar');
+    const text = $('batch-progress-text');
     progress.style.display = '';
 
-    const useZip = document.getElementById('batch-zip')?.checked;
+    const useZip = $('batch-zip')?.checked;
     const allResults = [];
 
     for (let i = 0; i < checked.length; i++) {
@@ -662,7 +662,7 @@ function initBatch() {
 
   // --- Clear All ---
   // Add from Library button
-  document.getElementById('btn-batch-from-lib')?.addEventListener('click', () => {
+  $('btn-batch-from-lib')?.addEventListener('click', () => {
     openLibraryPicker(async (items) => {
       for (const item of items) {
         const img = new Image();
@@ -678,28 +678,28 @@ function initBatch() {
     });
   });
 
-  document.getElementById('btn-batch-sel-all')?.addEventListener('click', () => {
+  $('btn-batch-sel-all')?.addEventListener('click', () => {
     batchFiles.forEach(bf => { bf.checked = true; }); _updateBatchUI();
   });
-  document.getElementById('btn-batch-sel-none')?.addEventListener('click', () => {
+  $('btn-batch-sel-none')?.addEventListener('click', () => {
     batchFiles.forEach(bf => { bf.checked = false; }); _updateBatchUI();
   });
 
-  document.getElementById('btn-batch-clear')?.addEventListener('click', async () => {
+  $('btn-batch-clear')?.addEventListener('click', async () => {
     if (batchFiles.length) {
       const ok = await pixDialog.confirm('Clear Batch', `Remove all ${batchFiles.length} images from the batch?`, { danger: true, okText: 'Clear' });
       if (!ok) return;
     }
     batchFiles = []; importedPipeline = null;
-    document.getElementById('batch-pipeline-info').textContent = 'No pipeline';
-    document.getElementById('batch-progress').style.display = 'none';
+    $('batch-pipeline-info').textContent = 'No pipeline';
+    $('batch-progress').style.display = 'none';
     _updateBatchUI();
   });
 
   // --- 1. LQIP: Lazy Load Placeholders ---
   // --- Helper: download or add to zip ---
   async function batchOutput(filename, blob) {
-    const useZip = document.getElementById('batch-zip')?.checked;
+    const useZip = $('batch-zip')?.checked;
     if (useZip && window._batchZip) {
       await window._batchZip.addBlob(filename, blob);
     } else {
@@ -709,7 +709,7 @@ function initBatch() {
   }
 
   async function startBatchZip() {
-    if (document.getElementById('batch-zip')?.checked && typeof ZipWriter !== 'undefined') {
+    if ($('batch-zip')?.checked && typeof ZipWriter !== 'undefined') {
       window._batchZip = new ZipWriter();
       return true;
     }
@@ -721,21 +721,21 @@ function initBatch() {
     if (window._batchZip) {
       const zipBlob = window._batchZip.toBlob();
       chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: `pixeroo/${label}.zip`, saveAs: true });
-      const footer = document.getElementById('footer-status');
+      const footer = $('footer-status');
       if (footer) footer.textContent = `${label}: ${(zipBlob.size / 1024 / 1024).toFixed(1)} MB zip`;
       window._batchZip = null;
     }
   }
 
   // --- 1. LQIP ---
-  document.getElementById('btn-batch-lqip')?.addEventListener('click', async () => {
+  $('btn-batch-lqip')?.addEventListener('click', async () => {
     const checked = getChecked(); if (!checked.length) return;
     const json = {};
     await startBatchZip();
 
     for (const bf of checked) {
       const baseName = bf.file.name.replace(/\.[^.]+$/, '');
-      const lqipW = +(document.getElementById('batch-lqip-size')?.value) || 20;
+      const lqipW = +($('batch-lqip-size')?.value) || 20;
       const tiny = document.createElement('canvas'); tiny.width = lqipW;
       tiny.height = Math.round(lqipW * bf.img.naturalHeight / bf.img.naturalWidth);
       const tc = tiny.getContext('2d');
@@ -754,9 +754,9 @@ function initBatch() {
   });
 
   // --- 2. Social Preset Batch ---
-  document.getElementById('btn-batch-social')?.addEventListener('click', async () => {
+  $('btn-batch-social')?.addEventListener('click', async () => {
     const checked = getChecked(); if (!checked.length) return;
-    const btn = document.getElementById('btn-batch-social'); btn.disabled = true; btn.textContent = '...';
+    const btn = $('btn-batch-social'); btn.disabled = true; btn.textContent = '...';
     const presets = [
       { name: 'ig-post', w: 1080, h: 1080 },
       { name: 'ig-story', w: 1080, h: 1920 },
@@ -779,11 +779,11 @@ function initBatch() {
     }
     await finishBatchZip('social-batch');
     btn.disabled = false; btn.textContent = 'Social';
-    document.getElementById('footer-status').textContent = `Social: ${checked.length} images \u00d7 ${presets.length} sizes = ${checked.length * presets.length} files`;
+    $('footer-status').textContent = `Social: ${checked.length} images \u00d7 ${presets.length} sizes = ${checked.length * presets.length} files`;
   });
 
   // --- 3. Processing Report ---
-  document.getElementById('btn-batch-report')?.addEventListener('click', async () => {
+  $('btn-batch-report')?.addEventListener('click', async () => {
     const checked = getChecked(); if (!checked.length) return;
     let html = '<!DOCTYPE html><html><head><title>Pixeroo Batch Report</title><style>body{font-family:Inter,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:2rem;max-width:900px;margin:0 auto;}table{width:100%;border-collapse:collapse;margin:1rem 0;}th,td{padding:8px 12px;border-bottom:1px solid #334155;text-align:left;font-size:0.875rem;}th{color:#94a3b8;font-weight:600;}img{max-height:60px;border-radius:4px;}</style></head><body>';
     html += `<h1>Pixeroo Batch Report</h1><p style="color:#94a3b8;">${new Date().toLocaleString()} | ${checked.length} images</p>`;
@@ -802,7 +802,7 @@ function initBatch() {
   // --- 4. Aspect Ratio + 5. Normalization: handled in processOne ---
 
   // --- 6. Duplicate Detection ---
-  document.getElementById('btn-batch-dupes')?.addEventListener('click', () => {
+  $('btn-batch-dupes')?.addEventListener('click', () => {
     const checked = getChecked(); if (checked.length < 2) return;
     // Compute perceptual hash for each (8x8 grayscale average)
     function pHash(img) {
@@ -844,31 +844,31 @@ function initBatch() {
   // --- 8. Presets (save/load batch settings to chrome.storage) ---
   function getBatchSettings() {
     return {
-      w: document.getElementById('batch-w')?.value || '',
-      h: document.getElementById('batch-h')?.value || '',
-      lock: document.getElementById('batch-lock')?.checked,
-      filter: document.getElementById('batch-filter')?.value || 'none',
-      watermark: document.getElementById('batch-watermark')?.value || '',
-      wmOpacity: document.getElementById('batch-wm-opacity')?.value || '30',
-      wmMode: document.getElementById('batch-wm-mode')?.value || 'text',
-      wmPosition: document.getElementById('batch-wm-position')?.value || 'center',
-      wmColor: document.getElementById('batch-wm-color')?.value || '#ffffff',
-      wmFont: document.getElementById('batch-wm-font')?.value || 'Inter, system-ui, sans-serif',
-      format: document.getElementById('batch-format')?.value || 'png',
-      quality: document.getElementById('batch-quality')?.value || '85',
-      stripMeta: document.getElementById('batch-strip-meta')?.checked,
-      copyright: document.getElementById('batch-add-copyright')?.checked,
-      copyrightText: document.getElementById('batch-copyright-text')?.value || '',
-      rename: document.getElementById('batch-rename')?.value || '{name}',
-      multiSize: document.getElementById('batch-multi-size')?.checked,
-      sizes: document.getElementById('batch-sizes')?.value || '150,600,1200',
-      ratio: document.getElementById('batch-ratio-enforce')?.value || 'none',
-      normalize: document.getElementById('batch-normalize')?.checked,
-      cropT: document.getElementById('batch-crop-t')?.value || '0',
-      cropR: document.getElementById('batch-crop-r')?.value || '0',
-      cropB: document.getElementById('batch-crop-b')?.value || '0',
-      cropL: document.getElementById('batch-crop-l')?.value || '0',
-      zip: document.getElementById('batch-zip')?.checked,
+      w: $('batch-w')?.value || '',
+      h: $('batch-h')?.value || '',
+      lock: $('batch-lock')?.checked,
+      filter: $('batch-filter')?.value || 'none',
+      watermark: $('batch-watermark')?.value || '',
+      wmOpacity: $('batch-wm-opacity')?.value || '30',
+      wmMode: $('batch-wm-mode')?.value || 'text',
+      wmPosition: $('batch-wm-position')?.value || 'center',
+      wmColor: $('batch-wm-color')?.value || '#ffffff',
+      wmFont: $('batch-wm-font')?.value || 'Inter, system-ui, sans-serif',
+      format: $('batch-format')?.value || 'png',
+      quality: $('batch-quality')?.value || '85',
+      stripMeta: $('batch-strip-meta')?.checked,
+      copyright: $('batch-add-copyright')?.checked,
+      copyrightText: $('batch-copyright-text')?.value || '',
+      rename: $('batch-rename')?.value || '{name}',
+      multiSize: $('batch-multi-size')?.checked,
+      sizes: $('batch-sizes')?.value || '150,600,1200',
+      ratio: $('batch-ratio-enforce')?.value || 'none',
+      normalize: $('batch-normalize')?.checked,
+      cropT: $('batch-crop-t')?.value || '0',
+      cropR: $('batch-crop-r')?.value || '0',
+      cropB: $('batch-crop-b')?.value || '0',
+      cropL: $('batch-crop-l')?.value || '0',
+      zip: $('batch-zip')?.checked,
     };
   }
 
@@ -888,14 +888,14 @@ function initBatch() {
     set('batch-crop-t', s.cropT); set('batch-crop-r', s.cropR);
     set('batch-crop-b', s.cropB); set('batch-crop-l', s.cropL);
     // Update labels
-    document.getElementById('batch-wm-opacity-val').textContent = s.wmOpacity || '30';
-    document.getElementById('batch-quality-val').textContent = s.quality || '85';
+    $('batch-wm-opacity-val').textContent = s.wmOpacity || '30';
+    $('batch-quality-val').textContent = s.quality || '85';
     updateRenamePreview();
   }
 
   function loadPresetList() {
     chrome.storage.local.get({ batchPresets: {} }, (r) => {
-      const sel = document.getElementById('batch-preset-list');
+      const sel = $('batch-preset-list');
       if (!sel) return;
       sel.innerHTML = '<option value="">Presets...</option>';
       for (const name of Object.keys(r.batchPresets).sort()) {
@@ -906,7 +906,7 @@ function initBatch() {
   }
   loadPresetList();
 
-  document.getElementById('btn-batch-save-preset')?.addEventListener('click', async () => {
+  $('btn-batch-save-preset')?.addEventListener('click', async () => {
     const name = await pixDialog.prompt('Save Batch Preset', 'Preset name:', 'My Preset');
     if (!name) return;
     const settings = getBatchSettings();
@@ -914,48 +914,48 @@ function initBatch() {
       r.batchPresets[name] = settings;
       chrome.storage.local.set({ batchPresets: r.batchPresets }, () => {
         loadPresetList();
-        document.getElementById('footer-status').textContent = `Preset "${name}" saved`;
+        $('footer-status').textContent = `Preset "${name}" saved`;
       });
     });
   });
 
-  document.getElementById('batch-preset-list')?.addEventListener('change', (e) => {
+  $('batch-preset-list')?.addEventListener('change', (e) => {
     const name = e.target.value; if (!name) return;
     chrome.storage.local.get({ batchPresets: {} }, (r) => {
       if (r.batchPresets[name]) {
         applyBatchSettings(r.batchPresets[name]);
-        document.getElementById('footer-status').textContent = `Preset "${name}" loaded`;
+        $('footer-status').textContent = `Preset "${name}" loaded`;
       }
     });
     e.target.value = '';
   });
 
-  document.getElementById('btn-batch-del-preset')?.addEventListener('click', () => {
-    const sel = document.getElementById('batch-preset-list');
+  $('btn-batch-del-preset')?.addEventListener('click', () => {
+    const sel = $('batch-preset-list');
     const name = sel?.value; if (!name) return;
     chrome.storage.local.get({ batchPresets: {} }, (r) => {
       delete r.batchPresets[name];
       chrome.storage.local.set({ batchPresets: r.batchPresets }, () => {
         loadPresetList();
-        document.getElementById('footer-status').textContent = `Preset "${name}" deleted`;
+        $('footer-status').textContent = `Preset "${name}" deleted`;
       });
     });
   });
 
   // --- Right-click context menu on batch area ---
-  document.getElementById('batch-queue')?.addEventListener('contextmenu', (e) => {
+  $('batch-queue')?.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    document.querySelectorAll('.ctx-menu').forEach(m => m.remove());
+    $$('.ctx-menu').forEach(m => m.remove());
     const has = batchFiles.length > 0;
 
     const items = [
       { label: `${getChecked().length}/${batchFiles.length} selected`, enabled: false },
       { sep: true },
-      { label: 'Select All', enabled: has, action: () => { document.getElementById('btn-batch-sel-all')?.click(); } },
-      { label: 'Deselect All', enabled: has, action: () => { document.getElementById('btn-batch-sel-none')?.click(); } },
+      { label: 'Select All', enabled: has, action: () => { $('btn-batch-sel-all')?.click(); } },
+      { label: 'Deselect All', enabled: has, action: () => { $('btn-batch-sel-none')?.click(); } },
       { sep: true },
-      { label: 'Clear All', enabled: has, danger: true, action: () => { document.getElementById('btn-batch-clear')?.click(); } },
-      { label: 'Check Consistency', enabled: has, action: () => { document.getElementById('btn-batch-check')?.click(); } },
+      { label: 'Clear All', enabled: has, danger: true, action: () => { $('btn-batch-clear')?.click(); } },
+      { label: 'Check Consistency', enabled: has, action: () => { $('btn-batch-check')?.click(); } },
       { sep: true },
       { header: 'Sort' },
       { label: 'Sort by Name', enabled: has, action: () => { batchFiles.sort((a,b) => a.file.name.localeCompare(b.file.name)); _updateBatchUI(); } },

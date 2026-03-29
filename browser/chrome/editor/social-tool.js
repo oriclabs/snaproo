@@ -24,22 +24,22 @@ const SOCIAL_PLATFORM_PRESETS = {
 };
 
 function initSocial() {
-  const canvas = document.getElementById('social-canvas');
+  const canvas = $('social-canvas');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   let socialImg = null;
 
-  const platformSel = document.getElementById('social-platform');
-  const fitSel = document.getElementById('social-fit');
-  const bgColor = document.getElementById('social-bg-color');
-  const textInput = document.getElementById('social-text');
-  const textColor = document.getElementById('social-text-color');
-  const textPos = document.getElementById('social-text-pos');
-  const dimsEl = document.getElementById('social-dims');
-  const dropzone = document.getElementById('social-dropzone');
+  const platformSel = $('social-platform');
+  const fitSel = $('social-fit');
+  const bgColor = $('social-bg-color');
+  const textInput = $('social-text');
+  const textColor = $('social-text-color');
+  const textPos = $('social-text-pos');
+  const dimsEl = $('social-dims');
+  const dropzone = $('social-dropzone');
 
   // Drop zone for source image
-  setupDropzone(dropzone, document.getElementById('social-file'), async (file) => {
+  setupDropzone(dropzone, $('social-file'), async (file) => {
     socialImg = await loadImg(file);
     if (!socialImg) return;
     dropzone.style.display = 'none';
@@ -51,7 +51,7 @@ function initSocial() {
   });
 
   // Add from Library button
-  document.getElementById('btn-social-from-lib')?.addEventListener('click', () => {
+  $('btn-social-from-lib')?.addEventListener('click', () => {
     openLibraryPicker(async (items) => {
       const item = items[0]; if (!item) return;
       const img = new Image();
@@ -77,7 +77,7 @@ function initSocial() {
   });
 
   // Generate button
-  document.getElementById('btn-social-generate').addEventListener('click', () => {
+  $('btn-social-generate').addEventListener('click', () => {
     if (!socialImg) { pixDialog.alert('No Image', 'Drop or select a source image first.'); return; }
     const preset = SOCIAL_PLATFORM_PRESETS[platformSel.value];
     if (!preset) { pixDialog.alert('No Platform', 'Select a social media platform preset.'); return; }
@@ -138,7 +138,7 @@ function initSocial() {
   });
 
   // Download
-  document.getElementById('btn-social-download').addEventListener('click', () => {
+  $('btn-social-download').addEventListener('click', () => {
     if (!canvas.width || !canvas.height) return;
     const preset = SOCIAL_PLATFORM_PRESETS[platformSel.value];
     const name = preset ? preset.name : 'social';
@@ -149,7 +149,7 @@ function initSocial() {
   });
 
   // Copy to clipboard
-  document.getElementById('btn-social-copy').addEventListener('click', async () => {
+  $('btn-social-copy').addEventListener('click', async () => {
     if (!canvas.width || !canvas.height) return;
     try {
       const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));

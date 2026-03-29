@@ -18,9 +18,9 @@ function initQR() {
   };
 
   // --- QR mode tabs (Generate / Read) ---
-  document.querySelectorAll('.qr-mode-tab').forEach(tab => {
+  $$('.qr-mode-tab').forEach(tab => {
     tab.addEventListener('click', () => {
-      document.querySelectorAll('.qr-mode-tab').forEach(t => {
+      $$('.qr-mode-tab').forEach(t => {
         t.classList.remove('active');
         t.style.color = 'var(--slate-500)';
         t.style.borderBottomColor = 'transparent';
@@ -30,8 +30,8 @@ function initQR() {
       tab.style.borderBottomColor = 'var(--saffron-400)';
 
       const mode = tab.dataset.qrMode;
-      document.getElementById('qr-panel-generate').style.display = mode === 'generate' ? 'flex' : 'none';
-      document.getElementById('qr-panel-read').style.display = mode === 'read' ? 'flex' : 'none';
+      $('qr-panel-generate').style.display = mode === 'generate' ? 'flex' : 'none';
+      $('qr-panel-read').style.display = mode === 'read' ? 'flex' : 'none';
       // Hide ribbon in Read mode (it only applies to Generate)
       const ribbon = document.querySelector('#mode-qr .tool-ribbon');
       if (ribbon) ribbon.style.display = mode === 'generate' ? '' : 'none';
@@ -39,140 +39,140 @@ function initQR() {
   });
 
   // --- Live preview: debounced auto-generate on text input ---
-  const qrGenBtn = document.getElementById('btn-qr-generate');
+  const qrGenBtn = $('btn-qr-generate');
   function updateQrGenBtn() {
-    qrGenBtn.disabled = !document.getElementById('qr-text').value.trim();
+    qrGenBtn.disabled = !$('qr-text').value.trim();
   }
   updateQrGenBtn(); // initial state
 
-  document.getElementById('qr-text').addEventListener('input', () => {
+  $('qr-text').addEventListener('input', () => {
     updateQrGenBtn();
     clearTimeout(qrDebounce);
     qrDebounce = setTimeout(() => genQR(), 500);
   });
 
   qrGenBtn.addEventListener('click', genQR);
-  document.getElementById('qr-text').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') genQR(); });
+  $('qr-text').addEventListener('keydown', e => { if (e.ctrlKey && e.key === 'Enter') genQR(); });
 
   // Sliders: update label + regenerate
   ['qr-px','qr-margin'].forEach(id => {
     document.getElementById(id).addEventListener('input', e => {
       document.getElementById(id+'-val').textContent = e.target.value;
-      if (document.getElementById('qr-text').value) genQR();
+      if ($('qr-text').value) genQR();
     });
   });
 
   // Dropdowns & color pickers: regenerate on change
   ['qr-ecc','qr-fg','qr-bg','qr-fg2','qr-style'].forEach(id => {
-    document.getElementById(id).addEventListener('change', () => { if (document.getElementById('qr-text').value) genQR(); });
+    document.getElementById(id).addEventListener('change', () => { if ($('qr-text').value) genQR(); });
   });
 
   // Gradient toggle: show/hide second color, regenerate
-  document.getElementById('qr-gradient').addEventListener('change', (e) => {
-    document.getElementById('qr-fg2').style.display = e.target.checked ? '' : 'none';
-    if (document.getElementById('qr-text').value) genQR();
+  $('qr-gradient').addEventListener('change', (e) => {
+    $('qr-fg2').style.display = e.target.checked ? '' : 'none';
+    if ($('qr-text').value) genQR();
   });
 
   // Compact toggle: adjust margin/px and regenerate
-  document.getElementById('qr-compact').addEventListener('change', (e) => {
+  $('qr-compact').addEventListener('change', (e) => {
     if (e.target.checked) {
-      document.getElementById('qr-margin').value = 1;
-      document.getElementById('qr-margin-val').textContent = '1';
-      document.getElementById('qr-px').value = 5;
-      document.getElementById('qr-px-val').textContent = '5';
+      $('qr-margin').value = 1;
+      $('qr-margin-val').textContent = '1';
+      $('qr-px').value = 5;
+      $('qr-px-val').textContent = '5';
     } else {
-      document.getElementById('qr-margin').value = 4;
-      document.getElementById('qr-margin-val').textContent = '4';
-      document.getElementById('qr-px').value = 8;
-      document.getElementById('qr-px-val').textContent = '8';
+      $('qr-margin').value = 4;
+      $('qr-margin-val').textContent = '4';
+      $('qr-px').value = 8;
+      $('qr-px-val').textContent = '8';
     }
-    if (document.getElementById('qr-text').value) genQR();
+    if ($('qr-text').value) genQR();
   });
 
   // Label field: regenerate on input (debounced)
-  document.getElementById('qr-label').addEventListener('input', () => {
+  $('qr-label').addEventListener('input', () => {
     clearTimeout(qrDebounce);
-    qrDebounce = setTimeout(() => { if (document.getElementById('qr-text').value) genQR(); }, 500);
+    qrDebounce = setTimeout(() => { if ($('qr-text').value) genQR(); }, 500);
   });
 
   // --- Preset templates ---
-  document.querySelectorAll('[data-qr-preset]').forEach(b => b.addEventListener('click', () => {
+  $$('[data-qr-preset]').forEach(b => b.addEventListener('click', () => {
     // Highlight active preset
-    document.querySelectorAll('[data-qr-preset]').forEach(x => x.classList.remove('active'));
+    $$('[data-qr-preset]').forEach(x => x.classList.remove('active'));
     b.classList.add('active');
-    document.getElementById('qr-text').value = QR_TEMPLATES[b.dataset.qrPreset] || '';
+    $('qr-text').value = QR_TEMPLATES[b.dataset.qrPreset] || '';
     genQR();
   }));
   // Clear preset highlight when user manually edits text
-  document.getElementById('qr-text').addEventListener('keydown', () => {
-    document.querySelectorAll('[data-qr-preset]').forEach(x => x.classList.remove('active'));
+  $('qr-text').addEventListener('keydown', () => {
+    $$('[data-qr-preset]').forEach(x => x.classList.remove('active'));
   });
 
   // --- Logo upload ---
-  document.getElementById('btn-qr-logo').addEventListener('click', () => document.getElementById('qr-logo-file').click());
-  document.getElementById('qr-logo-file').addEventListener('change', e => {
+  $('btn-qr-logo').addEventListener('click', () => $('qr-logo-file').click());
+  $('qr-logo-file').addEventListener('change', e => {
     const file = e.target.files[0]; if (!file) return;
     const img = new Image();
     img.onload = () => {
       qrLogo = img;
-      document.getElementById('btn-qr-logo-clear').style.display = '';
+      $('btn-qr-logo-clear').style.display = '';
       // Auto-set ECC to High when logo is present
-      document.getElementById('qr-ecc').value = 'H';
-      if (document.getElementById('qr-text').value) genQR();
+      $('qr-ecc').value = 'H';
+      if ($('qr-text').value) genQR();
     };
     img.src = URL.createObjectURL(file);
   });
-  document.getElementById('btn-qr-logo-clear').addEventListener('click', () => {
+  $('btn-qr-logo-clear').addEventListener('click', () => {
     qrLogo = null;
-    document.getElementById('qr-logo-file').value = '';
-    document.getElementById('btn-qr-logo-clear').style.display = 'none';
-    if (document.getElementById('qr-text').value) genQR();
+    $('qr-logo-file').value = '';
+    $('btn-qr-logo-clear').style.display = 'none';
+    if ($('qr-text').value) genQR();
   });
 
   // --- Background image upload ---
-  document.getElementById('btn-qr-bg-img').addEventListener('click', () => document.getElementById('qr-bg-img-file').click());
-  document.getElementById('qr-bg-img-file').addEventListener('change', e => {
+  $('btn-qr-bg-img').addEventListener('click', () => $('qr-bg-img-file').click());
+  $('qr-bg-img-file').addEventListener('change', e => {
     const file = e.target.files[0]; if (!file) return;
     const img = new Image();
     img.onload = () => {
       qrBgImg = img;
-      document.getElementById('btn-qr-bg-img-clear').style.display = '';
-      if (document.getElementById('qr-text').value) genQR();
+      $('btn-qr-bg-img-clear').style.display = '';
+      if ($('qr-text').value) genQR();
     };
     img.src = URL.createObjectURL(file);
   });
-  document.getElementById('btn-qr-bg-img-clear').addEventListener('click', () => {
+  $('btn-qr-bg-img-clear').addEventListener('click', () => {
     qrBgImg = null;
-    document.getElementById('qr-bg-img-file').value = '';
-    document.getElementById('btn-qr-bg-img-clear').style.display = 'none';
-    if (document.getElementById('qr-text').value) genQR();
+    $('qr-bg-img-file').value = '';
+    $('btn-qr-bg-img-clear').style.display = 'none';
+    if ($('qr-text').value) genQR();
   });
 
   // --- Export: Copy image ---
-  document.getElementById('btn-qr-copy').addEventListener('click', () => {
-    document.getElementById('qr-canvas').toBlob(b => navigator.clipboard.write([new ClipboardItem({'image/png':b})]));
+  $('btn-qr-copy').addEventListener('click', () => {
+    $('qr-canvas').toBlob(b => navigator.clipboard.write([new ClipboardItem({'image/png':b})]));
   });
 
   // --- Export: Copy text ---
-  document.getElementById('btn-qr-copy-text').addEventListener('click', () => {
-    const text = document.getElementById('qr-text').value;
+  $('btn-qr-copy-text').addEventListener('click', () => {
+    const text = $('qr-text').value;
     if (text) navigator.clipboard.writeText(text);
   });
 
   // --- Export: PNG download ---
-  document.getElementById('btn-qr-download').addEventListener('click', () => {
-    document.getElementById('qr-canvas').toBlob(b => {
+  $('btn-qr-download').addEventListener('click', () => {
+    $('qr-canvas').toBlob(b => {
       chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(b),filename:'pixeroo/qrcode.png',saveAs:true});
     });
   });
 
   // --- Export: SVG download ---
-  document.getElementById('btn-qr-svg').addEventListener('click', () => {
-    const text = document.getElementById('qr-text').value; if (!text) return;
+  $('btn-qr-svg').addEventListener('click', () => {
+    const text = $('qr-text').value; if (!text) return;
     try {
-      const ecc = qrLogo ? 'H' : document.getElementById('qr-ecc').value;
-      const qr = QR.encode(text, ecc), fg = document.getElementById('qr-fg').value, bg = document.getElementById('qr-bg').value;
-      const m = +document.getElementById('qr-margin').value, style = document.getElementById('qr-style').value;
+      const ecc = qrLogo ? 'H' : $('qr-ecc').value;
+      const qr = QR.encode(text, ecc), fg = $('qr-fg').value, bg = $('qr-bg').value;
+      const m = +$('qr-margin').value, style = $('qr-style').value;
       const sz = qr.size + m * 2;
       let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${sz} ${sz}"><rect width="${sz}" height="${sz}" fill="${bg}"/>`;
       for (let y = 0; y < qr.size; y++) {
@@ -194,16 +194,16 @@ function initQR() {
   });
 
   // --- Export: All Sizes ZIP ---
-  document.getElementById('btn-qr-sizes')?.addEventListener('click', async () => {
-    const text = document.getElementById('qr-text').value; if (!text) return;
-    const ecc = qrLogo ? 'H' : document.getElementById('qr-ecc').value;
-    const fg = document.getElementById('qr-fg').value, bg = document.getElementById('qr-bg').value;
-    const style = document.getElementById('qr-style').value, label = document.getElementById('qr-label').value.trim();
+  $('btn-qr-sizes')?.addEventListener('click', async () => {
+    const text = $('qr-text').value; if (!text) return;
+    const ecc = qrLogo ? 'H' : $('qr-ecc').value;
+    const fg = $('qr-fg').value, bg = $('qr-bg').value;
+    const style = $('qr-style').value, label = $('qr-label').value.trim();
     const zip = new ZipWriter();
     for (const targetSize of [128, 256, 512, 1024]) {
       const tc = document.createElement('canvas');
       const qr = QR.encode(text, ecc);
-      const margin = +document.getElementById('qr-margin').value;
+      const margin = +$('qr-margin').value;
       const px = Math.max(1, Math.floor(targetSize / (qr.size + margin * 2)));
       renderQRToCanvas(tc, qr, px, margin, fg, bg, style, qrLogo, label);
       const blob = await new Promise(r => tc.toBlob(r, 'image/png'));
@@ -216,7 +216,7 @@ function initQR() {
   });
 
   // --- Bulk QR Generation ---
-  document.getElementById('btn-qr-bulk')?.addEventListener('click', async () => {
+  $('btn-qr-bulk')?.addEventListener('click', async () => {
     // Build a custom modal with textarea since pixDialog.prompt uses a single-line input
     const input = await new Promise(resolve => {
       const overlay = document.createElement('div');
@@ -226,7 +226,7 @@ function initQR() {
           <div style="font-size:0.875rem;font-weight:600;color:var(--slate-200,#e2e8f0);margin-bottom:0.5rem;">Bulk QR Generation</div>
           <div style="color:var(--slate-400,#94a3b8);margin-bottom:0.75rem;">Paste a list of URLs or texts below — <b style="color:var(--saffron-400);">one per line</b>. A separate QR code will be generated for each line and downloaded as a ZIP file.</div>
           <textarea id="bulk-qr-input" style="width:100%;min-height:120px;background:var(--slate-800,#1e293b);color:var(--slate-200,#e2e8f0);border:1px solid var(--slate-700,#334155);border-radius:6px;padding:8px 10px;resize:vertical;outline:none;font-family:monospace;" placeholder="https://example.com&#10;https://another.com&#10;WIFI:T:WPA;S:MyNetwork;P:pass123;;"></textarea>
-          <div style="color:var(--slate-500);margin-top:0.375rem;">Using current settings: <b>${document.getElementById('qr-style')?.value || 'square'}</b> style, <b>${document.getElementById('qr-ecc')?.value || 'M'}</b> ECC, <b>${document.getElementById('qr-px')?.value || 8}</b>px</div>
+          <div style="color:var(--slate-500);margin-top:0.375rem;">Using current settings: <b>${$('qr-style')?.value || 'square'}</b> style, <b>${$('qr-ecc')?.value || 'M'}</b> ECC, <b>${$('qr-px')?.value || 8}</b>px</div>
           <div style="display:flex;gap:0.5rem;justify-content:flex-end;margin-top:0.75rem;">
             <button id="bulk-qr-cancel" style="background:var(--slate-800,#1e293b);color:var(--slate-300,#cbd5e1);border:1px solid var(--slate-700,#334155);border-radius:6px;padding:6px 16px;font-size:0.75rem;font-weight:500;cursor:pointer;">Cancel</button>
             <button id="bulk-qr-ok" style="background:#F4C430;color:#2A1E05;border:none;border-radius:6px;padding:6px 20px;font-size:0.75rem;font-weight:600;cursor:pointer;">Generate ZIP</button>
@@ -242,10 +242,10 @@ function initQR() {
     const lines = input.split('\n').map(l => l.trim()).filter(Boolean);
     if (!lines.length) return;
 
-    const ecc = qrLogo ? 'H' : document.getElementById('qr-ecc').value;
-    const fg = document.getElementById('qr-fg').value, bg = document.getElementById('qr-bg').value;
-    const px = +document.getElementById('qr-px').value, margin = +document.getElementById('qr-margin').value;
-    const style = document.getElementById('qr-style').value, label = document.getElementById('qr-label').value.trim();
+    const ecc = qrLogo ? 'H' : $('qr-ecc').value;
+    const fg = $('qr-fg').value, bg = $('qr-bg').value;
+    const px = +$('qr-px').value, margin = +$('qr-margin').value;
+    const style = $('qr-style').value, label = $('qr-label').value.trim();
     const zip = new ZipWriter();
     for (let i = 0; i < lines.length; i++) {
       try {
@@ -299,8 +299,8 @@ function initQR() {
     return null;
   }
 
-  setupDropzone(document.getElementById('qr-read-drop'), document.getElementById('qr-read-file'), async (file) => {
-    const resultEl = document.getElementById('qr-read-result');
+  setupDropzone($('qr-read-drop'), $('qr-read-file'), async (file) => {
+    const resultEl = $('qr-read-result');
     // Show the dropped image as preview
     const previewUrl = URL.createObjectURL(file);
     resultEl.style.display = 'block';
@@ -329,7 +329,7 @@ function initQR() {
           </div>`;
         resultEl.querySelector('.qr-read-copy')?.addEventListener('click', () => navigator.clipboard.writeText(data));
         resultEl.querySelector('.qr-read-use')?.addEventListener('click', () => {
-          document.getElementById('qr-text').value = data;
+          $('qr-text').value = data;
           updateQrGenBtn();
           genQR();
           // Switch to Generate tab
@@ -388,8 +388,8 @@ function initQR() {
   }
 
   function renderQrHistory() {
-    const container = document.getElementById('qr-history');
-    const list = document.getElementById('qr-history-list');
+    const container = $('qr-history');
+    const list = $('qr-history-list');
     if (!qrHistory.length) { container.style.display = 'none'; return; }
     container.style.display = 'block';
     list.innerHTML = '';
@@ -403,7 +403,7 @@ function initQR() {
       thumb.addEventListener('mouseenter', () => { thumb.style.borderColor = 'var(--saffron-400)'; });
       thumb.addEventListener('mouseleave', () => { thumb.style.borderColor = 'var(--slate-700)'; });
       thumb.addEventListener('click', () => {
-        document.getElementById('qr-text').value = item.text;
+        $('qr-text').value = item.text;
         genQR();
       });
       // Right-click context menu on history item
@@ -416,39 +416,39 @@ function initQR() {
   }
 
   // Reset all QR settings to defaults
-  document.getElementById('btn-qr-reset')?.addEventListener('click', async () => {
+  $('btn-qr-reset')?.addEventListener('click', async () => {
     const ok = await pixDialog.confirm('Reset QR Tool', 'Reset all settings to defaults?', { okText: 'Reset' });
     if (!ok) return;
     // Text & label
-    document.getElementById('qr-text').value = '';
-    document.getElementById('qr-label').value = '';
+    $('qr-text').value = '';
+    $('qr-label').value = '';
     // Style
-    document.getElementById('qr-style').value = 'square';
-    document.getElementById('qr-ecc').value = 'M';
-    document.getElementById('qr-px').value = 8; document.getElementById('qr-px-val').textContent = '8';
-    document.getElementById('qr-margin').value = 4; document.getElementById('qr-margin-val').textContent = '4';
+    $('qr-style').value = 'square';
+    $('qr-ecc').value = 'M';
+    $('qr-px').value = 8; $('qr-px-val').textContent = '8';
+    $('qr-margin').value = 4; $('qr-margin-val').textContent = '4';
     // Colors
-    document.getElementById('qr-fg').value = '#000000';
-    document.getElementById('qr-bg').value = '#ffffff';
-    const gradCb = document.getElementById('qr-gradient');
+    $('qr-fg').value = '#000000';
+    $('qr-bg').value = '#ffffff';
+    const gradCb = $('qr-gradient');
     if (gradCb) { gradCb.checked = false; gradCb.dispatchEvent(new Event('change')); }
-    document.getElementById('qr-fg2').value = '#0066ff';
-    const compactCb = document.getElementById('qr-compact');
+    $('qr-fg2').value = '#0066ff';
+    const compactCb = $('qr-compact');
     if (compactCb) { compactCb.checked = false; compactCb.dispatchEvent(new Event('change')); }
     // Logo
     if (typeof qrLogo !== 'undefined') qrLogo = null;
-    const logoClear = document.getElementById('btn-qr-logo-clear');
+    const logoClear = $('btn-qr-logo-clear');
     if (logoClear) { logoClear.style.display = 'none'; }
     // Clear preset highlight
-    document.querySelectorAll('[data-qr-preset]').forEach(b => b.classList.remove('active'));
+    $$('[data-qr-preset]').forEach(b => b.classList.remove('active'));
     // Clear canvas
-    const cvs = document.getElementById('qr-canvas');
+    const cvs = $('qr-canvas');
     cvs.width = 0; cvs.height = 0;
     // Update generate button state
     updateQrGenBtn();
   });
 
-  document.getElementById('btn-qr-history-clear')?.addEventListener('click', () => {
+  $('btn-qr-history-clear')?.addEventListener('click', () => {
     qrHistory = [];
     saveQrHistory();
   });
@@ -487,7 +487,7 @@ function initQR() {
   // Right-click on QR history thumbnail
   function _qrHistoryCtxMenu(x, y, item, idx) {
     _showQrCtxMenu(x, y, [
-      { label: 'Load this QR', action: () => { document.getElementById('qr-text').value = item.text; genQR(); } },
+      { label: 'Load this QR', action: () => { $('qr-text').value = item.text; genQR(); } },
       { label: 'Copy Text', action: () => navigator.clipboard.writeText(item.text) },
       { label: 'Copy Image', action: async () => {
         try {
@@ -508,10 +508,10 @@ function initQR() {
   }
 
   // Right-click on generated QR canvas
-  document.getElementById('qr-canvas')?.addEventListener('contextmenu', (e) => {
+  $('qr-canvas')?.addEventListener('contextmenu', (e) => {
     e.preventDefault();
-    const cvs = document.getElementById('qr-canvas');
-    const text = document.getElementById('qr-text').value;
+    const cvs = $('qr-canvas');
+    const text = $('qr-text').value;
     if (!text || !cvs.width) return;
     _showQrCtxMenu(e.clientX, e.clientY, [
       { label: 'Copy Image', action: async () => {
@@ -522,11 +522,11 @@ function initQR() {
       }},
       { label: 'Copy Text', action: () => navigator.clipboard.writeText(text) },
       'sep',
-      { label: 'Download PNG', action: () => { document.getElementById('btn-qr-download')?.click(); }},
-      { label: 'Download SVG', action: () => { document.getElementById('btn-qr-svg')?.click(); }},
-      { label: 'Download All Sizes', action: () => { document.getElementById('btn-qr-sizes')?.click(); }},
+      { label: 'Download PNG', action: () => { $('btn-qr-download')?.click(); }},
+      { label: 'Download SVG', action: () => { $('btn-qr-svg')?.click(); }},
+      { label: 'Download All Sizes', action: () => { $('btn-qr-sizes')?.click(); }},
       'sep',
-      { label: 'Save to Library', action: () => { document.getElementById('btn-qr-save-lib')?.click(); }},
+      { label: 'Save to Library', action: () => { $('btn-qr-save-lib')?.click(); }},
     ]);
   });
 
@@ -543,8 +543,8 @@ function initQR() {
     canvas.height = totalH;
     const ctx = canvas.getContext('2d');
 
-    const gradientEnabled = document.getElementById('qr-gradient')?.checked;
-    const fg2Color = document.getElementById('qr-fg2')?.value || '#0066ff';
+    const gradientEnabled = $('qr-gradient')?.checked;
+    const fg2Color = $('qr-fg2')?.value || '#0066ff';
 
     // Background
     if (qrBgImg) {
@@ -641,7 +641,7 @@ function initQR() {
 
   function validateQRContent(text) {
     if (!text) return 'Enter text or URL to generate QR code';
-    const ecc = qrLogo ? 'H' : document.getElementById('qr-ecc').value;
+    const ecc = qrLogo ? 'H' : $('qr-ecc').value;
     const maxBytes = QR_MAX_BYTES[ecc] || 2331;
     const byteLen = new TextEncoder().encode(text).length;
     if (byteLen > maxBytes) return `Content too long (${byteLen} bytes). Max for ${ecc} correction: ${maxBytes} bytes. Shorten text or lower error correction.`;
@@ -670,13 +670,13 @@ function initQR() {
     }
     // Auto-prepend https:// if it looks like a URL
     if (/^[a-z0-9][-a-z0-9]*\.[a-z]{2,}/i.test(text) && !text.includes(' ') && !text.includes(':')) {
-      document.getElementById('qr-text').value = 'https://' + text;
+      $('qr-text').value = 'https://' + text;
     }
     return null; // valid
   }
 
   function showQRError(msg) {
-    const c = document.getElementById('qr-canvas');
+    const c = $('qr-canvas');
     c.width = 240; c.height = 60;
     const x = c.getContext('2d');
     x.fillStyle = '#1e293b'; x.fillRect(0, 0, 240, 60);
@@ -688,25 +688,25 @@ function initQR() {
   }
 
   function genQR() {
-    const text = document.getElementById('qr-text').value;
+    const text = $('qr-text').value;
     if (!text) return;
 
     const error = validateQRContent(text);
     if (error) { showQRError(error); return; }
 
     // Re-read text (may have been auto-corrected by validation)
-    const finalText = document.getElementById('qr-text').value;
+    const finalText = $('qr-text').value;
 
     try {
-      const ecc = qrLogo ? 'H' : document.getElementById('qr-ecc').value;
+      const ecc = qrLogo ? 'H' : $('qr-ecc').value;
       const qr = QR.encode(finalText, ecc);
-      const px = +document.getElementById('qr-px').value;
-      const margin = +document.getElementById('qr-margin').value;
-      const fg = document.getElementById('qr-fg').value;
-      const bg = document.getElementById('qr-bg').value;
-      const style = document.getElementById('qr-style').value;
-      const label = document.getElementById('qr-label').value.trim();
-      const cvs = document.getElementById('qr-canvas');
+      const px = +$('qr-px').value;
+      const margin = +$('qr-margin').value;
+      const fg = $('qr-fg').value;
+      const bg = $('qr-bg').value;
+      const style = $('qr-style').value;
+      const label = $('qr-label').value.trim();
+      const cvs = $('qr-canvas');
       renderQRToCanvas(cvs, qr, px, margin, fg, bg, style, qrLogo, label);
       try { addToQrHistory(finalText, cvs.toDataURL('image/png')); } catch {}
     } catch {

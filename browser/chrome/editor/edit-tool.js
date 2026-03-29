@@ -1,19 +1,19 @@
 // Pixeroo — Edit Tool
 function initEdit() {
-  editCanvas = document.getElementById('editor-canvas');
+  editCanvas = $('editor-canvas');
   editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
 
-  setupDropzone(document.getElementById('edit-dropzone'), document.getElementById('edit-file'), async (file) => {
+  setupDropzone($('edit-dropzone'), $('edit-file'), async (file) => {
     editFilename = file.name.replace(/\.[^.]+$/, '');
-    document.getElementById('file-label').textContent = file.name;
+    $('file-label').textContent = file.name;
     const img = await loadImg(file);
     if (!img) return;
     editOriginal = img;
     // Non-destructive: load into pipeline, pipeline renders to display canvas
     pipeline.setDisplayCanvas(editCanvas);
     pipeline.loadImage(img);
-    editCanvas.style.display = 'block'; document.getElementById('edit-ribbon')?.classList.remove('disabled');
-    document.getElementById('edit-dropzone').style.display = 'none';
+    editCanvas.style.display = 'block'; $('edit-ribbon')?.classList.remove('disabled');
+    $('edit-dropzone').style.display = 'none';
     removeSliceOverlay();
     updResize(); originalW = 0; originalH = 0; saveEdit();
     // Init guides overlay
@@ -23,15 +23,15 @@ function initEdit() {
   // Drop-to-replace on work area
   setupWorkAreaReplace('#mode-edit .work-area', async (file) => {
     editFilename = file.name.replace(/\.[^.]+$/, '');
-    document.getElementById('file-label').textContent = file.name;
+    $('file-label').textContent = file.name;
     const img = await loadImg(file);
     if (!img) return;
     editOriginal = img;
     pipeline.setDisplayCanvas(editCanvas);
     pipeline.loadImage(img);
     editCanvas.style.display = 'block';
-    document.getElementById('edit-ribbon')?.classList.remove('disabled');
-    document.getElementById('edit-dropzone').style.display = 'none';
+    $('edit-ribbon')?.classList.remove('disabled');
+    $('edit-dropzone').style.display = 'none';
     removeSliceOverlay();
     updResize(); originalW = 0; originalH = 0; saveEdit();
     resetAdjustmentSliders();
@@ -39,7 +39,7 @@ function initEdit() {
   });
 
   // Reset All -- revert to original image
-  document.getElementById('btn-reset-all')?.addEventListener('click', async () => {
+  $('btn-reset-all')?.addEventListener('click', async () => {
     if (!editOriginal) return;
     const ok = await pixDialog.confirm('Reset Image', 'Reset all edits and revert to original image?', { danger: true, okText: 'Reset' });
     if (!ok) return;
@@ -52,7 +52,7 @@ function initEdit() {
   });
 
   // Reset Adjustments -- remove adjust ops from pipeline, reset sliders
-  document.getElementById('btn-reset-adjust')?.addEventListener('click', () => {
+  $('btn-reset-adjust')?.addEventListener('click', () => {
     resetAdjustmentSliders();
     pipeline.operations = pipeline.operations.filter(op => op.type !== 'adjust');
     pipeline.render();
@@ -61,11 +61,11 @@ function initEdit() {
 
   function resetAdjustmentSliders() {
     ['brightness', 'contrast', 'saturation'].forEach(a => {
-      document.getElementById(`adj-${a}`).value = 0;
-      document.getElementById(`val-${a}`).textContent = '0';
+      $(`adj-${a}`).value = 0;
+      $(`val-${a}`).textContent = '0';
     });
-    document.getElementById('adj-hue').value = 0;
-    document.getElementById('val-hue').textContent = '0';
+    $('adj-hue').value = 0;
+    $('val-hue').textContent = '0';
   }
 
   document.addEventListener('paste', async (e) => {
@@ -94,12 +94,12 @@ function initEdit() {
 
         editOriginal = img;
         editFilename = 'pasted-image';
-        document.getElementById('file-label').textContent = 'Pasted Image';
+        $('file-label').textContent = 'Pasted Image';
         pipeline.setDisplayCanvas(editCanvas);
         pipeline.loadImage(img);
         editCanvas.style.display = 'block';
-        document.getElementById('edit-ribbon')?.classList.remove('disabled');
-        document.getElementById('edit-dropzone').style.display = 'none';
+        $('edit-ribbon')?.classList.remove('disabled');
+        $('edit-dropzone').style.display = 'none';
         removeSliceOverlay();
         updResize(); originalW = 0; originalH = 0; saveEdit();
         _initEditGuides();
@@ -113,26 +113,26 @@ function initEdit() {
         if (item.type.startsWith('image/')) {
           const file = item.getAsFile();
           convertFiles.push(file);
-          document.getElementById('convert-drop').style.display = 'none';
-          document.getElementById('convert-preview').style.display = 'block';
-          document.getElementById('convert-img').src = URL.createObjectURL(file);
-          document.getElementById('convert-batch-info').textContent = file.name || 'Pasted image';
-          document.getElementById('btn-convert-go').disabled = false;
+          $('convert-drop').style.display = 'none';
+          $('convert-preview').style.display = 'block';
+          $('convert-img').src = URL.createObjectURL(file);
+          $('convert-batch-info').textContent = file.name || 'Pasted image';
+          $('btn-convert-go').disabled = false;
           break;
         }
       }
     }
   });
 
-  document.getElementById('btn-undo').addEventListener('click', editUndo);
-  document.getElementById('btn-redo').addEventListener('click', editRedo);
-  document.getElementById('btn-history')?.addEventListener('click', function() { _showHistoryPanel(this); });
+  $('btn-undo').addEventListener('click', editUndo);
+  $('btn-redo').addEventListener('click', editRedo);
+  $('btn-history')?.addEventListener('click', function() { _showHistoryPanel(this); });
 
   // Resize
-  const rw = document.getElementById('resize-w'), rh = document.getElementById('resize-h'), lr = document.getElementById('lock-ratio');
+  const rw = $('resize-w'), rh = $('resize-h'), lr = $('lock-ratio');
   rw.addEventListener('input', () => { if (lr.checked && editCanvas.width) rh.value = Math.round(+rw.value * editCanvas.height / editCanvas.width) || ''; });
   rh.addEventListener('input', () => { if (lr.checked && editCanvas.height) rw.value = Math.round(+rh.value * editCanvas.width / editCanvas.height) || ''; });
-  document.getElementById('btn-apply-resize').addEventListener('click', () => {
+  $('btn-apply-resize').addEventListener('click', () => {
     const w = +rw.value, h = +rh.value;
     if (!w || !h || (w === editCanvas.width && h === editCanvas.height)) return;
     pipeline.setExportSize(w, h);
@@ -140,25 +140,25 @@ function initEdit() {
   });
 
   // Transform (non-destructive via pipeline)
-  document.getElementById('btn-rotate-left').addEventListener('click', () => { pipeline.addOperation({type:'rotate', degrees:-90}); updResize(); saveEdit(); });
-  document.getElementById('btn-rotate-right').addEventListener('click', () => { pipeline.addOperation({type:'rotate', degrees:90}); updResize(); saveEdit(); });
-  document.getElementById('btn-flip-h').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'h'}); saveEdit(); });
-  document.getElementById('btn-flip-v').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'v'}); saveEdit(); });
+  $('btn-rotate-left').addEventListener('click', () => { pipeline.addOperation({type:'rotate', degrees:-90}); updResize(); saveEdit(); });
+  $('btn-rotate-right').addEventListener('click', () => { pipeline.addOperation({type:'rotate', degrees:90}); updResize(); saveEdit(); });
+  $('btn-flip-h').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'h'}); saveEdit(); });
+  $('btn-flip-v').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'v'}); saveEdit(); });
 
   // Adjustments (non-destructive via pipeline)
   // Adjustments are live-preview: replace the last 'adjust' op on each slider move
   ['brightness','contrast','saturation','hue'].forEach(a => {
-    const s = document.getElementById(`adj-${a}`), l = document.getElementById(`val-${a}`);
+    const s = $(`adj-${a}`), l = $(`val-${a}`);
     s.addEventListener('input', () => {
       l.textContent = s.value;
       // Remove trailing adjust op if present (live update, not stacking)
       if (pipeline.operations.length && pipeline.operations[pipeline.operations.length - 1].type === 'adjust') {
         pipeline.operations.pop();
       }
-      const b = +document.getElementById('adj-brightness').value;
-      const c = +document.getElementById('adj-contrast').value;
-      const sat = +document.getElementById('adj-saturation').value;
-      const h = +document.getElementById('adj-hue').value;
+      const b = +$('adj-brightness').value;
+      const c = +$('adj-contrast').value;
+      const sat = +$('adj-saturation').value;
+      const h = +$('adj-hue').value;
       if (b || c || sat || h) {
         pipeline.operations.push({type:'adjust', brightness: b, contrast: c, saturation: sat, hue: h});
       }
@@ -169,7 +169,7 @@ function initEdit() {
   });
 
   // Filters (non-destructive via pipeline)
-  document.querySelectorAll('[data-filter]').forEach(b => b.addEventListener('click', () => {
+  $$('[data-filter]').forEach(b => b.addEventListener('click', () => {
     if (!editOriginal) return;
     pipeline.addOperation({type:'filter', name: b.dataset.filter});
     saveEdit();
@@ -187,14 +187,14 @@ function initEdit() {
   Object.entries(cropRatios).forEach(([id, ratio]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (!editCanvas.width) return;
-      Crop.start(document.getElementById('edit-canvas-wrap'), ratio);
-      document.getElementById('btn-crop-apply').style.display = '';
-      document.getElementById('btn-crop-cancel').style.display = '';
+      Crop.start($('edit-canvas-wrap'), ratio);
+      $('btn-crop-apply').style.display = '';
+      $('btn-crop-cancel').style.display = '';
     });
   });
 
   // Smart crop (auto-detect best region)
-  document.getElementById('btn-crop-auto')?.addEventListener('click', async () => {
+  $('btn-crop-auto')?.addEventListener('click', async () => {
     if (!editCanvas.width || typeof smartcrop === 'undefined') return;
     try {
       // Create an image from current canvas for smartcrop
@@ -217,15 +217,15 @@ function initEdit() {
     }
   });
 
-  document.getElementById('btn-crop-apply')?.addEventListener('click', () => {
+  $('btn-crop-apply')?.addEventListener('click', () => {
     Crop.apply();
-    document.getElementById('btn-crop-apply').style.display = 'none';
-    document.getElementById('btn-crop-cancel').style.display = 'none';
+    $('btn-crop-apply').style.display = 'none';
+    $('btn-crop-cancel').style.display = 'none';
   });
-  document.getElementById('btn-crop-cancel')?.addEventListener('click', () => {
+  $('btn-crop-cancel')?.addEventListener('click', () => {
     Crop.cancel();
-    document.getElementById('btn-crop-apply').style.display = 'none';
-    document.getElementById('btn-crop-cancel').style.display = 'none';
+    $('btn-crop-apply').style.display = 'none';
+    $('btn-crop-cancel').style.display = 'none';
   });
 
   // Object-based Drawing (replaces stamp-based Annotate)
@@ -234,19 +234,19 @@ function initEdit() {
   // Sync ribbon UI when an object is selected
   objLayer.onSelect = (obj) => {
     // Color
-    const colorEl = document.getElementById('ann-color');
+    const colorEl = $('ann-color');
     if (colorEl && obj.color) colorEl.value = obj.color;
     // Highlight matching preset
-    document.querySelectorAll('.ann-preset-color').forEach(s => {
+    $$('.ann-preset-color').forEach(s => {
       s.style.outline = s.dataset.color === obj.color ? '2px solid var(--saffron-400)' : '';
       if (s.dataset.color === obj.color) s.style.outlineOffset = '1px';
     });
     // Line width
-    const widthEl = document.getElementById('ann-width');
+    const widthEl = $('ann-width');
     if (widthEl && obj.lineWidth) widthEl.value = obj.lineWidth;
     // Background/Fill
-    const bgToggle = document.getElementById('ann-bg-toggle');
-    const bgColorEl = document.getElementById('ann-bg-color');
+    const bgToggle = $('ann-bg-toggle');
+    const bgColorEl = $('ann-bg-color');
     if (bgToggle) {
       bgToggle.checked = !!obj.bgColor;
       if (bgColorEl) {
@@ -256,20 +256,20 @@ function initEdit() {
     }
     // Font (text/callout)
     if (obj.type === 'text' || obj.type === 'callout') {
-      const fontEl = document.getElementById('ann-font');
+      const fontEl = $('ann-font');
       if (fontEl && obj.fontFamily) fontEl.value = obj.fontFamily;
-      const sizeEl = document.getElementById('ann-fontsize');
+      const sizeEl = $('ann-fontsize');
       if (sizeEl && obj.fontSize) sizeEl.value = obj.fontSize;
     }
     // Callout shape/tail
     if (obj.type === 'callout') {
-      const shapeEl = document.getElementById('ann-callout-shape');
+      const shapeEl = $('ann-callout-shape');
       if (shapeEl && obj.calloutShape) shapeEl.value = obj.calloutShape;
-      const tailEl = document.getElementById('ann-callout-tail');
+      const tailEl = $('ann-callout-tail');
       if (tailEl && obj.calloutTailDir) tailEl.value = obj.calloutTailDir;
     }
     // Opacity
-    const opEl = document.getElementById('ann-opacity');
+    const opEl = $('ann-opacity');
     if (opEl) opEl.value = Math.round((obj.opacity || 1) * 100);
   };
 
@@ -284,7 +284,7 @@ function initEdit() {
   }
 
   // Pointer / Select tool — deactivates drawing, switches to select mode
-  document.getElementById('btn-ann-select')?.addEventListener('click', () => {
+  $('btn-ann-select')?.addEventListener('click', () => {
     if (objLayer.active) objLayer.stopTool();
     setActiveAnnTool('btn-ann-select');
   });
@@ -292,19 +292,19 @@ function initEdit() {
   Object.entries(annTools).forEach(([id, tool]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (!editCanvas.width) return;
-      if (!objLayer.active) objLayer.attach(document.getElementById('edit-canvas-wrap'));
+      if (!objLayer.active) objLayer.attach($('edit-canvas-wrap'));
       objLayer.startTool(tool);
       setActiveAnnTool(id);
     });
   });
 
   // Callout button in Draw ribbon
-  document.getElementById('btn-ann-callout')?.addEventListener('click', () => {
+  $('btn-ann-callout')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    if (!objLayer.active) objLayer.attach(document.getElementById('edit-canvas-wrap'));
-    const shape = document.getElementById('ann-callout-shape')?.value || 'rounded';
-    const tailDir = document.getElementById('ann-callout-tail')?.value || 'bottom';
-    const bgColor = document.getElementById('ann-bg-toggle')?.checked ? document.getElementById('ann-bg-color')?.value : '#1e293b';
+    if (!objLayer.active) objLayer.attach($('edit-canvas-wrap'));
+    const shape = $('ann-callout-shape')?.value || 'rounded';
+    const tailDir = $('ann-callout-tail')?.value || 'bottom';
+    const bgColor = $('ann-bg-toggle')?.checked ? $('ann-bg-color')?.value : '#1e293b';
     objLayer.addCallout(editCanvas.width / 2 - 100, editCanvas.height / 2 - 40, 200, 80, {
       shape, tailDir, bgColor, textColor: '#ffffff', borderColor: '#F4C430'
     });
@@ -312,13 +312,13 @@ function initEdit() {
   });
 
   // Callout shape/tail changes update selected callout
-  document.getElementById('ann-callout-shape')?.addEventListener('change', (e) => {
+  $('ann-callout-shape')?.addEventListener('change', (e) => {
     if (objLayer.selected?.type === 'callout') {
       objLayer.selected.calloutShape = e.target.value;
       objLayer.render();
     }
   });
-  document.getElementById('ann-callout-tail')?.addEventListener('change', (e) => {
+  $('ann-callout-tail')?.addEventListener('change', (e) => {
     if (objLayer.selected?.type === 'callout') {
       objLayer.selected.calloutTailDir = e.target.value;
       objLayer.render();
@@ -326,14 +326,14 @@ function initEdit() {
   });
 
   // Font/size changes update selected text/callout
-  document.getElementById('ann-font')?.addEventListener('change', (e) => {
+  $('ann-font')?.addEventListener('change', (e) => {
     objLayer.fontFamily = e.target.value;
     if (objLayer.selected?.type === 'text' || objLayer.selected?.type === 'callout') {
       objLayer.selected.fontFamily = e.target.value;
       objLayer.render();
     }
   });
-  document.getElementById('ann-fontsize')?.addEventListener('input', (e) => {
+  $('ann-fontsize')?.addEventListener('input', (e) => {
     objLayer.fontSize = +e.target.value;
     if (objLayer.selected?.type === 'text' || objLayer.selected?.type === 'callout') {
       objLayer.selected.fontSize = +e.target.value;
@@ -366,40 +366,40 @@ function initEdit() {
     }
   });
 
-  document.getElementById('ann-color')?.addEventListener('input', (e) => {
+  $('ann-color')?.addEventListener('input', (e) => {
     objLayer.color = e.target.value;
     if (objLayer.selected) { objLayer.selected.color = e.target.value; objLayer.render(); }
     // Highlight active preset (or none if custom)
-    document.querySelectorAll('.ann-preset-color').forEach(s => s.style.outline = '');
+    $$('.ann-preset-color').forEach(s => s.style.outline = '');
   });
 
   // Preset color palette clicks
-  document.querySelectorAll('.ann-preset-color').forEach(swatch => {
+  $$('.ann-preset-color').forEach(swatch => {
     swatch.addEventListener('click', () => {
       const color = swatch.dataset.color;
-      document.getElementById('ann-color').value = color;
+      $('ann-color').value = color;
       objLayer.color = color;
       if (objLayer.selected) { objLayer.selected.color = color; objLayer.render(); }
       // Highlight active preset
-      document.querySelectorAll('.ann-preset-color').forEach(s => s.style.outline = '');
+      $$('.ann-preset-color').forEach(s => s.style.outline = '');
       swatch.style.outline = '2px solid var(--saffron-400)';
       swatch.style.outlineOffset = '1px';
     });
   });
-  document.getElementById('ann-width')?.addEventListener('input', (e) => {
+  $('ann-width')?.addEventListener('input', (e) => {
     objLayer.lineWidth = +e.target.value;
     if (objLayer.selected) { objLayer.selected.lineWidth = +e.target.value; objLayer.render(); }
   });
   // Opacity slider for draw objects
-  document.getElementById('ann-opacity')?.addEventListener('input', (e) => {
+  $('ann-opacity')?.addEventListener('input', (e) => {
     const val = +e.target.value / 100;
     if (objLayer.selected) { objLayer.selected.opacity = val; objLayer.render(); }
   });
   // ann-fill removed — BG toggle handles fill now
 
   // Background color toggle
-  const bgToggle = document.getElementById('ann-bg-toggle');
-  const bgColorPicker = document.getElementById('ann-bg-color');
+  const bgToggle = $('ann-bg-toggle');
+  const bgColorPicker = $('ann-bg-color');
   bgToggle?.addEventListener('change', (e) => {
     bgColorPicker.style.display = e.target.checked ? '' : 'none';
     const bgColor = e.target.checked ? bgColorPicker.value : null;
@@ -408,38 +408,38 @@ function initEdit() {
   bgColorPicker?.addEventListener('input', (e) => {
     if (objLayer.selected) { objLayer.selected.bgColor = e.target.value; objLayer.render(); }
   });
-  document.getElementById('ann-font')?.addEventListener('change', (e) => {
+  $('ann-font')?.addEventListener('change', (e) => {
     objLayer.fontFamily = e.target.value;
     // Apply to currently selected text object
     if (objLayer.selected?.type === 'text') { objLayer.selected.fontFamily = e.target.value; objLayer.render(); }
   });
-  document.getElementById('ann-fontsize')?.addEventListener('change', (e) => {
+  $('ann-fontsize')?.addEventListener('change', (e) => {
     objLayer.fontSize = +e.target.value || 24;
     if (objLayer.selected?.type === 'text') { objLayer.selected.fontSize = +e.target.value || 24; objLayer.render(); }
   });
 
   // Mask filter tool
-  document.getElementById('btn-mask-filter')?.addEventListener('click', () => {
+  $('btn-mask-filter')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    if (!objLayer.active) objLayer.attach(document.getElementById('edit-canvas-wrap'));
+    if (!objLayer.active) objLayer.attach($('edit-canvas-wrap'));
     objLayer.maskFilter = 'blur'; // default mask filter
     objLayer.startTool('mask');
   });
 
   // Guides toggle buttons
-  document.getElementById('btn-toggle-ruler')?.addEventListener('click', (e) => {
+  $('btn-toggle-ruler')?.addEventListener('click', (e) => {
     if (!editGuides) return;
     editGuides.showRuler = !editGuides.showRuler;
     e.currentTarget.classList.toggle('active', editGuides.showRuler);
     editGuides.render();
   });
-  document.getElementById('btn-toggle-grid')?.addEventListener('click', (e) => {
+  $('btn-toggle-grid')?.addEventListener('click', (e) => {
     if (!editGuides) return;
     editGuides.showGrid = !editGuides.showGrid;
     e.currentTarget.classList.toggle('active', editGuides.showGrid);
     editGuides.render();
   });
-  document.getElementById('btn-toggle-center')?.addEventListener('click', (e) => {
+  $('btn-toggle-center')?.addEventListener('click', (e) => {
     if (!editGuides) return;
     editGuides.showCenter = !editGuides.showCenter;
     e.currentTarget.classList.toggle('active', editGuides.showCenter);
@@ -447,47 +447,47 @@ function initEdit() {
   });
 
   // Watermark
-  document.getElementById('watermark-opacity')?.addEventListener('input', (e) => {
-    document.getElementById('watermark-opacity-val').textContent = e.target.value;
+  $('watermark-opacity')?.addEventListener('input', (e) => {
+    $('watermark-opacity-val').textContent = e.target.value;
   });
   // Watermark sliders
-  document.getElementById('watermark-opacity')?.addEventListener('input', (e) => {
-    const v = document.getElementById('watermark-opacity-val2'); if (v) v.textContent = e.target.value;
+  $('watermark-opacity')?.addEventListener('input', (e) => {
+    const v = $('watermark-opacity-val2'); if (v) v.textContent = e.target.value;
   });
-  document.getElementById('watermark-fontsize')?.addEventListener('input', (e) => {
-    const v = document.getElementById('watermark-fontsize-val'); if (v) v.textContent = e.target.value;
+  $('watermark-fontsize')?.addEventListener('input', (e) => {
+    const v = $('watermark-fontsize-val'); if (v) v.textContent = e.target.value;
   });
-  document.getElementById('watermark-angle')?.addEventListener('input', (e) => {
-    const v = document.getElementById('watermark-angle-val'); if (v) v.textContent = e.target.value;
+  $('watermark-angle')?.addEventListener('input', (e) => {
+    const v = $('watermark-angle-val'); if (v) v.textContent = e.target.value;
   });
 
-  document.getElementById('btn-watermark')?.addEventListener('click', () => {
-    const text = document.getElementById('watermark-text').value;
+  $('btn-watermark')?.addEventListener('click', () => {
+    const text = $('watermark-text').value;
     if (!text || !editCanvas.width) return;
     pipeline.addOperation({type:'watermark', text, options: {
-      opacity: +(document.getElementById('watermark-opacity')?.value || 30) / 100,
-      fontSize: +(document.getElementById('watermark-fontsize')?.value || 48),
-      angle: +(document.getElementById('watermark-angle')?.value || -30),
-      color: document.getElementById('watermark-color')?.value || '#ffffff',
+      opacity: +($('watermark-opacity')?.value || 30) / 100,
+      fontSize: +($('watermark-fontsize')?.value || 48),
+      angle: +($('watermark-angle')?.value || -30),
+      color: $('watermark-color')?.value || '#ffffff',
     }});
     saveEdit();
   });
 
   // Effects (non-destructive via pipeline)
-  document.getElementById('btn-vignette')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'vignette'}); saveEdit(); });
-  document.getElementById('btn-denoise')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'denoise'}); saveEdit(); });
-  document.getElementById('btn-round-corners')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'roundCorners'}); saveEdit(); });
-  document.getElementById('btn-border')?.addEventListener('click', () => {
+  $('btn-vignette')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'vignette'}); saveEdit(); });
+  $('btn-denoise')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'denoise'}); saveEdit(); });
+  $('btn-round-corners')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'roundCorners'}); saveEdit(); });
+  $('btn-border')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    const bw = +document.getElementById('border-width').value || 10;
-    pipeline.addOperation({type:'border', width: bw, color: document.getElementById('border-color').value});
+    const bw = +$('border-width').value || 10;
+    pipeline.addOperation({type:'border', width: bw, color: $('border-color').value});
     updResize(); saveEdit();
   });
-  document.getElementById('btn-tile')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'tile', cols:2, rows:2}); updResize(); saveEdit(); });
-  document.getElementById('btn-tile3')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'tile', cols:3, rows:3}); updResize(); saveEdit(); });
+  $('btn-tile')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'tile', cols:2, rows:2}); updResize(); saveEdit(); });
+  $('btn-tile3')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'tile', cols:3, rows:3}); updResize(); saveEdit(); });
 
   // Color blindness simulation (non-destructive via pipeline)
-  document.querySelectorAll('[data-cb]').forEach(btn => {
+  $$('[data-cb]').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!editOriginal) return;
       pipeline.addOperation({type:'colorBlindness', mode: btn.dataset.cb});
@@ -496,7 +496,7 @@ function initEdit() {
   });
 
   // CMYK simulation (non-destructive via pipeline)
-  document.getElementById('btn-cmyk-sim')?.addEventListener('click', () => {
+  $('btn-cmyk-sim')?.addEventListener('click', () => {
     if (!editOriginal) return;
     pipeline.addOperation({type:'cmyk'});
     saveEdit();
@@ -507,7 +507,7 @@ function initEdit() {
     if (!editCanvas.width) return;
     try {
       const hist = computeHistogram(editCanvas);
-      drawHistogram(document.getElementById('histogram-canvas'), hist);
+      drawHistogram($('histogram-canvas'), hist);
     } catch {}
   }
 
@@ -521,7 +521,7 @@ function initEdit() {
     if (!editCanvas.width) return;
 
     sliceActive = !sliceActive;
-    document.getElementById('btn-slice-preview')?.classList.toggle('active', sliceActive);
+    $('btn-slice-preview')?.classList.toggle('active', sliceActive);
 
     if (!sliceActive) {
       removeSliceOverlay();
@@ -533,18 +533,18 @@ function initEdit() {
   }
 
   function updateSliceLines() {
-    const isCustom = document.getElementById('slice-custom')?.checked;
+    const isCustom = $('slice-custom')?.checked;
     const cw = editCanvas.width;
     const ch = editCanvas.height;
 
     if (isCustom) {
-      const wStr = document.getElementById('slice-custom-w')?.value || '';
-      const hStr = document.getElementById('slice-custom-h')?.value || '';
+      const wStr = $('slice-custom-w')?.value || '';
+      const hStr = $('slice-custom-h')?.value || '';
       sliceLines.vertical = parseCustomPositions(wStr, cw);
       sliceLines.horizontal = parseCustomPositions(hStr, ch);
     } else {
-      const cols = +document.getElementById('sprite-cols')?.value || 4;
-      const rows = +document.getElementById('sprite-rows')?.value || 4;
+      const cols = +$('sprite-cols')?.value || 4;
+      const rows = +$('sprite-rows')?.value || 4;
       sliceLines.vertical = [];
       sliceLines.horizontal = [];
       for (let i = 1; i < cols; i++) sliceLines.vertical.push(Math.round(cw * i / cols));
@@ -570,7 +570,7 @@ function initEdit() {
     if (!sliceOverlay) {
       sliceOverlay = document.createElement('canvas');
       sliceOverlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:default;z-index:4;';
-      document.getElementById('edit-canvas-wrap')?.appendChild(sliceOverlay);
+      $('edit-canvas-wrap')?.appendChild(sliceOverlay);
 
       sliceOverlay.addEventListener('mousedown', onSliceMouseDown);
       window.addEventListener('mousemove', onSliceMouseMove);
@@ -685,9 +685,9 @@ function initEdit() {
       syncSliceInputs();
       renderSliceOverlay();
       // Auto-switch to custom mode when user drags
-      document.getElementById('slice-custom').checked = true;
-      document.getElementById('slice-custom-row').style.display = '';
-      document.getElementById('slice-custom-row-h').style.display = '';
+      $('slice-custom').checked = true;
+      $('slice-custom-row').style.display = '';
+      $('slice-custom-row-h').style.display = '';
       return;
     }
 
@@ -717,12 +717,12 @@ function initEdit() {
     const vPositions = [0, ...sliceLines.vertical, cw];
     const widths = [];
     for (let i = 1; i < vPositions.length; i++) widths.push(vPositions[i] - vPositions[i - 1]);
-    document.getElementById('slice-custom-w').value = widths.join(',');
+    $('slice-custom-w').value = widths.join(',');
 
     const hPositions = [0, ...sliceLines.horizontal, ch];
     const heights = [];
     for (let i = 1; i < hPositions.length; i++) heights.push(hPositions[i] - hPositions[i - 1]);
-    document.getElementById('slice-custom-h').value = heights.join(',');
+    $('slice-custom-h').value = heights.join(',');
   }
 
   function removeSliceOverlay() {
@@ -733,7 +733,7 @@ function initEdit() {
       sliceOverlay = null;
     }
     sliceActive = false;
-    document.getElementById('btn-slice-preview')?.classList.remove('active');
+    $('btn-slice-preview')?.classList.remove('active');
   }
 
   function sliceAtPositions(canvas, verticalLines, horizontalLines) {
@@ -760,19 +760,19 @@ function initEdit() {
   }
 
   // Slice preview toggle
-  document.getElementById('btn-slice-preview')?.addEventListener('click', showSlicePreview);
+  $('btn-slice-preview')?.addEventListener('click', showSlicePreview);
 
   // Custom toggle shows/hides custom inputs
-  document.getElementById('slice-custom')?.addEventListener('change', (e) => {
-    document.getElementById('slice-custom-row').style.display = e.target.checked ? '' : 'none';
-    document.getElementById('slice-custom-row-h').style.display = e.target.checked ? '' : 'none';
+  $('slice-custom')?.addEventListener('change', (e) => {
+    $('slice-custom-row').style.display = e.target.checked ? '' : 'none';
+    $('slice-custom-row-h').style.display = e.target.checked ? '' : 'none';
     if (sliceActive) { updateSliceLines(); renderSliceOverlay(); }
   });
 
   // Cols/rows inputs update preview
   ['sprite-cols', 'sprite-rows'].forEach(id => {
     document.getElementById(id)?.addEventListener('input', () => {
-      if (sliceActive && !document.getElementById('slice-custom')?.checked) {
+      if (sliceActive && !$('slice-custom')?.checked) {
         updateSliceLines();
         renderSliceOverlay();
       }
@@ -787,19 +787,19 @@ function initEdit() {
   });
 
   // Slice download
-  document.getElementById('btn-slice-sprite')?.addEventListener('click', async () => {
+  $('btn-slice-sprite')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
 
     removeSliceOverlay();
 
-    const isCustom = document.getElementById('slice-custom')?.checked;
+    const isCustom = $('slice-custom')?.checked;
     let tiles;
 
     if (isCustom && (sliceLines.vertical.length || sliceLines.horizontal.length)) {
       tiles = sliceAtPositions(editCanvas, sliceLines.vertical, sliceLines.horizontal);
     } else {
-      const cols = +document.getElementById('sprite-cols').value || 4;
-      const rows = +document.getElementById('sprite-rows').value || 4;
+      const cols = +$('sprite-cols').value || 4;
+      const rows = +$('sprite-rows').value || 4;
       tiles = sliceSpriteSheet(editCanvas, cols, rows);
     }
 
@@ -817,19 +817,19 @@ function initEdit() {
   });
 
   // Steganography
-  document.getElementById('btn-steg-detect')?.addEventListener('click', () => {
+  $('btn-steg-detect')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
     const result = detectSteganography(editCanvas);
     pixDialog.alert('Steganography Analysis', `<div><b>Assessment:</b> ${esc(result.assessment)}</div><div><b>LSB Ratio:</b> ${result.lsbRatio}</div>`);
   });
-  document.getElementById('btn-steg-visualize')?.addEventListener('click', () => {
+  $('btn-steg-visualize')?.addEventListener('click', () => {
     if (!editOriginal) return;
     pipeline.addOperation({type:'lsbVisualize'});
     saveEdit();
   });
 
   // Reverse image search
-  document.querySelectorAll('[data-rsearch]').forEach(btn => {
+  $$('[data-rsearch]').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!editCanvas.width) return;
       openReverseImageSearch(editCanvas.toDataURL('image/png'), btn.dataset.rsearch);
@@ -837,19 +837,19 @@ function initEdit() {
   });
 
   // Canvas: Padding
-  document.getElementById('btn-padding')?.addEventListener('click', () => {
+  $('btn-padding')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    const p = +document.getElementById('pad-size')?.value || 20;
-    const color = document.getElementById('pad-color')?.value || '#ffffff';
+    const p = +$('pad-size')?.value || 20;
+    const color = $('pad-color')?.value || '#ffffff';
     pipeline.addOperation({type:'padding', top: p, right: p, bottom: p, left: p, color});
     updResize(); saveEdit();
   });
 
   // Canvas: Split
-  document.getElementById('btn-split-h2')?.addEventListener('click', () => splitAndDownload('horizontal', 2));
-  document.getElementById('btn-split-v2')?.addEventListener('click', () => splitAndDownload('vertical', 2));
-  document.getElementById('btn-split-h3')?.addEventListener('click', () => splitAndDownload('horizontal', 3));
-  document.getElementById('btn-split-v3')?.addEventListener('click', () => splitAndDownload('vertical', 3));
+  $('btn-split-h2')?.addEventListener('click', () => splitAndDownload('horizontal', 2));
+  $('btn-split-v2')?.addEventListener('click', () => splitAndDownload('vertical', 2));
+  $('btn-split-h3')?.addEventListener('click', () => splitAndDownload('horizontal', 3));
+  $('btn-split-v3')?.addEventListener('click', () => splitAndDownload('vertical', 3));
 
   async function splitAndDownload(dir, parts) {
     if (!editCanvas.width) return;
@@ -865,10 +865,10 @@ function initEdit() {
 
 
   // Color replace
-  document.getElementById('btn-color-replace')?.addEventListener('click', () => {
+  $('btn-color-replace')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    const from = document.getElementById('color-from').value;
-    const to = document.getElementById('color-to').value;
+    const from = $('color-from').value;
+    const to = $('color-to').value;
     const fr = parseInt(from.slice(1,3),16), fg = parseInt(from.slice(3,5),16), fb = parseInt(from.slice(5,7),16);
     const tr = parseInt(to.slice(1,3),16), tg = parseInt(to.slice(3,5),16), tb = parseInt(to.slice(5,7),16);
     replaceColor(editCanvas, fr, fg, fb, tr, tg, tb, 30);
@@ -876,7 +876,7 @@ function initEdit() {
   });
 
   // Channel separation (non-destructive via pipeline)
-  document.querySelectorAll('[data-channel]').forEach(btn => {
+  $$('[data-channel]').forEach(btn => {
     btn.addEventListener('click', () => {
       if (!editOriginal) return;
       pipeline.addOperation({type:'channel', channel: btn.dataset.channel});
@@ -891,21 +891,21 @@ function initEdit() {
       document.getElementById(id + '-val').textContent = val;
     });
   });
-  document.getElementById('btn-apply-levels')?.addEventListener('click', () => {
+  $('btn-apply-levels')?.addEventListener('click', () => {
     if (!editOriginal) return;
-    pipeline.addOperation({type:'levels', black: +document.getElementById('level-black').value, white: +document.getElementById('level-white').value, gamma: +document.getElementById('level-gamma').value / 100});
+    pipeline.addOperation({type:'levels', black: +$('level-black').value, white: +$('level-white').value, gamma: +$('level-gamma').value / 100});
     saveEdit();
   });
 
   // Pixelate art
-  document.getElementById('btn-pixelate')?.addEventListener('click', () => {
+  $('btn-pixelate')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    pipeline.addOperation({type:'pixelate', blockSize: +document.getElementById('pixelate-size').value || 8});
+    pipeline.addOperation({type:'pixelate', blockSize: +$('pixelate-size').value || 8});
     saveEdit();
   });
 
   // Favicon preview
-  document.getElementById('btn-gen-favicons')?.addEventListener('click', () => {
+  $('btn-gen-favicons')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
     const previews = generateFaviconPreviews(editCanvas);
     let html = '<div style="display:flex;gap:12px;flex-wrap:wrap;align-items:end;">';
@@ -917,9 +917,9 @@ function initEdit() {
   });
 
   // ASCII art
-  document.getElementById('btn-ascii')?.addEventListener('click', () => {
+  $('btn-ascii')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    const cols = +document.getElementById('ascii-cols').value || 80;
+    const cols = +$('ascii-cols').value || 80;
     const art = imageToAscii(editCanvas, cols);
     navigator.clipboard.writeText(art).catch(() => {});
     pixDialog.alert('ASCII Art (copied to clipboard)', `<pre style="font-family:monospace;font-size:5px;line-height:6px;overflow:auto;max-height:400px;background:var(--slate-800);padding:8px;border-radius:6px;color:var(--slate-200);white-space:pre;">${esc(art)}</pre>`);
@@ -930,58 +930,58 @@ function initEdit() {
   function showGenerated(canvas, name) {
     editCanvas.width = canvas.width; editCanvas.height = canvas.height;
     editCtx.drawImage(canvas, 0, 0);
-    editCanvas.style.display = 'block'; document.getElementById('edit-ribbon')?.classList.remove('disabled');
-    document.getElementById('edit-dropzone').style.display = 'none';
+    editCanvas.style.display = 'block'; $('edit-ribbon')?.classList.remove('disabled');
+    $('edit-dropzone').style.display = 'none';
     editFilename = name; updResize(); saveEdit();
   }
 
-  document.getElementById('btn-gen-gradient')?.addEventListener('click', () => {
-    const w = +(document.getElementById('gen-w')?.value || document.getElementById('bar-w')?.value) || 800;
-    const h = +(document.getElementById('gen-h')?.value || document.getElementById('bar-h')?.value) || 600;
-    const type = document.getElementById('gen-grad-type').value;
-    const c1 = document.getElementById('gen-grad-c1').value;
-    const c2 = document.getElementById('gen-grad-c2').value;
+  $('btn-gen-gradient')?.addEventListener('click', () => {
+    const w = +($('gen-w')?.value || $('bar-w')?.value) || 800;
+    const h = +($('gen-h')?.value || $('bar-h')?.value) || 600;
+    const type = $('gen-grad-type').value;
+    const c1 = $('gen-grad-c1').value;
+    const c2 = $('gen-grad-c2').value;
     showGenerated(generateGradient(w, h, type, [{ pos: 0, color: c1 }, { pos: 1, color: c2 }]), 'gradient');
   });
 
-  document.getElementById('btn-gen-pattern')?.addEventListener('click', () => {
-    const w = +(document.getElementById('gen-w')?.value || document.getElementById('bar-w')?.value) || 800;
-    const h = +(document.getElementById('gen-h')?.value || document.getElementById('bar-h')?.value) || 600;
-    const type = document.getElementById('gen-pat-type').value;
-    const c1 = document.getElementById('gen-pat-c1').value;
-    const c2 = document.getElementById('gen-pat-c2').value;
-    const cell = +document.getElementById('gen-pat-cell').value || 40;
+  $('btn-gen-pattern')?.addEventListener('click', () => {
+    const w = +($('gen-w')?.value || $('bar-w')?.value) || 800;
+    const h = +($('gen-h')?.value || $('bar-h')?.value) || 600;
+    const type = $('gen-pat-type').value;
+    const c1 = $('gen-pat-c1').value;
+    const c2 = $('gen-pat-c2').value;
+    const cell = +$('gen-pat-cell').value || 40;
     showGenerated(generatePattern(w, h, type, c1, c2, cell), 'pattern');
   });
 
-  document.getElementById('btn-gen-placeholder')?.addEventListener('click', () => {
-    const w = +(document.getElementById('gen-w')?.value || document.getElementById('bar-w')?.value) || 800;
-    const h = +(document.getElementById('gen-h')?.value || document.getElementById('bar-h')?.value) || 600;
-    const bg = document.getElementById('gen-ph-bg').value;
-    const tc = document.getElementById('gen-ph-text-color').value;
-    const text = document.getElementById('gen-ph-text').value || '';
+  $('btn-gen-placeholder')?.addEventListener('click', () => {
+    const w = +($('gen-w')?.value || $('bar-w')?.value) || 800;
+    const h = +($('gen-h')?.value || $('bar-h')?.value) || 600;
+    const bg = $('gen-ph-bg').value;
+    const tc = $('gen-ph-text-color').value;
+    const text = $('gen-ph-text').value || '';
     showGenerated(generatePlaceholder(w, h, bg, tc, text), 'placeholder');
   });
 
   // Strip metadata
-  document.getElementById('btn-strip-meta')?.addEventListener('click', async () => {
+  $('btn-strip-meta')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
     const blob = await stripMetadata(editCanvas, 'png');
     chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}-clean.png`, saveAs: true });
   });
 
   // Image to PDF
-  document.getElementById('btn-to-pdf')?.addEventListener('click', async () => {
+  $('btn-to-pdf')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
     const blob = await imageToPdf([editCanvas], 'pixeroo-export');
     chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}.pdf`, saveAs: true });
   });
 
   // Export
-  document.getElementById('btn-export').addEventListener('click', editExport);
+  $('btn-export').addEventListener('click', editExport);
 
   // Export annotations as SVG overlay
-  document.getElementById('btn-export-annotations-svg')?.addEventListener('click', () => {
+  $('btn-export-annotations-svg')?.addEventListener('click', () => {
     if (!window._pixerooObjLayer?.hasObjects()) return;
     const svg = window._pixerooObjLayer.exportAsSVG(editCanvas.width, editCanvas.height);
     const blob = new Blob([svg], { type: 'image/svg+xml' });
@@ -989,9 +989,9 @@ function initEdit() {
   });
 
   // --- Save/Load Edit Project ---
-  document.getElementById('btn-edit-save')?.addEventListener('click', () => {
+  $('btn-edit-save')?.addEventListener('click', () => {
     if (!editOriginal) return;
-    const footer = document.getElementById('footer-status');
+    const footer = $('footer-status');
     if (footer) footer.textContent = 'Saving project...';
 
     // Save original image as base64 + pipeline operations
@@ -1016,13 +1016,13 @@ function initEdit() {
     if (footer) footer.textContent = `Project saved (${(json.length / 1024).toFixed(0)} KB)`;
   });
 
-  const editLoadBtn = document.getElementById('btn-edit-load');
-  const editLoadInput = document.getElementById('edit-load-file');
+  const editLoadBtn = $('btn-edit-load');
+  const editLoadInput = $('edit-load-file');
   editLoadBtn?.addEventListener('click', () => editLoadInput?.click());
   editLoadInput?.addEventListener('change', async (e) => {
     const file = e.target.files?.[0]; if (!file) return;
     editLoadInput.value = '';
-    const footer = document.getElementById('footer-status');
+    const footer = $('footer-status');
     if (footer) footer.textContent = 'Loading project...';
 
     try {
@@ -1036,7 +1036,7 @@ function initEdit() {
 
       editOriginal = img;
       editFilename = project.filename || 'loaded';
-      document.getElementById('file-label').textContent = editFilename;
+      $('file-label').textContent = editFilename;
 
       // Restore pipeline
       pipeline.setDisplayCanvas(editCanvas);
@@ -1048,8 +1048,8 @@ function initEdit() {
       pipeline.render();
 
       editCanvas.style.display = 'block';
-      document.getElementById('edit-ribbon')?.classList.remove('disabled');
-      document.getElementById('edit-dropzone').style.display = 'none';
+      $('edit-ribbon')?.classList.remove('disabled');
+      $('edit-dropzone').style.display = 'none';
       updResize(); originalW = 0; originalH = 0; saveEdit();
       _initEditGuides();
 
@@ -1061,10 +1061,10 @@ function initEdit() {
   });
 
   // --- Right-click context menu for Edit mode ---
-  document.getElementById('edit-work')?.addEventListener('contextmenu', (e) => {
+  $('edit-work')?.addEventListener('contextmenu', (e) => {
     if (!editCanvas.width) return;
     e.preventDefault();
-    document.querySelectorAll('.ctx-menu').forEach(m => m.remove());
+    $$('.ctx-menu').forEach(m => m.remove());
 
     const hasImage = !!editOriginal;
     const hasOps = pipeline.operations.length > 0;
@@ -1076,8 +1076,8 @@ function initEdit() {
       { label: 'Undo', shortcut: 'Ctrl+Z', enabled: hasOps, action: editUndo },
       { label: 'Redo', shortcut: 'Ctrl+Y', enabled: hasUndone, action: editRedo },
       { sep: true },
-      { label: 'Reset All', enabled: hasOps, action: () => document.getElementById('btn-reset-all')?.click() },
-      { label: 'Reset Adjustments', enabled: hasOps, action: () => document.getElementById('btn-reset-adjust')?.click() },
+      { label: 'Reset All', enabled: hasOps, action: () => $('btn-reset-all')?.click() },
+      { label: 'Reset Adjustments', enabled: hasOps, action: () => $('btn-reset-adjust')?.click() },
       { sep: true },
       { header: 'Quick Filters', enabled: hasImage },
       { label: 'Grayscale', enabled: hasImage, action: () => { pipeline.addOperation({type:'filter', name:'grayscale'}); saveEdit(); } },
@@ -1099,7 +1099,7 @@ function initEdit() {
       { header: 'Annotations', enabled: hasObjects },
       { label: 'Flatten Annotations', enabled: hasObjects, action: () => { window._pixerooObjLayer.flatten(); saveEdit(); } },
       { label: 'Delete Selected', enabled: !!selObj, action: () => { window._pixerooObjLayer.deleteSelected(); window._pixerooObjLayer.render(); } },
-      { label: 'Export as SVG', enabled: hasObjects, action: () => document.getElementById('btn-export-annotations-svg')?.click() },
+      { label: 'Export as SVG', enabled: hasObjects, action: () => $('btn-export-annotations-svg')?.click() },
     ];
 
     // Reuse the same menu builder from collage
@@ -1154,7 +1154,7 @@ function initEdit() {
         editCanvas.height = tempCanvas.height;
         editCtx.drawImage(tempCanvas, 0, 0);
         // Show "Original" badge
-        const badge = document.getElementById('dimension-badge');
+        const badge = $('dimension-badge');
         if (badge) { badge.textContent = 'ORIGINAL'; badge.style.display = 'block'; }
       }
     }
@@ -1172,27 +1172,27 @@ function initEdit() {
       } else {
         pipeline.render();
       }
-      document.getElementById('dimension-badge').style.display = 'none';
+      $('dimension-badge').style.display = 'none';
     }
   });
 
   // --- Canvas background color (for transparent PNGs) ---
   // Default checkerboard for transparency
-  const canvasWrap = document.getElementById('edit-canvas-wrap');
+  const canvasWrap = $('edit-canvas-wrap');
   if (canvasWrap) canvasWrap.style.background = 'repeating-conic-gradient(#808080 0% 25%, #a0a0a0 0% 50%) 50% / 16px 16px';
-  document.getElementById('canvas-bg-color')?.addEventListener('input', (e) => {
-    document.getElementById('edit-canvas-wrap').style.backgroundColor = e.target.value;
-    document.getElementById('edit-canvas-wrap').style.backgroundImage = 'none';
+  $('canvas-bg-color')?.addEventListener('input', (e) => {
+    $('edit-canvas-wrap').style.backgroundColor = e.target.value;
+    $('edit-canvas-wrap').style.backgroundImage = 'none';
   });
 
   // --- Persistent Info Bar ---
   initInfoBar();
 }
 
-function updResize() { document.getElementById('resize-w').value = editCanvas.width; document.getElementById('resize-h').value = editCanvas.height; }
+function updResize() { $('resize-w').value = editCanvas.width; $('resize-h').value = editCanvas.height; }
 function saveEdit() {
   // Pipeline handles state -- just update UI indicators
-  try { const h = computeHistogram(editCanvas); drawHistogram(document.getElementById('histogram-canvas'), h); } catch {}
+  try { const h = computeHistogram(editCanvas); drawHistogram($('histogram-canvas'), h); } catch {}
   updateDimensionBadge();
   updateInfoBar();
   pulseExportButton();
@@ -1200,7 +1200,7 @@ function saveEdit() {
   _updateHistoryBadge();
 
   // Show last operation in footer with undo hint
-  const footer = document.getElementById('footer-status');
+  const footer = $('footer-status');
   if (footer && pipeline.operations.length) {
     const last = pipeline.operations[pipeline.operations.length - 1];
     const labels = { rotate:'Rotated', flip:'Flipped', crop:'Cropped', adjust:'Adjusted', filter:'Filter', vignette:'Vignette', denoise:'Denoised', pixelate:'Pixelated', roundCorners:'Rounded', watermark:'Watermark', border:'Border', padding:'Padded', tile:'Tiled', colorBlindness:'CB Sim', cmyk:'CMYK', channel:'Channel', levels:'Levels', lsbVisualize:'LSB' };
@@ -1218,7 +1218,7 @@ const _historyOpLabels = {
 };
 
 function _updateHistoryBadge() {
-  const badge = document.getElementById('history-count');
+  const badge = $('history-count');
   if (!badge) return;
   const n = pipeline.operations.length;
   if (n > 0) { badge.style.display = ''; badge.textContent = n; }
@@ -1227,7 +1227,7 @@ function _updateHistoryBadge() {
 
 function _showHistoryPanel(anchorBtn) {
   // Close existing
-  document.querySelectorAll('.history-panel').forEach(p => p.remove());
+  $$('.history-panel').forEach(p => p.remove());
 
   const panel = document.createElement('div');
   panel.className = 'history-panel';
@@ -1321,7 +1321,7 @@ function _showHistoryPanel(anchorBtn) {
 }
 
 function _initEditGuides() {
-  const work = document.getElementById('edit-work');
+  const work = $('edit-work');
   if (!work || !editCanvas) return;
   if (editGuides) editGuides.destroy();
   editGuides = new CanvasGuides(work, editCanvas, { showRuler: true, showGrid: true, showCenter: false });
@@ -1337,7 +1337,7 @@ function _initEditGuides() {
 // steppedResize is in shared-editor.js
 
 function updateDimensionBadge() {
-  const badge = document.getElementById('dimension-badge');
+  const badge = $('dimension-badge');
   if (!badge || !editCanvas.width) return;
   badge.style.display = 'block';
   badge.textContent = `${editCanvas.width} x ${editCanvas.height}`;
@@ -1345,7 +1345,7 @@ function updateDimensionBadge() {
 
 let pulseTimeout = null;
 function pulseExportButton() {
-  const btn = document.getElementById('btn-export');
+  const btn = $('btn-export');
   if (!btn) return;
   btn.classList.remove('export-pulse');
   clearTimeout(pulseTimeout);
@@ -1360,11 +1360,11 @@ function editUndo() { pipeline.undo(); updResize(); saveEdit(); }
 // barUnitPx, barLocked, originalW, originalH declared in shared-editor.js
 
 function initInfoBar() {
-  const barW = document.getElementById('bar-w');
-  const barH = document.getElementById('bar-h');
-  const barUnit = document.getElementById('bar-unit');
-  const barLock = document.getElementById('bar-lock');
-  const barApply = document.getElementById('bar-apply');
+  const barW = $('bar-w');
+  const barH = $('bar-h');
+  const barUnit = $('bar-unit');
+  const barLock = $('bar-lock');
+  const barApply = $('bar-apply');
 
   // Toggle px / %
   barUnit?.addEventListener('click', () => {
@@ -1430,16 +1430,16 @@ function initInfoBar() {
   let isPanning = false, panStartX = 0, panStartY = 0;
 
   function updateZoom() {
-    const wrap = document.getElementById('edit-canvas-wrap');
+    const wrap = $('edit-canvas-wrap');
     if (!wrap) return;
     wrap.style.transform = `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`;
     wrap.style.transformOrigin = 'center center';
-    const zoomEl = document.getElementById('bar-zoom');
+    const zoomEl = $('bar-zoom');
     if (zoomEl) zoomEl.textContent = Math.round(zoomLevel * 100) + '%';
   }
 
   // Mousewheel zoom
-  document.getElementById('edit-work')?.addEventListener('wheel', (e) => {
+  $('edit-work')?.addEventListener('wheel', (e) => {
     if (!editCanvas.width) return;
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -1448,13 +1448,13 @@ function initInfoBar() {
   }, { passive: false });
 
   // Shift+drag to pan (avoids conflicting with draw tools)
-  document.getElementById('edit-work')?.addEventListener('mousedown', (e) => {
+  $('edit-work')?.addEventListener('mousedown', (e) => {
     if (e.button === 1 || (e.button === 0 && e.shiftKey)) {
       e.preventDefault();
       isPanning = true;
       panStartX = e.clientX - panX * zoomLevel;
       panStartY = e.clientY - panY * zoomLevel;
-      document.getElementById('edit-work').style.cursor = 'grabbing';
+      $('edit-work').style.cursor = 'grabbing';
     }
   });
 
@@ -1468,20 +1468,20 @@ function initInfoBar() {
   window.addEventListener('mouseup', () => {
     if (isPanning) {
       isPanning = false;
-      document.getElementById('edit-work').style.cursor = '';
+      $('edit-work').style.cursor = '';
     }
   });
 
   // Fit button — reset zoom
-  document.getElementById('bar-fit')?.addEventListener('click', () => {
+  $('bar-fit')?.addEventListener('click', () => {
     zoomLevel = 1; panX = 0; panY = 0;
     updateZoom();
     if (editCanvas) editCanvas.style.maxWidth = '90%';
   });
 
   // 1:1 button — actual pixels
-  document.getElementById('bar-actual')?.addEventListener('click', () => {
-    const workRect = document.getElementById('edit-work').getBoundingClientRect();
+  $('bar-actual')?.addEventListener('click', () => {
+    const workRect = $('edit-work').getBoundingClientRect();
     zoomLevel = editCanvas.width / workRect.width;
     panX = 0; panY = 0;
     updateZoom();
@@ -1489,7 +1489,7 @@ function initInfoBar() {
   });
 
   // "Original" — reset to original image dimensions (keeps other operations)
-  document.getElementById('bar-original')?.addEventListener('click', () => {
+  $('bar-original')?.addEventListener('click', () => {
     if (!editOriginal) return;
     const origW = editOriginal.naturalWidth || editOriginal.width;
     const origH = editOriginal.naturalHeight || editOriginal.height;
@@ -1498,7 +1498,7 @@ function initInfoBar() {
   });
 
   // Size presets
-  document.getElementById('bar-size-preset')?.addEventListener('change', (e) => {
+  $('bar-size-preset')?.addEventListener('change', (e) => {
     if (!editOriginal || !e.target.value) return;
     const origW = editOriginal.naturalWidth || editOriginal.width;
     const origH = editOriginal.naturalHeight || editOriginal.height;
@@ -1544,14 +1544,14 @@ function initInfoBar() {
 }
 
 function updateInfoBar() {
-  const bar = document.getElementById('edit-info-bar');
+  const bar = $('edit-info-bar');
   if (!bar) return;
 
   // Track original dimensions (set once on first load)
   if (editCanvas.width && !originalW) { originalW = editCanvas.width; originalH = editCanvas.height; }
 
-  const barW = document.getElementById('bar-w');
-  const barH = document.getElementById('bar-h');
+  const barW = $('bar-w');
+  const barH = $('bar-h');
 
   if (barUnitPx) {
     barW.value = editCanvas.width;
@@ -1564,13 +1564,13 @@ function updateInfoBar() {
   // Estimate file size
   const pixels = editCanvas.width * editCanvas.height;
   const estPng = Math.round(pixels * 1.5 / 1024); // rough PNG estimate
-  const sizeEl = document.getElementById('bar-size');
+  const sizeEl = $('bar-size');
   if (sizeEl) sizeEl.textContent = `~${estPng > 1024 ? (estPng/1024).toFixed(1) + 'MB' : estPng + 'KB'} PNG`;
 
   // Zoom level
   const rect = editCanvas.getBoundingClientRect();
   const zoom = Math.round(rect.width / editCanvas.width * 100);
-  const zoomEl = document.getElementById('bar-zoom');
+  const zoomEl = $('bar-zoom');
   if (zoomEl) zoomEl.textContent = zoom + '%';
 }
 function editRedo() { pipeline.redo(); updResize(); saveEdit(); }
@@ -1583,7 +1583,7 @@ function editExport() {
   if (!editCanvas.width) return;
   // Flatten any drawn objects into the canvas before export
   if (window._pixerooObjLayer?.hasObjects()) window._pixerooObjLayer.flatten();
-  const fmt = document.getElementById('export-format').value;
+  const fmt = $('export-format').value;
 
   // SVG trace export
   if (fmt === 'svg') {
@@ -1594,17 +1594,17 @@ function editExport() {
   }
 
   const mime = {png:'image/png',jpeg:'image/jpeg',webp:'image/webp',bmp:'image/bmp'}[fmt] || 'image/png';
-  const q = ['jpeg','webp'].includes(fmt) ? +(document.getElementById('export-quality')?.value || 85) / 100 : undefined;
+  const q = ['jpeg','webp'].includes(fmt) ? +($('export-quality')?.value || 85) / 100 : undefined;
   editCanvas.toBlob(blob => {
     chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`pixeroo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
   }, mime, q);
 }
 
 // Show/hide quality slider based on format
-document.getElementById('export-format')?.addEventListener('change', (e) => {
-  const row = document.getElementById('export-quality-row');
+$('export-format')?.addEventListener('change', (e) => {
+  const row = $('export-quality-row');
   if (row) row.style.display = ['jpeg','webp'].includes(e.target.value) ? 'flex' : 'none';
 });
-document.getElementById('export-quality')?.addEventListener('input', (e) => {
-  const v = document.getElementById('export-quality-val'); if (v) v.textContent = e.target.value;
+$('export-quality')?.addEventListener('input', (e) => {
+  const v = $('export-quality-val'); if (v) v.textContent = e.target.value;
 });
