@@ -304,6 +304,111 @@ class EditPipeline {
         break;
       }
 
+      case 'temperature': {
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = data.data;
+        const t = op.value / 100; // -1 to 1
+        for (let i = 0; i < d.length; i += 4) {
+          d[i] = Math.min(255, Math.max(0, d[i] + t * 30));     // R: warm
+          d[i+2] = Math.min(255, Math.max(0, d[i+2] - t * 30)); // B: cool
+        }
+        ctx.putImageData(data, 0, 0);
+        break;
+      }
+
+      case 'shadows': {
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = data.data;
+        const v = op.value;
+        for (let i = 0; i < d.length; i += 4) {
+          const lum = (d[i] + d[i+1] + d[i+2]) / 3;
+          if (lum < 128) {
+            const factor = (128 - lum) / 128;
+            const adj = v * factor * 0.5;
+            d[i] = Math.min(255, Math.max(0, d[i] + adj));
+            d[i+1] = Math.min(255, Math.max(0, d[i+1] + adj));
+            d[i+2] = Math.min(255, Math.max(0, d[i+2] + adj));
+          }
+        }
+        ctx.putImageData(data, 0, 0);
+        break;
+      }
+
+      case 'highlights': {
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = data.data;
+        const v = op.value;
+        for (let i = 0; i < d.length; i += 4) {
+          const lum = (d[i] + d[i+1] + d[i+2]) / 3;
+          if (lum > 128) {
+            const factor = (lum - 128) / 128;
+            const adj = v * factor * 0.5;
+            d[i] = Math.min(255, Math.max(0, d[i] + adj));
+            d[i+1] = Math.min(255, Math.max(0, d[i+1] + adj));
+            d[i+2] = Math.min(255, Math.max(0, d[i+2] + adj));
+          }
+        }
+        ctx.putImageData(data, 0, 0);
+        break;
+      }
+
+      case 'grain': {
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = data.data;
+        const amount = op.amount || 25;
+        for (let i = 0; i < d.length; i += 4) {
+          const noise = (Math.random() - 0.5) * amount;
+          d[i] = Math.min(255, Math.max(0, d[i] + noise));
+          d[i+1] = Math.min(255, Math.max(0, d[i+1] + noise));
+          d[i+2] = Math.min(255, Math.max(0, d[i+2] + noise));
+        }
+        ctx.putImageData(data, 0, 0);
+        break;
+      }
+
+      case 'autoEnhance': {
+        // Auto-levels: stretch histogram to full range, then slight contrast boost
+        const data = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const d = data.data;
+        let minR = 255, minG = 255, minB = 255, maxR = 0, maxG = 0, maxB = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          if (d[i] < minR) minR = d[i]; if (d[i] > maxR) maxR = d[i];
+          if (d[i+1] < minG) minG = d[i+1]; if (d[i+1] > maxG) maxG = d[i+1];
+          if (d[i+2] < minB) minB = d[i+2]; if (d[i+2] > maxB) maxB = d[i+2];
+        }
+        const rangeR = maxR - minR || 1, rangeG = maxG - minG || 1, rangeB = maxB - minB || 1;
+        for (let i = 0; i < d.length; i += 4) {
+          d[i] = ((d[i] - minR) / rangeR) * 255;
+          d[i+1] = ((d[i+1] - minG) / rangeG) * 255;
+          d[i+2] = ((d[i+2] - minB) / rangeB) * 255;
+        }
+        ctx.putImageData(data, 0, 0);
+        // Slight contrast boost
+        const tmp = document.createElement('canvas'); tmp.width = canvas.width; tmp.height = canvas.height;
+        const tc = tmp.getContext('2d');
+        tc.filter = 'contrast(110%)';
+        tc.drawImage(canvas, 0, 0);
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(tmp, 0, 0);
+        break;
+      }
+
+      case 'straighten': {
+        const angle = op.angle * Math.PI / 180;
+        const cos = Math.abs(Math.cos(angle)), sin = Math.abs(Math.sin(angle));
+        const nw = Math.ceil(canvas.width * cos + canvas.height * sin);
+        const nh = Math.ceil(canvas.width * sin + canvas.height * cos);
+        const tmp = document.createElement('canvas'); tmp.width = nw; tmp.height = nh;
+        const tc = tmp.getContext('2d');
+        tc.translate(nw / 2, nh / 2);
+        tc.rotate(angle);
+        tc.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
+        canvas.width = nw; canvas.height = nh;
+        ctx.drawImage(tmp, 0, 0);
+        this.exportWidth = nw; this.exportHeight = nh;
+        break;
+      }
+
       case 'lsbVisualize': {
         visualizeLSB(canvas);
         break;

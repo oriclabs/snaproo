@@ -82,7 +82,7 @@ function initEdit() {
   // Reset Adjustments -- remove adjust ops from pipeline, reset sliders
   $('btn-reset-adjust')?.addEventListener('click', () => {
     resetAdjustmentSliders();
-    pipeline.operations = pipeline.operations.filter(op => op.type !== 'adjust');
+    pipeline.operations = pipeline.operations.filter(op => op.type !== 'adjust' && op.type !== 'temperature' && op.type !== 'shadows' && op.type !== 'highlights' && op.type !== 'straighten');
     pipeline.render();
     saveEdit();
   });
@@ -94,6 +94,12 @@ function initEdit() {
     });
     $('adj-hue').value = 0;
     $('val-hue').textContent = '0';
+    ['temperature', 'shadows', 'highlights'].forEach(a => {
+      const el = $(`adj-${a}`); if (el) { el.value = 0; }
+      const lbl = $(`val-${a}`); if (lbl) { lbl.textContent = '0'; }
+    });
+    const stEl = $('straighten-angle'); if (stEl) stEl.value = 0;
+    const stLbl = $('straighten-val'); if (stLbl) stLbl.textContent = '0';
   }
 
   document.addEventListener('paste', async (e) => {
@@ -220,6 +226,45 @@ function initEdit() {
     s.addEventListener('change', saveEdit);
   });
 
+  // Temperature / Shadows / Highlights — pixel-level adjustments (each gets its own pipeline op type)
+  ['temperature', 'shadows', 'highlights'].forEach(a => {
+    const s = $(`adj-${a}`), l = $(`val-${a}`);
+    if (!s || !l) return;
+    s.addEventListener('input', () => {
+      l.textContent = s.value;
+      // Remove trailing op of this type if present (live update)
+      if (pipeline.operations.length && pipeline.operations[pipeline.operations.length - 1].type === a) {
+        pipeline.operations.pop();
+      }
+      const v = +s.value;
+      if (v) {
+        pipeline.operations.push({type: a, value: v});
+      }
+      pipeline.undoneOps = [];
+      pipeline.render();
+    });
+    s.addEventListener('change', saveEdit);
+  });
+
+  // Straighten slider (fine rotation -10 to 10 degrees)
+  const straightenSlider = $('straighten-angle'), straightenVal = $('straighten-val');
+  if (straightenSlider && straightenVal) {
+    straightenSlider.addEventListener('input', () => {
+      straightenVal.textContent = straightenSlider.value;
+      // Remove trailing straighten op
+      if (pipeline.operations.length && pipeline.operations[pipeline.operations.length - 1].type === 'straighten') {
+        pipeline.operations.pop();
+      }
+      const v = +straightenSlider.value;
+      if (v) {
+        pipeline.operations.push({type: 'straighten', angle: v});
+      }
+      pipeline.undoneOps = [];
+      pipeline.render();
+    });
+    straightenSlider.addEventListener('change', saveEdit);
+  }
+
   // Filters (non-destructive via pipeline)
   $$('[data-filter]').forEach(b => b.addEventListener('click', () => {
     if (!editOriginal) return;
@@ -312,6 +357,13 @@ function initEdit() {
       if (fontEl && obj.fontFamily) fontEl.value = obj.fontFamily;
       const sizeEl = $('ann-fontsize');
       if (sizeEl && obj.fontSize) sizeEl.value = obj.fontSize;
+      // Sync formatting buttons
+      const boldEl = $('ann-bold');
+      if (boldEl) boldEl.classList.toggle('active', obj.fontWeight === 'bold');
+      const italicEl = $('ann-italic');
+      if (italicEl) italicEl.classList.toggle('active', obj.fontStyle === 'italic');
+      const underEl = $('ann-underline');
+      if (underEl) underEl.classList.toggle('active', !!obj.underline);
     }
     // Callout shape/tail
     if (obj.type === 'callout') {
@@ -470,6 +522,103 @@ function initEdit() {
     if (objLayer.selected?.type === 'text') { objLayer.selected.fontSize = +e.target.value || 24; objLayer.render(); }
   });
 
+  // Text formatting buttons (Bold / Italic / Underline)
+  $('ann-bold')?.addEventListener('click', () => {
+    const el = $('ann-bold');
+    el.classList.toggle('active');
+    const bold = el.classList.contains('active') ? 'bold' : 'normal';
+    if (objLayer.selected?.type === 'text' || objLayer.selected?.type === 'callout') {
+      objLayer.selected.fontWeight = bold;
+      objLayer.render();
+    }
+  });
+  $('ann-italic')?.addEventListener('click', () => {
+    const el = $('ann-italic');
+    el.classList.toggle('active');
+    const italic = el.classList.contains('active') ? 'italic' : 'normal';
+    if (objLayer.selected?.type === 'text' || objLayer.selected?.type === 'callout') {
+      objLayer.selected.fontStyle = italic;
+      objLayer.render();
+    }
+  });
+  $('ann-underline')?.addEventListener('click', () => {
+    const el = $('ann-underline');
+    el.classList.toggle('active');
+    const underline = el.classList.contains('active');
+    if (objLayer.selected?.type === 'text' || objLayer.selected?.type === 'callout') {
+      objLayer.selected.underline = underline;
+      objLayer.render();
+    }
+  });
+
+  // Layer panel
+  function updateLayerPanel() {
+    const panel = $('obj-layer-panel');
+    const list = $('obj-layer-list');
+    if (!panel || !list || !objLayer) return;
+    if (!objLayer.objects.length) { panel.style.display = 'none'; return; }
+    if (panel.style.display === 'none' && !panel.dataset.userOpen) return;
+    panel.style.display = '';
+    list.innerHTML = '';
+    [...objLayer.objects].reverse().forEach((obj) => {
+      const item = document.createElement('div');
+      item.style.cssText = 'display:flex;align-items:center;gap:6px;padding:4px 8px;cursor:pointer;border-bottom:1px solid var(--slate-800);';
+      if (obj.selected) item.style.background = 'rgba(244,196,48,0.1)';
+      const icon = { rect:'\u25A1', text:'T', arrow:'\u2192', pen:'\u270E', highlighter:'\uD83D\uDD8D', redact:'\u25A6', callout:'\uD83D\uDCAC', image:'\uD83D\uDDBC' }[obj.type] || '?';
+      const label = obj.type === 'text' || obj.type === 'callout' ? (obj.text || '').substring(0, 12) : obj.type;
+      item.innerHTML = '<span style="color:var(--slate-500);">' + icon + '</span><span style="flex:1;color:var(--slate-300);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + label + '</span>';
+      const vis = document.createElement('span');
+      vis.textContent = obj.visible !== false ? '\uD83D\uDC41' : '\u2014';
+      vis.style.cssText = 'cursor:pointer;opacity:0.5;';
+      vis.addEventListener('click', (e) => {
+        e.stopPropagation();
+        obj.visible = obj.visible === false ? true : false;
+        objLayer.render();
+        updateLayerPanel();
+      });
+      item.appendChild(vis);
+      const del = document.createElement('span');
+      del.textContent = '\u2715';
+      del.style.cssText = 'cursor:pointer;color:var(--slate-500);';
+      del.addEventListener('click', (e) => {
+        e.stopPropagation();
+        objLayer.objects = objLayer.objects.filter(o => o !== obj);
+        if (objLayer.selected === obj) objLayer.selected = null;
+        objLayer.render();
+        updateLayerPanel();
+      });
+      item.appendChild(del);
+      item.addEventListener('click', () => {
+        objLayer.select(obj);
+        updateLayerPanel();
+      });
+      list.appendChild(item);
+    });
+  }
+  $('btn-layers-toggle')?.addEventListener('click', () => {
+    const panel = $('obj-layer-panel');
+    if (!panel) return;
+    if (panel.style.display === 'none') {
+      panel.dataset.userOpen = '1';
+      updateLayerPanel();
+      panel.style.display = '';
+    } else {
+      panel.style.display = 'none';
+      delete panel.dataset.userOpen;
+    }
+  });
+  $('btn-close-layers')?.addEventListener('click', () => {
+    const panel = $('obj-layer-panel');
+    if (panel) { panel.style.display = 'none'; delete panel.dataset.userOpen; }
+  });
+
+  // Hook into objLayer render to update layer panel
+  const origRender = objLayer.render.bind(objLayer);
+  objLayer.render = function() {
+    origRender();
+    updateLayerPanel();
+  };
+
   // Mask filter tool
   $('btn-mask-filter')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
@@ -529,6 +678,8 @@ function initEdit() {
   $('btn-vignette')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'vignette'}); saveEdit(); });
   $('btn-denoise')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'denoise'}); saveEdit(); });
   $('btn-round-corners')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'roundCorners'}); saveEdit(); });
+  $('btn-grain')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'grain', amount: 25}); saveEdit(); });
+  $('btn-auto-enhance')?.addEventListener('click', () => { if (!editCanvas.width) return; pipeline.addOperation({type:'autoEnhance'}); saveEdit(); });
   $('btn-border')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
     const bw = +$('border-width').value || 10;

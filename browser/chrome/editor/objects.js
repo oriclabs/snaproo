@@ -21,6 +21,9 @@ class DrawObject {
     this.fontSize = 24;
     this.fontFamily = 'Inter, system-ui, sans-serif';
     this.fontWeight = 'bold';
+    this.fontStyle = 'normal';
+    this.underline = false;
+    this.visible = true;
     this.opacity = 1;
     this.selected = false;
     this.editing = false;
@@ -121,7 +124,7 @@ class DrawObject {
     } else if (this.type === 'arrow') {
       this._drawArrow(ctx);
     } else if (this.type === 'text') {
-      ctx.font = `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
+      ctx.font = `${this.fontStyle || 'normal'} ${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
       ctx.textBaseline = 'top';
       const lines = (this.text || '').split('\n');
       const lineH = this.fontSize * 1.3;
@@ -140,7 +143,18 @@ class DrawObject {
       // Draw text
       ctx.fillStyle = this.color;
       lines.forEach((line, i) => {
-        ctx.fillText(line, this.x + 4, this.y + i * lineH + 2);
+        const ty = this.y + i * lineH + 2;
+        ctx.fillText(line, this.x + 4, ty);
+        // Underline
+        if (this.underline) {
+          const tw = ctx.measureText(line).width;
+          ctx.beginPath();
+          ctx.moveTo(this.x + 4, ty + this.fontSize + 2);
+          ctx.lineTo(this.x + 4 + tw, ty + this.fontSize + 2);
+          ctx.strokeStyle = this.color;
+          ctx.lineWidth = Math.max(1, this.fontSize / 16);
+          ctx.stroke();
+        }
       });
     } else if (this.type === 'redact') {
       // Solid black fill (text unreadable)
@@ -198,7 +212,7 @@ class DrawObject {
 
     // Text cursor when editing
     if ((this.type === 'text' || this.type === 'callout') && this.editing) {
-      ctx.font = `${this.fontWeight || 'normal'} ${this.fontSize}px ${this.fontFamily}`;
+      ctx.font = `${this.fontStyle || 'normal'} ${this.fontWeight || 'normal'} ${this.fontSize}px ${this.fontFamily}`;
       const lines = (this.text || '').split('\n');
       const lastLine = lines[lines.length - 1] || '';
       const lineH = this.fontSize * 1.3;
@@ -398,7 +412,7 @@ class DrawObject {
     // --- Draw wrapped text ---
     const displayText = this.editing && this.text === 'Type here...' ? '' : this.text;
     if (displayText) {
-      ctx.font = `${this.fontWeight || 'normal'} ${this.fontSize || 16}px ${this.fontFamily || 'Inter, system-ui, sans-serif'}`;
+      ctx.font = `${this.fontStyle || 'normal'} ${this.fontWeight || 'normal'} ${this.fontSize || 16}px ${this.fontFamily || 'Inter, system-ui, sans-serif'}`;
       ctx.fillStyle = this.color || '#ffffff';
       ctx.textBaseline = 'top';
       const maxTextW = w - pad * 2 - textOffsetX;
@@ -408,6 +422,16 @@ class DrawObject {
       const startY = y + (h - totalH) / 2;
       for (let i = 0; i < lines.length; i++) {
         ctx.fillText(lines[i], x + pad + textOffsetX, startY + i * lineH);
+        if (this.underline) {
+          const tw = ctx.measureText(lines[i]).width;
+          const ly = startY + i * lineH + (this.fontSize || 16) + 2;
+          ctx.beginPath();
+          ctx.moveTo(x + pad + textOffsetX, ly);
+          ctx.lineTo(x + pad + textOffsetX + tw, ly);
+          ctx.strokeStyle = this.color || '#ffffff';
+          ctx.lineWidth = Math.max(1, (this.fontSize || 16) / 16);
+          ctx.stroke();
+        }
       }
     }
   }
@@ -981,6 +1005,24 @@ class ObjectLayer {
           o.y = orig.y + dy;
         }
       }
+      // Apply snap guides for primary object
+      const snaps = this._checkSnap(obj, obj.x, obj.y);
+      const snapDx = (snaps.x !== null ? snaps.x - obj.x : 0);
+      const snapDy = (snaps.y !== null ? snaps.y - obj.y : 0);
+      if (snapDx || snapDy) {
+        for (const orig of origins) {
+          const o = orig.obj;
+          if (o.type === 'arrow') {
+            o.x += snapDx; o.y += snapDy; o.x2 += snapDx; o.y2 += snapDy;
+          } else if ((o.type === 'pen' || o.type === 'highlighter') && o.points?.length) {
+            for (const p of o.points) { p.x += snapDx; p.y += snapDy; }
+            o.x += snapDx; o.y += snapDy;
+          } else {
+            o.x += snapDx; o.y += snapDy;
+          }
+        }
+      }
+      this._snapLines = snaps.lines;
     } else if (obj.type === 'arrow') {
       if (this.dragHandle === 'start') { obj.x = x; obj.y = y; }
       else if (this.dragHandle === 'end') { obj.x2 = x; obj.y2 = y; }
@@ -1042,7 +1084,41 @@ class ObjectLayer {
 
     this.dragging = false;
     this.dragHandle = null;
+    this._snapLines = [];
     this.render();
+  }
+
+  _checkSnap(obj, nx, ny) {
+    const snaps = { x: null, y: null, lines: [] };
+    const threshold = 5;
+    const cw = this.base.width, ch = this.base.height;
+    const objCx = nx + obj.w / 2, objCy = ny + obj.h / 2;
+
+    // Snap to canvas center
+    if (Math.abs(objCx - cw / 2) < threshold) { snaps.x = cw / 2 - obj.w / 2; snaps.lines.push({ x1: cw/2, y1: 0, x2: cw/2, y2: ch }); }
+    if (Math.abs(objCy - ch / 2) < threshold) { snaps.y = ch / 2 - obj.h / 2; snaps.lines.push({ x1: 0, y1: ch/2, x2: cw, y2: ch/2 }); }
+
+    // Snap to other objects
+    for (const other of this.objects) {
+      if (other === obj || other.visible === false) continue;
+      // Left edge to left/right edge of other
+      if (Math.abs(nx - other.x) < threshold) { snaps.x = other.x; snaps.lines.push({ x1: other.x, y1: 0, x2: other.x, y2: ch }); }
+      if (Math.abs(nx - (other.x + other.w)) < threshold) { snaps.x = other.x + other.w; snaps.lines.push({ x1: other.x + other.w, y1: 0, x2: other.x + other.w, y2: ch }); }
+      // Right edge to left/right edge of other
+      if (Math.abs(nx + obj.w - other.x) < threshold) { snaps.x = other.x - obj.w; snaps.lines.push({ x1: other.x, y1: 0, x2: other.x, y2: ch }); }
+      if (Math.abs(nx + obj.w - (other.x + other.w)) < threshold) { snaps.x = other.x + other.w - obj.w; snaps.lines.push({ x1: other.x + other.w, y1: 0, x2: other.x + other.w, y2: ch }); }
+      // Center X to center X
+      if (Math.abs(objCx - (other.x + other.w / 2)) < threshold) { snaps.x = other.x + other.w / 2 - obj.w / 2; snaps.lines.push({ x1: other.x + other.w / 2, y1: 0, x2: other.x + other.w / 2, y2: ch }); }
+      // Top edge to top/bottom edge of other
+      if (Math.abs(ny - other.y) < threshold) { snaps.y = other.y; snaps.lines.push({ x1: 0, y1: other.y, x2: cw, y2: other.y }); }
+      if (Math.abs(ny - (other.y + other.h)) < threshold) { snaps.y = other.y + other.h; snaps.lines.push({ x1: 0, y1: other.y + other.h, x2: cw, y2: other.y + other.h }); }
+      // Bottom edge
+      if (Math.abs(ny + obj.h - other.y) < threshold) { snaps.y = other.y - obj.h; snaps.lines.push({ x1: 0, y1: other.y, x2: cw, y2: other.y }); }
+      if (Math.abs(ny + obj.h - (other.y + other.h)) < threshold) { snaps.y = other.y + other.h - obj.h; snaps.lines.push({ x1: 0, y1: other.y + other.h, x2: cw, y2: other.y + other.h }); }
+      // Center Y to center Y
+      if (Math.abs(objCy - (other.y + other.h / 2)) < threshold) { snaps.y = other.y + other.h / 2 - obj.h / 2; snaps.lines.push({ x1: 0, y1: other.y + other.h / 2, x2: cw, y2: other.y + other.h / 2 }); }
+    }
+    return snaps;
   }
 
   _handleDblClick(e) {
@@ -1121,10 +1197,26 @@ class ObjectLayer {
     const ctx = this.overlayCtx;
     ctx.clearRect(0, 0, this.overlay.width, this.overlay.height);
 
-    // Draw all objects
+    // Draw all objects (skip invisible ones, but draw selection if selected)
     for (const obj of this.objects) {
-      obj.draw(ctx);
+      if (obj.visible !== false) obj.draw(ctx);
       obj.drawSelection(ctx);
+    }
+
+    // Draw snap guide lines
+    if (this._snapLines && this._snapLines.length) {
+      ctx.save();
+      ctx.strokeStyle = '#F4C430';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      for (const ln of this._snapLines) {
+        ctx.beginPath();
+        ctx.moveTo(ln.x1, ln.y1);
+        ctx.lineTo(ln.x2, ln.y2);
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
     }
   }
 
@@ -1132,6 +1224,7 @@ class ObjectLayer {
   flatten() {
     this.deselectAll();
     for (const obj of this.objects) {
+      if (obj.visible === false) continue;
       if (obj.type === 'redact') {
         this._pixelateRegion(obj.x, obj.y, obj.w, obj.h, obj.redactStrength);
         // Draw solid black on top for full concealment

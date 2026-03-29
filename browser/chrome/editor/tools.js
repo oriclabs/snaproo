@@ -27,10 +27,9 @@ const Crop = {
     this.ratio = ratio;
     this.overlay.width = this.canvas.width;
     this.overlay.height = this.canvas.height;
-    // Match visual size to base canvas
-    const baseRect = this.canvas.getBoundingClientRect();
-    this.overlay.style.width = baseRect.width + 'px';
-    this.overlay.style.height = baseRect.height + 'px';
+    // Match canvas pixel dimensions — CSS transform on wrapper handles visual scaling
+    this.overlay.style.width = this.canvas.width + 'px';
+    this.overlay.style.height = this.canvas.height + 'px';
     this.x = Math.floor(this.canvas.width * 0.1);
     this.y = Math.floor(this.canvas.height * 0.1);
     this.w = Math.floor(this.canvas.width * 0.8);
