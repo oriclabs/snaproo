@@ -119,6 +119,14 @@
       <button id="btn-tour" class="tool-btn" title="Guided tour of current tool" style="padding:2px 8px;">Tour</button>
       <button id="btn-help-page" class="tool-btn" title="Open full help page" style="padding:2px 8px;">Help</button>
       <button id="btn-shortcuts" class="tool-btn" title="Keyboard shortcuts (Ctrl+/)" style="font-weight:700;width:22px;height:22px;padding:0;justify-content:center;">?</button>
+      <div style="position:relative;display:inline-block;">
+        <button id="btn-ribbon-customize" class="tool-btn" title="Show/hide ribbon groups" style="padding:2px 6px;">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </button>
+        <div id="ribbon-customize-dropdown" style="display:none;position:absolute;top:100%;right:0;z-index:1000;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:8px;padding:6px 0;min-width:150px;box-shadow:0 8px 24px rgba(0,0,0,0.4);margin-top:4px;">
+          <!-- populated by JS -->
+        </div>
+      </div>
       <button id="btn-editor-settings" class="tool-btn" title="Settings"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
     </div>
   </div>
@@ -243,6 +251,7 @@
             <button id="bar-fit" class="tool-btn" title="Fit to viewport">Fit</button>
             <button id="bar-actual" class="tool-btn" title="Actual size">1:1</button>
             <input type="color" id="canvas-bg-color" value="#000000" title="Canvas background (visible behind transparent areas)" style="width:18px;height:16px;border:none;cursor:pointer;">
+            <button id="btn-edit-from-lib" class="tool-btn" title="Load image from Library" style="padding:2px 8px;">Lib</button>
           </div>
         </div><div class="ribbon-label">Size</div></div>
         <div class="ribbon-sep-v"></div>
@@ -258,6 +267,11 @@
             <button class="tool-btn" id="btn-rotate-right" title="Rotate right 90"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
             <button class="tool-btn" id="btn-flip-h" title="Flip horizontal"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 3H5a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-3"/><line x1="12" y1="20" x2="12" y2="4"/></svg></button>
             <button class="tool-btn" id="btn-flip-v" title="Flip vertical"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8V5c0-1.1.9-2 2-2h14a2 2 0 0 1 2 2v3"/><path d="M3 16v3c0 1.1.9 2 2 2h14a2 2 0 0 1 2 2v-3"/><line x1="4" y1="12" x2="20" y2="12"/></svg></button>
+          </div>
+          <div class="ribbon-row">
+            <span class="ribbon-mini-label" title="Rotation angle">°</span>
+            <input type="number" id="rotate-angle" class="input-field" value="0" min="-360" max="360" style="width:48px;" title="Rotation angle (-360 to 360)">
+            <button class="tool-btn" id="btn-rotate-apply" title="Apply rotation">Rotate</button>
           </div>
           <div class="ribbon-row"><button id="btn-crop-apply" class="btn-primary" style="padding:2px 6px;display:none;" title="Apply crop">Apply</button><button id="btn-crop-cancel" class="tool-btn" style="display:none;" title="Cancel crop">Cancel</button></div>
         </div><div class="ribbon-label">Transform</div></div>
@@ -402,7 +416,10 @@
         <input type="file" id="edit-file" accept="image/*" style="display:none;">
       </div>
       <div id="dimension-badge" style="display:none;position:absolute;bottom:8px;right:8px;background:rgba(15,23,42,0.8);border:1px solid var(--slate-700);border-radius:4px;padding:2px 8px;color:var(--slate-400);font-family:monospace;pointer-events:none;z-index:1;"></div>
-      <div id="edit-canvas-wrap" style="position:relative;display:inline-block;overflow:hidden;"><canvas id="editor-canvas" style="display:none;"></canvas></div>
+      <div id="edit-canvas-wrap" style="position:relative;display:inline-block;overflow:visible;"><canvas id="editor-canvas" style="display:none;"></canvas>
+        <div id="img-resize-handles" style="display:none;pointer-events:none;">
+        </div>
+      </div>
     </div>
     <!-- Hidden elements for JS -->
     <div style="display:none;">

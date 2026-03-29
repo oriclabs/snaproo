@@ -7,6 +7,8 @@
 /* Common */
 .work-area { flex: 1; display: flex; align-items: center; justify-content: safe center; flex-direction: column; background: var(--slate-900); overflow: auto; position: relative; min-height: 0; }
 .work-area canvas { max-width: 90%; max-height: 90%; }
+/* Edit canvas: no CSS constraints — zoom handles viewport fitting */
+#editor-canvas { max-width: none !important; max-height: none !important; display: block; }
 .dropzone { border: 2px dashed var(--slate-700); border-radius: 12px; padding: 2.5rem; text-align: center; cursor: pointer; transition: border-color 0.15s; margin: 1.5rem; }
 .dropzone:hover, .dropzone.dragover { border-color: var(--saffron-400); }
 .drop-title { color: var(--slate-400); font-size: 0.875rem; margin-bottom: 0.25rem; }

@@ -201,6 +201,114 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Ribbon customize dropdown — show/hide ribbon groups
+  const rcBtn = $('btn-ribbon-customize');
+  const rcDrop = $('ribbon-customize-dropdown');
+
+  rcBtn?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isOpen = rcDrop.style.display !== 'none';
+    rcDrop.style.display = isOpen ? 'none' : 'block';
+    if (!isOpen) populateRibbonCustomize();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (rcDrop?.style.display !== 'none' && !rcDrop.contains(e.target) && e.target !== rcBtn) {
+      rcDrop.style.display = 'none';
+    }
+  });
+
+  function populateRibbonCustomize() {
+    if (!rcDrop) return;
+    // Get all ribbon groups from the currently active mode
+    const activeMode = document.querySelector('.mode-view.active');
+    if (!activeMode) { rcDrop.innerHTML = '<div style="padding:8px 12px;color:var(--slate-500);">Open a tool first</div>'; return; }
+
+    const groups = activeMode.querySelectorAll('.ribbon-group .ribbon-label');
+    if (!groups.length) { rcDrop.innerHTML = '<div style="padding:8px 12px;color:var(--slate-500);">No ribbon groups</div>'; return; }
+
+    // Load saved prefs
+    const modeId = activeMode.id || 'unknown';
+    chrome.storage.sync.get({ ribbonPrefs: {} }, (r) => {
+      const prefs = r.ribbonPrefs || {};
+      const modePrefs = prefs[modeId] || {};
+
+      rcDrop.innerHTML = '';
+      // "Show All" button
+      const showAll = document.createElement('div');
+      showAll.style.cssText = 'padding:4px 12px;color:var(--saffron-400);cursor:pointer;font-weight:600;border-bottom:1px solid var(--slate-800);margin-bottom:2px;';
+      showAll.textContent = 'Show All';
+      showAll.addEventListener('click', () => {
+        groups.forEach(label => {
+          const group = label.closest('.ribbon-group');
+          if (group) group.style.display = '';
+        });
+        // Clear prefs for this mode
+        delete prefs[modeId];
+        chrome.storage.sync.set({ ribbonPrefs: prefs });
+        populateRibbonCustomize();
+      });
+      rcDrop.appendChild(showAll);
+
+      groups.forEach(label => {
+        const name = label.textContent.trim();
+        const group = label.closest('.ribbon-group');
+        if (!group || !name) return;
+
+        const isHidden = modePrefs[name] === false;
+        if (isHidden) group.style.display = 'none';
+
+        const opt = document.createElement('div');
+        opt.style.cssText = 'display:flex;align-items:center;gap:8px;padding:4px 12px;cursor:pointer;transition:background 0.1s;';
+        opt.addEventListener('mouseenter', () => { opt.style.background = 'var(--slate-800)'; });
+        opt.addEventListener('mouseleave', () => { opt.style.background = ''; });
+
+        const cb = document.createElement('input');
+        cb.type = 'checkbox';
+        cb.checked = !isHidden;
+        cb.style.cssText = 'accent-color:var(--saffron-400);cursor:pointer;';
+
+        const lbl = document.createElement('span');
+        lbl.textContent = name;
+        lbl.style.cssText = 'color:var(--slate-300);cursor:pointer;';
+
+        opt.appendChild(cb);
+        opt.appendChild(lbl);
+        rcDrop.appendChild(opt);
+
+        const toggle = () => {
+          cb.checked = !cb.checked;
+          group.style.display = cb.checked ? '' : 'none';
+          // Save pref
+          if (!prefs[modeId]) prefs[modeId] = {};
+          prefs[modeId][name] = cb.checked;
+          chrome.storage.sync.set({ ribbonPrefs: prefs });
+        };
+
+        cb.addEventListener('change', () => {
+          group.style.display = cb.checked ? '' : 'none';
+          if (!prefs[modeId]) prefs[modeId] = {};
+          prefs[modeId][name] = cb.checked;
+          chrome.storage.sync.set({ ribbonPrefs: prefs });
+        });
+        opt.addEventListener('click', (e) => { if (e.target !== cb) toggle(); });
+      });
+    });
+  }
+
+  // Apply saved ribbon prefs when opening a mode (global for openMode)
+  window.applyRibbonPrefs = function applyRibbonPrefs(modeEl) {
+    if (!modeEl) return;
+    chrome.storage.sync.get({ ribbonPrefs: {} }, (r) => {
+      const prefs = r.ribbonPrefs?.[modeEl.id] || {};
+      modeEl.querySelectorAll('.ribbon-group .ribbon-label').forEach(label => {
+        const name = label.textContent.trim();
+        const group = label.closest('.ribbon-group');
+        if (group && prefs[name] === false) group.style.display = 'none';
+      });
+    });
+  }
+
   initNavigation();
   initEdit();
   initConvert();
@@ -599,7 +707,8 @@ function openMode(mode) {
   const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
   $('mode-label').textContent = labels[mode] || '';
 
-  // Undo/Redo/Reset now live in ribbon Size group, always visible in edit mode
+  // Apply saved ribbon group visibility preferences
+  if (panel) applyRibbonPrefs(panel);
 }
 
 function goHome() {

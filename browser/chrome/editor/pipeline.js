@@ -136,15 +136,32 @@ class EditPipeline {
       case 'rotate': {
         const tmp = document.createElement('canvas');
         const tc = tmp.getContext('2d');
-        if (Math.abs(op.degrees) === 90) {
+        const deg = op.degrees;
+        const rad = deg * Math.PI / 180;
+        if (deg === 90 || deg === -90) {
+          // Exact 90° — swap dimensions
           tmp.width = canvas.height; tmp.height = canvas.width;
-          tc.translate(op.degrees === 90 ? tmp.width : 0, op.degrees === -90 ? tmp.height : 0);
-          tc.rotate(op.degrees * Math.PI / 180);
+          tc.translate(deg === 90 ? tmp.width : 0, deg === -90 ? tmp.height : 0);
+          tc.rotate(rad);
           tc.drawImage(canvas, 0, 0);
-          canvas.width = tmp.width; canvas.height = tmp.height;
-          ctx.drawImage(tmp, 0, 0);
-          this.exportWidth = canvas.width; this.exportHeight = canvas.height;
+        } else if (deg === 180 || deg === -180) {
+          tmp.width = canvas.width; tmp.height = canvas.height;
+          tc.translate(tmp.width, tmp.height);
+          tc.rotate(rad);
+          tc.drawImage(canvas, 0, 0);
+        } else {
+          // Arbitrary angle — expand canvas to fit rotated image
+          const sin = Math.abs(Math.sin(rad));
+          const cos = Math.abs(Math.cos(rad));
+          tmp.width = Math.round(canvas.width * cos + canvas.height * sin);
+          tmp.height = Math.round(canvas.width * sin + canvas.height * cos);
+          tc.translate(tmp.width / 2, tmp.height / 2);
+          tc.rotate(rad);
+          tc.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
         }
+        canvas.width = tmp.width; canvas.height = tmp.height;
+        ctx.drawImage(tmp, 0, 0);
+        this.exportWidth = canvas.width; this.exportHeight = canvas.height;
         break;
       }
 

@@ -1,4 +1,26 @@
 // Pixeroo — Edit Tool
+
+// Shared state for zoom (used by initInfoBar + initImageHandles)
+let zoomLevel = 1;
+let panX = 0, panY = 0;
+
+// Resize/rotate hint badge (global — used by initImageHandles)
+function showEditHint(text) {
+  let badge = $('edit-hint-badge');
+  if (!badge) {
+    badge = document.createElement('div');
+    badge.id = 'edit-hint-badge';
+    badge.style.cssText = 'position:absolute;z-index:20;background:rgba(15,23,42,0.85);color:var(--saffron-400);font-weight:600;padding:4px 10px;border-radius:6px;pointer-events:none;white-space:nowrap;top:10px;left:50%;transform:translateX(-50%);';
+    $('edit-work')?.appendChild(badge);
+  }
+  badge.textContent = text;
+  badge.style.display = 'block';
+}
+function hideEditHint() {
+  const badge = $('edit-hint-badge');
+  if (badge) badge.style.display = 'none';
+}
+
 function initEdit() {
   editCanvas = $('editor-canvas');
   editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
@@ -18,6 +40,8 @@ function initEdit() {
     updResize(); originalW = 0; originalH = 0; saveEdit();
     // Init guides overlay
     _initEditGuides();
+    showImageHandles();
+    if (window.fitToView) window.fitToView();
   });
 
   // Drop-to-replace on work area
@@ -36,6 +60,8 @@ function initEdit() {
     updResize(); originalW = 0; originalH = 0; saveEdit();
     resetAdjustmentSliders();
     _initEditGuides();
+    showImageHandles();
+    if (window.fitToView) window.fitToView();
   });
 
   // Reset All -- revert to original image
@@ -45,10 +71,12 @@ function initEdit() {
     if (!ok) return;
     // Non-destructive reset: pipeline replays from original
     pipeline.resetAll();
+    totalRotation = 0;
+    if ($('rotate-angle')) $('rotate-angle').value = 0;
     updResize();
-       saveEdit();
-    // Reset sliders
+    saveEdit();
     resetAdjustmentSliders();
+    if (window.fitToView) window.fitToView();
   });
 
   // Reset Adjustments -- remove adjust ops from pipeline, reset sliders
@@ -103,6 +131,7 @@ function initEdit() {
         removeSliceOverlay();
         updResize(); originalW = 0; originalH = 0; saveEdit();
         _initEditGuides();
+        showImageHandles();
         return;
       }
     }
@@ -140,8 +169,31 @@ function initEdit() {
   });
 
   // Transform (non-destructive via pipeline)
-  $('btn-rotate-left').addEventListener('click', () => { pipeline.addOperation({type:'rotate', degrees:-90}); updResize(); saveEdit(); });
-  $('btn-rotate-right').addEventListener('click', () => { pipeline.addOperation({type:'rotate', degrees:90}); updResize(); saveEdit(); });
+  let totalRotation = 0;
+
+  function applyRotation(degrees) {
+    if (!degrees || !editCanvas.width) return;
+    pipeline.addOperation({ type: 'rotate', degrees });
+    totalRotation = (totalRotation + degrees) % 360;
+    if ($('rotate-angle')) $('rotate-angle').value = totalRotation;
+    updResize(); saveEdit();
+    if (window.fitToView) window.fitToView();
+  }
+
+  $('btn-rotate-left').addEventListener('click', () => applyRotation(-90));
+  $('btn-rotate-right').addEventListener('click', () => applyRotation(90));
+
+  // Custom angle rotation
+  $('btn-rotate-apply')?.addEventListener('click', () => {
+    const target = +$('rotate-angle')?.value || 0;
+    if (target < -360 || target > 360) { pixDialog.alert('Invalid Angle', 'Angle must be between -360° and 360°.'); return; }
+    const delta = target - totalRotation;
+    if (!delta) return;
+    applyRotation(delta);
+  });
+  $('rotate-angle')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') $('btn-rotate-apply')?.click();
+  });
   $('btn-flip-h').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'h'}); saveEdit(); });
   $('btn-flip-v').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'v'}); saveEdit(); });
 
@@ -1052,6 +1104,7 @@ function initEdit() {
       $('edit-dropzone').style.display = 'none';
       updResize(); originalW = 0; originalH = 0; saveEdit();
       _initEditGuides();
+      showImageHandles();
 
       if (footer) footer.textContent = `Project loaded: ${pipeline.operations.length} operations`;
     } catch (err) {
@@ -1187,9 +1240,15 @@ function initEdit() {
 
   // --- Persistent Info Bar ---
   initInfoBar();
+  initImageHandles();
+  initLibraryImport();
 }
 
-function updResize() { $('resize-w').value = editCanvas.width; $('resize-h').value = editCanvas.height; }
+function updResize() {
+  $('resize-w').value = editCanvas.width;
+  $('resize-h').value = editCanvas.height;
+  // Sync canvas size inputs
+}
 function saveEdit() {
   // Pipeline handles state -- just update UI indicators
   try { const h = computeHistogram(editCanvas); drawHistogram($('histogram-canvas'), h); } catch {}
@@ -1198,6 +1257,7 @@ function saveEdit() {
   pulseExportButton();
   if (editGuides) editGuides.update();
   _updateHistoryBadge();
+  showImageHandles();
 
   // Show last operation in footer with undo hint
   const footer = $('footer-status');
@@ -1321,10 +1381,10 @@ function _showHistoryPanel(anchorBtn) {
 }
 
 function _initEditGuides() {
-  const work = $('edit-work');
-  if (!work || !editCanvas) return;
+  const wrap = $('edit-canvas-wrap');
+  if (!wrap || !editCanvas) return;
   if (editGuides) editGuides.destroy();
-  editGuides = new CanvasGuides(work, editCanvas, { showRuler: true, showGrid: true, showCenter: false });
+  editGuides = new CanvasGuides(wrap, editCanvas, { showRuler: true, showGrid: true, showCenter: false });
   editGuides.show();
 
   // Reposition on window resize
@@ -1335,6 +1395,172 @@ function _initEditGuides() {
 }
 
 // steppedResize is in shared-editor.js
+
+// ============================================================
+// Image Resize Handles (visual drag-to-resize on canvas)
+// ============================================================
+
+function initImageHandles() {
+  const container = $('img-resize-handles');
+  if (!container) return;
+
+  const HS = 10; // handle size
+  const cursors = { tl:'nwse-resize', tr:'nesw-resize', bl:'nesw-resize', br:'nwse-resize', tm:'ns-resize', bm:'ns-resize', ml:'ew-resize', mr:'ew-resize' };
+  const handleNames = ['tl','tr','bl','br','tm','bm','ml','mr'];
+  const handleEls = {};
+
+  // Create resize handle elements
+  handleNames.forEach(name => {
+    const h = document.createElement('div');
+    h.dataset.handle = name;
+    h.style.cssText = `position:absolute;width:${HS}px;height:${HS}px;background:var(--saffron-400);border:1px solid var(--saffron-950);cursor:${cursors[name]};pointer-events:auto;z-index:10;border-radius:2px;`;
+    container.appendChild(h);
+    handleEls[name] = h;
+  });
+
+
+  let dragHandle = null, startX, startY, startW, startH;
+
+  // Position handles based on canvas rect
+  function positionHandles() {
+    if (!editCanvas.width) return;
+    const canvasRect = editCanvas.getBoundingClientRect();
+    const workRect = $('edit-work').getBoundingClientRect();
+    const ox = canvasRect.left - workRect.left;
+    const oy = canvasRect.top - workRect.top;
+    const cw = canvasRect.width;
+    const ch = canvasRect.height;
+    const hh = HS / 2;
+
+    container.style.position = 'absolute';
+    container.style.inset = '0';
+    container.style.pointerEvents = 'none';
+
+    handleEls.tl.style.left = (ox - hh) + 'px'; handleEls.tl.style.top = (oy - hh) + 'px';
+    handleEls.tr.style.left = (ox + cw - hh) + 'px'; handleEls.tr.style.top = (oy - hh) + 'px';
+    handleEls.bl.style.left = (ox - hh) + 'px'; handleEls.bl.style.top = (oy + ch - hh) + 'px';
+    handleEls.br.style.left = (ox + cw - hh) + 'px'; handleEls.br.style.top = (oy + ch - hh) + 'px';
+    handleEls.tm.style.left = (ox + cw / 2 - hh) + 'px'; handleEls.tm.style.top = (oy - hh) + 'px';
+    handleEls.bm.style.left = (ox + cw / 2 - hh) + 'px'; handleEls.bm.style.top = (oy + ch - hh) + 'px';
+    handleEls.ml.style.left = (ox - hh) + 'px'; handleEls.ml.style.top = (oy + ch / 2 - hh) + 'px';
+    handleEls.mr.style.left = (ox + cw - hh) + 'px'; handleEls.mr.style.top = (oy + ch / 2 - hh) + 'px';
+  }
+
+  // Wire drag on handles
+  Object.values(handleEls).forEach(h => {
+    h.addEventListener('mousedown', (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      dragHandle = h.dataset.handle;
+      startX = e.clientX;
+      startY = e.clientY;
+      startW = editCanvas.width;
+      startH = editCanvas.height;
+    });
+  });
+
+
+  window.addEventListener('mousemove', (e) => {
+    if (!dragHandle) return;
+
+    const curZoom = zoomLevel || 1;
+
+    const dx = (e.clientX - startX) / curZoom;
+    const dy = (e.clientY - startY) / curZoom;
+    let newW = startW, newH = startH;
+
+    if (dragHandle.includes('r')) newW = Math.max(50, Math.round(startW + dx));
+    if (dragHandle.includes('l')) newW = Math.max(50, Math.round(startW - dx));
+    if (dragHandle.startsWith('b')) newH = Math.max(50, Math.round(startH + dy));
+    if (dragHandle.startsWith('t')) newH = Math.max(50, Math.round(startH - dy));
+
+    if (barLocked) {
+      // Maintain aspect ratio for all handles when locked
+      const ratio = startW / startH;
+      if (dragHandle === 'ml' || dragHandle === 'mr') {
+        // Horizontal edge: adjust height to match
+        newH = Math.round(newW / ratio);
+      } else if (dragHandle === 'tm' || dragHandle === 'bm') {
+        // Vertical edge: adjust width to match
+        newW = Math.round(newH * ratio);
+      } else {
+        // Corner: use width as primary
+        newH = Math.round(newW / ratio);
+      }
+    } else {
+      // Unlocked: edge handles only resize one dimension
+      if (dragHandle === 'ml' || dragHandle === 'mr') newH = startH;
+      if (dragHandle === 'tm' || dragHandle === 'bm') newW = startW;
+    }
+
+    $('bar-w').value = newW;
+    $('bar-h').value = newH;
+    pipeline.setExportSize(newW, newH);
+    updResize();
+    positionHandles();
+    if (editGuides) editGuides.render();
+    showEditHint(`${newW} × ${newH} px`);
+  });
+
+  window.addEventListener('mouseup', () => {
+    if (dragHandle) {
+      dragHandle = null;
+      saveEdit();
+      positionHandles();
+      hideEditHint();
+    }
+  });
+
+  // Re-position on window resize
+  window.addEventListener('resize', positionHandles);
+
+  // Expose for external calls
+  window._positionImageHandles = positionHandles;
+}
+
+function showImageHandles() {
+  const container = $('img-resize-handles');
+  if (!container || !editCanvas.width) { if (container) container.style.display = 'none'; return; }
+  // Move handles container to edit-work (not canvas-wrap, which gets CSS transformed)
+  const work = $('edit-work');
+  if (container.parentElement !== work) work.appendChild(container);
+  container.style.display = '';
+  // Position after a frame (canvas needs to be rendered first)
+  requestAnimationFrame(() => { if (window._positionImageHandles) window._positionImageHandles(); });
+}
+
+// ============================================================
+// Canvas Size (artboard) controls
+// ============================================================
+
+
+// ============================================================
+// Import from Library
+// ============================================================
+
+function initLibraryImport() {
+  $('btn-edit-from-lib')?.addEventListener('click', () => {
+    if (typeof openLibraryPicker !== 'function') return;
+    openLibraryPicker(async (items) => {
+      if (!items.length) return;
+      const item = items[0];
+      const img = new Image();
+      img.src = item.dataUrl;
+      await new Promise(r => { img.onload = r; img.onerror = r; });
+      editOriginal = img;
+      editFilename = item.name || 'library-image';
+      $('file-label').textContent = editFilename;
+      pipeline.setDisplayCanvas(editCanvas);
+      pipeline.loadImage(img);
+      editCanvas.style.display = 'block';
+      $('edit-ribbon')?.classList.remove('disabled');
+      $('edit-dropzone').style.display = 'none';
+      updResize(); originalW = 0; originalH = 0; saveEdit();
+      _initEditGuides();
+      showImageHandles();
+    }, { singleSelect: true });
+  });
+}
 
 function updateDimensionBadge() {
   const badge = $('dimension-badge');
@@ -1377,7 +1603,12 @@ function initInfoBar() {
   // Toggle lock
   barLock?.addEventListener('click', () => {
     barLocked = !barLocked;
-    barLock.classList.toggle('locked', barLocked);
+    barLock.style.color = barLocked ? 'var(--saffron-400)' : 'var(--slate-500)';
+    barLock.title = barLocked ? 'Aspect ratio locked — click to unlock' : 'Aspect ratio unlocked — click to lock';
+    // Update lock icon: locked vs unlocked
+    barLock.innerHTML = barLocked
+      ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>'
+      : '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 5-5 5 5 0 0 1 5 5"/></svg>';
   });
 
   // W input changes H if locked
@@ -1425,8 +1656,6 @@ function initInfoBar() {
   barH?.addEventListener('keydown', (e) => { if (e.key === 'Enter') applyBarResize(); });
 
   // --- Zoom / Pan ---
-  let zoomLevel = 1;
-  let panX = 0, panY = 0;
   let isPanning = false, panStartX = 0, panStartY = 0;
 
   function updateZoom() {
@@ -1436,7 +1665,24 @@ function initInfoBar() {
     wrap.style.transformOrigin = 'center center';
     const zoomEl = $('bar-zoom');
     if (zoomEl) zoomEl.textContent = Math.round(zoomLevel * 100) + '%';
+    if (editGuides) editGuides.render();
+    if (window._positionImageHandles) window._positionImageHandles();
   }
+
+  // Fit image to the work area viewport
+  window.fitToView = fitToView;
+  function fitToView() {
+    const work = $('edit-work');
+    if (!work || !editCanvas.width) return;
+    const workRect = work.getBoundingClientRect();
+    const margin = 40;
+    const scaleX = (workRect.width - margin) / editCanvas.width;
+    const scaleY = (workRect.height - margin) / editCanvas.height;
+    zoomLevel = Math.min(scaleX, scaleY, 1); // don't zoom in past 100%
+    panX = 0; panY = 0;
+    updateZoom();
+  }
+
 
   // Mousewheel zoom
   $('edit-work')?.addEventListener('wheel', (e) => {
@@ -1473,11 +1719,7 @@ function initInfoBar() {
   });
 
   // Fit button — reset zoom
-  $('bar-fit')?.addEventListener('click', () => {
-    zoomLevel = 1; panX = 0; panY = 0;
-    updateZoom();
-    if (editCanvas) editCanvas.style.maxWidth = '90%';
-  });
+  $('bar-fit')?.addEventListener('click', fitToView);
 
   // 1:1 button — actual pixels
   $('bar-actual')?.addEventListener('click', () => {

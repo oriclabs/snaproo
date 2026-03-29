@@ -198,11 +198,24 @@ class DrawObject {
 
     // Text cursor when editing
     if ((this.type === 'text' || this.type === 'callout') && this.editing) {
-      ctx.font = `${this.fontWeight} ${this.fontSize}px ${this.fontFamily}`;
+      ctx.font = `${this.fontWeight || 'normal'} ${this.fontSize}px ${this.fontFamily}`;
       const lines = (this.text || '').split('\n');
       const lastLine = lines[lines.length - 1] || '';
-      const cursorX = this.x + 4 + ctx.measureText(lastLine).width + 2;
-      const cursorY = this.y + (lines.length - 1) * this.fontSize * 1.3 + 2;
+      const lineH = this.fontSize * 1.3;
+      let cursorX, cursorY;
+
+      if (this.type === 'callout') {
+        const pad = this.calloutPadding || 12;
+        let textOffsetX = 0;
+        if (this.calloutIcon) textOffsetX = this.fontSize + 6;
+        const totalH = lines.length * lineH;
+        cursorX = this.x + pad + textOffsetX + ctx.measureText(lastLine).width + 2;
+        cursorY = this.y + (this.h - totalH) / 2 + (lines.length - 1) * lineH;
+      } else {
+        cursorX = this.x + 4 + ctx.measureText(lastLine).width + 2;
+        cursorY = this.y + (lines.length - 1) * lineH + 2;
+      }
+
       ctx.strokeStyle = '#F4C430';
       ctx.lineWidth = 2;
       ctx.setLineDash([]);
@@ -383,12 +396,13 @@ class DrawObject {
     }
 
     // --- Draw wrapped text ---
-    if (this.text) {
+    const displayText = this.editing && this.text === 'Type here...' ? '' : this.text;
+    if (displayText) {
       ctx.font = `${this.fontWeight || 'normal'} ${this.fontSize || 16}px ${this.fontFamily || 'Inter, system-ui, sans-serif'}`;
       ctx.fillStyle = this.color || '#ffffff';
       ctx.textBaseline = 'top';
       const maxTextW = w - pad * 2 - textOffsetX;
-      const lines = this._wrapText(ctx, this.text, Math.max(maxTextW, 20));
+      const lines = this._wrapText(ctx, displayText, Math.max(maxTextW, 20));
       const lineH = (this.fontSize || 16) * 1.3;
       const totalH = lines.length * lineH;
       const startY = y + (h - totalH) / 2;
@@ -1065,6 +1079,12 @@ class ObjectLayer {
       }
       if (e.key.length === 1 && !e.ctrlKey && !e.metaKey) {
         e.preventDefault();
+        // Clear placeholder on first keystroke
+        if (this.selected.text === 'Type here...' || this.selected.text === 'Speech...' || this.selected.text === 'Thinking...' ||
+            this.selected.text === 'Info text' || this.selected.text === 'Warning text' || this.selected.text === 'Success!' ||
+            this.selected.text === 'Error!' || this.selected.text === 'Step 1') {
+          this.selected.text = '';
+        }
         this.selected.text += e.key;
         this.render();
         return;
