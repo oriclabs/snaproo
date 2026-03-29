@@ -1,4 +1,4 @@
-// Pixeroo Popup - QR + 2 launchers
+// Pixeroo Popup - QR + launchers + quick settings
 
 document.addEventListener('DOMContentLoaded', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -18,20 +18,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.close();
   });
 
-  // Settings
-  document.getElementById('btn-settings').addEventListener('click', () => {
-    chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
-    window.close();
-  });
-
   // Help
   document.getElementById('btn-help').addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html') });
     window.close();
   });
-  document.getElementById('link-help').addEventListener('click', (e) => {
+
+  // Advanced settings -> full page
+  document.getElementById('btn-advanced').addEventListener('click', (e) => {
     e.preventDefault();
-    chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html') });
+    chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
     window.close();
   });
 
@@ -44,6 +40,62 @@ document.addEventListener('DOMContentLoaded', async () => {
         setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
       });
     });
+  });
+
+  // ── Quick Settings toggle ──────────────────────────────
+  const qsHeader = document.getElementById('qs-header');
+  const qsBody = document.getElementById('qs-body');
+  const qsArrow = document.getElementById('qs-arrow');
+
+  // Restore collapsed state
+  chrome.storage.local.get({ qsOpen: false }, (r) => {
+    if (r.qsOpen) {
+      qsBody.classList.add('open');
+      qsArrow.style.transform = 'rotate(180deg)';
+    }
+  });
+
+  qsHeader.addEventListener('click', () => {
+    const open = qsBody.classList.toggle('open');
+    qsArrow.style.transform = open ? 'rotate(180deg)' : '';
+    chrome.storage.local.set({ qsOpen: open });
+  });
+
+  // ── Load quick settings values ─────────────────────────
+  const qsTheme = document.getElementById('qs-theme');
+  const qsFormat = document.getElementById('qs-format');
+  const qsEcc = document.getElementById('qs-qr-ecc');
+  const qsView = document.getElementById('qs-view');
+
+  chrome.storage.local.get({
+    theme: 'dark',
+    defaultFormat: 'png',
+    qrDefaultEcc: 'M',
+    defaultView: 'tiles',
+  }, (s) => {
+    qsTheme.value = s.theme || 'dark';
+    qsFormat.value = s.defaultFormat || 'png';
+    qsEcc.value = s.qrDefaultEcc || 'M';
+    qsView.value = s.defaultView || 'tiles';
+  });
+
+  // ── Save on change ─────────────────────────────────────
+  qsTheme.addEventListener('change', () => {
+    chrome.storage.local.set({ theme: qsTheme.value });
+    // Apply theme immediately
+    document.body.classList.toggle('theme-light', qsTheme.value === 'light');
+  });
+
+  qsFormat.addEventListener('change', () => {
+    chrome.storage.local.set({ defaultFormat: qsFormat.value });
+  });
+
+  qsEcc.addEventListener('change', () => {
+    chrome.storage.local.set({ qrDefaultEcc: qsEcc.value });
+  });
+
+  qsView.addEventListener('change', () => {
+    chrome.storage.local.set({ defaultView: qsView.value });
   });
 });
 

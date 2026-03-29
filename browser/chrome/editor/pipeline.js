@@ -34,6 +34,7 @@ class EditPipeline {
     this.originalHeight = img.naturalHeight || img.height;
     this.exportWidth = this.originalWidth;
     this.exportHeight = this.originalHeight;
+    this._manualResize = false;
     this.operations = [];
     this.undoneOps = [];
     this.render();
@@ -69,6 +70,7 @@ class EditPipeline {
     this.undoneOps = [];
     this.exportWidth = this.originalWidth;
     this.exportHeight = this.originalHeight;
+    this._manualResize = false;
     this.render();
   }
 
@@ -76,6 +78,7 @@ class EditPipeline {
   setExportSize(w, h) {
     this.exportWidth = w;
     this.exportHeight = h;
+    this._manualResize = (w !== this.originalWidth || h !== this.originalHeight);
     this.render();
   }
 
@@ -88,10 +91,13 @@ class EditPipeline {
     const c = this.displayCanvas;
     const ctx = this.displayCtx;
 
-    // Start from original, apply resize if set, then operations
-    const resized = this.exportWidth !== this.originalWidth || this.exportHeight !== this.originalHeight;
+    // Always start from original dimensions — operations change canvas size as needed
+    const startW = this._manualResize ? this.exportWidth : this.originalWidth;
+    const startH = this._manualResize ? this.exportHeight : this.originalHeight;
+    const resized = startW !== this.originalWidth || startH !== this.originalHeight;
+
     if (resized) {
-      c.width = this.exportWidth; c.height = this.exportHeight;
+      c.width = startW; c.height = startH;
       if (typeof steppedResize === 'function' &&
           (this.exportWidth < this.originalWidth / 2 || this.exportHeight < this.originalHeight / 2)) {
         const tmp = document.createElement('canvas');
@@ -110,9 +116,8 @@ class EditPipeline {
     for (const op of this.operations) {
       this._applyOp(ctx, c, op);
     }
-    // Sync export dimensions to final canvas state
-    this.exportWidth = c.width;
-    this.exportHeight = c.height;
+    // Don't sync export dimensions from operations — they're recalculated each render
+    // Only manual resize (setExportSize) sets persistent export dimensions
   }
 
   // Render at full resolution for export (may differ from display)
@@ -149,15 +154,6 @@ class EditPipeline {
           tc.translate(tmp.width, tmp.height);
           tc.rotate(rad);
           tc.drawImage(canvas, 0, 0);
-        } else {
-          // Arbitrary angle — expand canvas to fit rotated image
-          const sin = Math.abs(Math.sin(rad));
-          const cos = Math.abs(Math.cos(rad));
-          tmp.width = Math.round(canvas.width * cos + canvas.height * sin);
-          tmp.height = Math.round(canvas.width * sin + canvas.height * cos);
-          tc.translate(tmp.width / 2, tmp.height / 2);
-          tc.rotate(rad);
-          tc.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
         }
         canvas.width = tmp.width; canvas.height = tmp.height;
         ctx.drawImage(tmp, 0, 0);
@@ -209,7 +205,7 @@ class EditPipeline {
       case 'filter': {
         const filterMap = {
           grayscale: 'grayscale(100%)', sepia: 'sepia(100%)', invert: 'invert(100%)',
-          blur: 'blur(3px)', sharpen: 'contrast(150%) brightness(110%)'
+          blur: 'blur(1.5px)', sharpen: 'contrast(150%) brightness(110%)'
         };
         if (filterMap[op.name]) {
           const tmp = document.createElement('canvas'); tmp.width = canvas.width; tmp.height = canvas.height;
@@ -219,6 +215,47 @@ class EditPipeline {
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(tmp, 0, 0);
         }
+        break;
+      }
+
+      case 'maskFilter': {
+        const { filterName, x, y, w, h, amount } = op;
+        const rx = Math.round(x), ry = Math.round(y), rw = Math.round(w), rh = Math.round(h);
+        if (rw < 1 || rh < 1) break;
+        const regionData = ctx.getImageData(rx, ry, rw, rh);
+        const rc = document.createElement('canvas'); rc.width = rw; rc.height = rh;
+        const rctx = rc.getContext('2d');
+        rctx.putImageData(regionData, 0, 0);
+
+        if (filterName === 'pixelate') {
+          const bs = amount || 8;
+          const sw = Math.max(1, Math.round(rw / bs)), sh = Math.max(1, Math.round(rh / bs));
+          const small = document.createElement('canvas'); small.width = sw; small.height = sh;
+          small.getContext('2d').drawImage(rc, 0, 0, sw, sh);
+          rctx.imageSmoothingEnabled = false;
+          rctx.clearRect(0, 0, rw, rh);
+          rctx.drawImage(small, 0, 0, rw, rh);
+        } else if (filterName === 'blur') {
+          const px = amount || 4;
+          const tmp = document.createElement('canvas'); tmp.width = rw; tmp.height = rh;
+          const tc = tmp.getContext('2d');
+          tc.filter = `blur(${px}px)`;
+          tc.drawImage(rc, 0, 0);
+          rctx.clearRect(0, 0, rw, rh);
+          rctx.drawImage(tmp, 0, 0);
+        } else {
+          const pct = amount || 100;
+          const filters = { grayscale:`grayscale(${pct}%)`, invert:`invert(${pct}%)`, sepia:`sepia(${pct}%)` };
+          if (filters[filterName]) {
+            const tmp = document.createElement('canvas'); tmp.width = rw; tmp.height = rh;
+            const tc = tmp.getContext('2d');
+            tc.filter = filters[filterName];
+            tc.drawImage(rc, 0, 0);
+            rctx.clearRect(0, 0, rw, rh);
+            rctx.drawImage(tmp, 0, 0);
+          }
+        }
+        ctx.drawImage(rc, rx, ry);
         break;
       }
 
@@ -395,17 +432,14 @@ class EditPipeline {
 
       case 'straighten': {
         const angle = op.angle * Math.PI / 180;
-        const cos = Math.abs(Math.cos(angle)), sin = Math.abs(Math.sin(angle));
-        const nw = Math.ceil(canvas.width * cos + canvas.height * sin);
-        const nh = Math.ceil(canvas.width * sin + canvas.height * cos);
-        const tmp = document.createElement('canvas'); tmp.width = nw; tmp.height = nh;
+        // Keep canvas same size — rotate in place (corners clipped)
+        const tmp = document.createElement('canvas'); tmp.width = canvas.width; tmp.height = canvas.height;
         const tc = tmp.getContext('2d');
-        tc.translate(nw / 2, nh / 2);
+        tc.translate(canvas.width / 2, canvas.height / 2);
         tc.rotate(angle);
         tc.drawImage(canvas, -canvas.width / 2, -canvas.height / 2);
-        canvas.width = nw; canvas.height = nh;
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
         ctx.drawImage(tmp, 0, 0);
-        this.exportWidth = nw; this.exportHeight = nh;
         break;
       }
 

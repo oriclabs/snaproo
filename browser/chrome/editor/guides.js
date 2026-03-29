@@ -34,7 +34,7 @@ class CanvasGuides {
 
     // Overlay canvas
     this.overlay = document.createElement('canvas');
-    this.overlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:5;';
+    this.overlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:none;z-index:3;';
     this.ctx = this.overlay.getContext('2d');
   }
 

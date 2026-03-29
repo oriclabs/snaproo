@@ -225,7 +225,7 @@ async function scanPageImages() {
 
   gallery.style.display = '';
   extMsg.style.display = 'none';
-  gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-500);">Scanning page images...</div>';
+  gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-500);grid-column:1/-1;">Scanning page images...</div>';
 
   let tab;
   try {
@@ -266,14 +266,8 @@ async function scanPageImages() {
       // Is this a normal web page? (http/https)
       const isNormalPage = url.startsWith('http://') || url.startsWith('https://');
 
-      // Known restricted URLs
-      const isUrlRestricted = (
-        url.startsWith('chrome://') || url.startsWith('chrome-extension://') ||
-        url.startsWith('edge://') || url.startsWith('about:') || url.startsWith('devtools://') ||
-        url.startsWith('chrome-search://') ||
-        url.includes('chromewebstore.google.com') || url.includes('chrome.google.com/webstore') ||
-        url.includes('addons.mozilla.org') || url.includes('microsoftedge.microsoft.com/addons')
-      );
+      // Known restricted URLs (uses shared isRestrictedUrl from sp-shared.js)
+      const isUrlRestricted = isRestrictedUrl(url);
 
       // Truly blocked by Chrome (explicit block message + not a normal http page)
       const isBlocked = (injectErr.includes('cannot be scripted') || injectErr.includes('protected page')) && !isNormalPage && url;
@@ -330,7 +324,7 @@ async function scanPageImages() {
 
 function showScanError(text) {
   const gallery = $('gallery');
-  gallery.innerHTML = `<div style="text-align:center;padding:2rem 1rem;max-width:100%;">
+  gallery.innerHTML = `<div style="text-align:center;padding:2rem 1rem;max-width:100%;grid-column:1/-1;">
     <div style="color:var(--slate-400);margin-bottom:0.5rem;word-wrap:break-word;">${escapeHtml(text)}</div>
     <div style="color:var(--slate-500);line-height:1.5;">Make sure you are on a website and the page has fully loaded. Try clicking Refresh.</div>
   </div>`;
@@ -349,7 +343,7 @@ async function renderGallery() {
   gallery.innerHTML = '';
 
   if (images.length === 0) {
-    gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-500);">No images found</div>';
+    gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-500);grid-column:1/-1;">No images found</div>';
     _setPageFooter(false);
     return;
   }

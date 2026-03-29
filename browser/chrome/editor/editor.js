@@ -325,6 +325,11 @@ document.addEventListener('DOMContentLoaded', () => {
   initSocial();
   initWatermark();
   initCallout();
+  initShowcase();
+  initMeme();
+  initCertificate();
+  initGif();
+  initLibraryManager();
 
   // Drop-to-replace on all single-image tool work areas
   // (Edit mode has its own in initEdit, Collage/Batch handle multi-image differently)
@@ -620,6 +625,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.ctrlKey && (e.key === 'y' || (e.shiftKey && e.key === 'z'))) { e.preventDefault(); editRedo(); }
     if (e.ctrlKey && e.key === 's') { e.preventDefault(); if (currentMode === 'edit') editExport(); }
     if (e.ctrlKey && e.key === '/') { e.preventDefault(); showShortcutsOverlay(); }
+    // Escape → back to home (only when not in an input and no modal open)
+    if (e.key === 'Escape' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
+      if (currentMode && $('library-manager')?.style.display !== 'flex') { e.preventDefault(); goHome(); }
+    }
     // Guide toggles (only when not typing in an input)
     if (currentMode === 'edit' && !e.ctrlKey && !e.metaKey && !e.altKey && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
       if (e.key === 'r' || e.key === 'R') { $('btn-toggle-ruler')?.click(); }
@@ -693,6 +702,84 @@ function initNavigation() {
     card.addEventListener('click', () => openMode(card.dataset.mode));
   });
   $('btn-back').addEventListener('click', goHome);
+  initHomeSearch();
+  initHomeHints();
+}
+
+// ── Home grid search filter ──────────────────────────────
+function initHomeSearch() {
+  const input = $('home-search');
+  if (!input) return;
+  input.addEventListener('input', () => {
+    const q = input.value.toLowerCase().trim();
+    $$('.home-card').forEach(card => {
+      if (!q) { card.style.display = ''; return; }
+      const title = card.querySelector('.home-card-title')?.textContent?.toLowerCase() || '';
+      const desc = card.querySelector('.home-card-desc')?.textContent?.toLowerCase() || '';
+      const mode = card.dataset.mode || '';
+      card.style.display = (title.includes(q) || desc.includes(q) || mode.includes(q)) ? '' : 'none';
+    });
+  });
+}
+
+// ── Home hint bar (shows tips on card hover) ─────────────
+function initHomeHints() {
+  const hints = {
+    edit:        { tips: 'Resize, crop, rotate \u00B7 Brightness, contrast, filters \u00B7 Draw shapes, text, callouts \u00B7 Undo/redo history', keys: 'Ctrl+Z / Ctrl+S' },
+    convert:     { tips: 'PNG, JPEG, WebP, BMP conversion \u00B7 Batch convert multiple files \u00B7 Quality control' },
+    store:       { tips: 'App store icons at all sizes \u00B7 Apple & Google Play ready \u00B7 Screenshot frames' },
+    info:        { tips: 'EXIF data, GPS, camera info \u00B7 Dimensions, color depth \u00B7 JPEG structure analysis' },
+    colors:      { tips: 'Eyedropper from any page \u00B7 Palette extraction \u00B7 HEX/RGB/HSL/CMYK \u00B7 Contrast checker' },
+    svg:         { tips: 'Inspect SVG source \u00B7 Render to raster at any size \u00B7 View structure & layers' },
+    qr:          { tips: 'Generate with custom colors & logos \u00B7 Rounded corners, styles \u00B7 Read from images \u00B7 Bulk generate' },
+    compare:     { tips: 'Side-by-side diff \u00B7 Pixel-level highlighting \u00B7 Overlay & slider modes' },
+    generate:    { tips: 'Gradients, patterns, noise \u00B7 Color swatches \u00B7 Social banners, avatars, favicons' },
+    showcase:    { tips: 'Gradient backgrounds, 10 presets \u00B7 Browser, macOS, Terminal frames \u00B7 iPhone, iPad, MacBook, Android, Monitor mockups \u00B7 Shadow, padding, radius', keys: 'Ctrl+V paste' },
+    meme:        { tips: 'Top/bottom/middle text \u00B7 Impact font with outline \u00B7 Blank templates or own images \u00B7 Auto sizing' },
+    certificate: { tips: '8 templates: classic to elegant \u00B7 Custom text, date, issuer \u00B7 Logo upload \u00B7 Badge mode' },
+    gif:         { tips: 'Combine images into animated GIF \u00B7 Frame delay 30\u20132000ms \u00B7 Preview playback \u00B7 No server needed' },
+    social:      { tips: 'All major platforms \u00B7 Twitter, Instagram, Facebook, LinkedIn, YouTube \u00B7 Cover/fit modes' },
+    watermark:   { tips: 'Text watermark \u00B7 Custom font, angle, opacity \u00B7 Tiled across entire image' },
+    callout:     { tips: '5 shapes with tail directions \u00B7 Custom colors & icons \u00B7 Drag to position & resize' },
+    collage:     { tips: 'Freeform canvas, drag & drop \u00B7 Solid/gradient/image backgrounds \u00B7 Grid or manual layout' },
+    batch:       { tips: 'Resize, filter, watermark multiple images \u00B7 Consistent output \u00B7 Download as ZIP' },
+  };
+
+  const bar = $('home-hint-bar');
+  const nameEl = $('hint-name');
+  const tipsEl = $('hint-tips');
+  const keysEl = $('hint-keys');
+  if (!bar) return;
+
+  const defaultTips = 'Ctrl+V to paste \u00B7 Drop files on any tool';
+
+  $$('.home-card').forEach(card => {
+    card.addEventListener('mouseenter', () => {
+      const mode = card.dataset.mode;
+      const data = hints[mode];
+      const title = card.querySelector('.home-card-title')?.textContent || mode;
+      nameEl.textContent = title;
+      tipsEl.textContent = data?.tips || '';
+      keysEl.textContent = data?.keys || '';
+      bar.classList.remove('empty');
+    });
+    card.addEventListener('mouseleave', () => {
+      nameEl.textContent = 'Hover a tool';
+      tipsEl.textContent = defaultTips;
+      keysEl.textContent = '';
+      bar.classList.add('empty');
+    });
+  });
+
+  // Footer links
+  $('link-footer-help')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('help/help.html') });
+  });
+  $('link-footer-settings')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    chrome.tabs.create({ url: chrome.runtime.getURL('settings/settings.html') });
+  });
 }
 
 function openMode(mode) {
@@ -704,7 +791,7 @@ function openMode(mode) {
 
   $('btn-back').classList.add('visible');
   document.body.classList.add('tool-active');
-  const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
+  const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', showcase:'Showcase', meme:'Meme', certificate:'Certificate', gif:'GIF Creator', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
   $('mode-label').textContent = labels[mode] || '';
 
   // Apply saved ribbon group visibility preferences
@@ -721,6 +808,9 @@ function goHome() {
   $('btn-undo').style.display = 'none';
   $('btn-redo').style.display = 'none';
   $('file-label').textContent = '';
+  // Ensure library manager is hidden
+  const lm = $('library-manager');
+  if (lm) { lm.style.display = 'none'; $('btn-open-library')?.classList.remove('active'); }
 }
 
 // Global drop: drop file anywhere on home -> auto-detect best mode
@@ -782,36 +872,48 @@ async function openLibraryPicker(onAdd, options) {
     img.src = item.dataUrl;
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;display:block;';
 
-    const cb = document.createElement('input');
-    cb.type = 'checkbox';
-    cb.style.cssText = 'position:absolute;top:3px;left:3px;z-index:2;accent-color:var(--saffron-400);cursor:pointer;';
-
-    card.appendChild(cb);
     card.appendChild(img);
-    grid.appendChild(card);
 
-    card.addEventListener('click', (e) => {
-      if (e.target === cb) return;
-      cb.checked = !cb.checked;
-      cb.dispatchEvent(new Event('change'));
-    });
-
-    cb.addEventListener('change', () => {
-      if (singleSelect && cb.checked) {
-        // Deselect all others
+    if (singleSelect) {
+      // Single-select: click to highlight, double-click to import directly
+      card.addEventListener('click', () => {
         pickerSelected.clear();
-        grid.querySelectorAll('input[type="checkbox"]').forEach(other => {
-          if (other !== cb) { other.checked = false; other.closest('div').style.borderColor = 'var(--slate-700)'; }
-        });
-      }
-      if (cb.checked) pickerSelected.add(item.id); else pickerSelected.delete(item.id);
-      card.style.borderColor = cb.checked ? 'var(--saffron-400)' : 'var(--slate-700)';
-      selectedEl.textContent = pickerSelected.size + ' selected';
-    });
+        grid.querySelectorAll('div[data-id]').forEach(c => c.style.borderColor = 'var(--slate-700)');
+        pickerSelected.add(item.id);
+        card.style.borderColor = 'var(--saffron-400)';
+        selectedEl.textContent = '1 selected';
+      });
+      card.addEventListener('dblclick', () => {
+        pickerSelected.clear();
+        pickerSelected.add(item.id);
+        addHandler();
+      });
+    } else {
+      // Multi-select: checkboxes
+      const cb = document.createElement('input');
+      cb.type = 'checkbox';
+      cb.style.cssText = 'position:absolute;top:3px;left:3px;z-index:2;accent-color:var(--saffron-400);cursor:pointer;';
+      card.insertBefore(cb, img);
+
+      card.addEventListener('click', (e) => {
+        if (e.target === cb) return;
+        cb.checked = !cb.checked;
+        cb.dispatchEvent(new Event('change'));
+      });
+
+      cb.addEventListener('change', () => {
+        if (cb.checked) pickerSelected.add(item.id); else pickerSelected.delete(item.id);
+        card.style.borderColor = cb.checked ? 'var(--saffron-400)' : 'var(--slate-700)';
+        selectedEl.textContent = pickerSelected.size + ' selected';
+      });
+    }
+
+    grid.appendChild(card);
   });
 
   // Show modal
   backdrop.style.display = 'flex';
+  $('lib-picker-add').textContent = singleSelect ? 'Import' : 'Add';
 
   // Select All toggle
   const selectAllHandler = () => {

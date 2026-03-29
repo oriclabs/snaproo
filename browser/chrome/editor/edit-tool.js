@@ -71,8 +71,6 @@ function initEdit() {
     if (!ok) return;
     // Non-destructive reset: pipeline replays from original
     pipeline.resetAll();
-    totalRotation = 0;
-    if ($('rotate-angle')) $('rotate-angle').value = 0;
     updResize();
     saveEdit();
     resetAdjustmentSliders();
@@ -175,30 +173,17 @@ function initEdit() {
   });
 
   // Transform (non-destructive via pipeline)
-  let totalRotation = 0;
-
-  function applyRotation(degrees) {
-    if (!degrees || !editCanvas.width) return;
-    pipeline.addOperation({ type: 'rotate', degrees });
-    totalRotation = (totalRotation + degrees) % 360;
-    if ($('rotate-angle')) $('rotate-angle').value = totalRotation;
-    updResize(); saveEdit();
-    if (window.fitToView) window.fitToView();
-  }
-
-  $('btn-rotate-left').addEventListener('click', () => applyRotation(-90));
-  $('btn-rotate-right').addEventListener('click', () => applyRotation(90));
-
-  // Custom angle rotation
-  $('btn-rotate-apply')?.addEventListener('click', () => {
-    const target = +$('rotate-angle')?.value || 0;
-    if (target < -360 || target > 360) { pixDialog.alert('Invalid Angle', 'Angle must be between -360° and 360°.'); return; }
-    const delta = target - totalRotation;
-    if (!delta) return;
-    applyRotation(delta);
+  $('btn-rotate-left').addEventListener('click', () => {
+    if (!editCanvas.width) return;
+    pipeline.addOperation({ type: 'rotate', degrees: -90 });
+    editCanvas.style.width = ''; editCanvas.style.height = '';
+    updResize(); saveEdit(); showImageHandles();
   });
-  $('rotate-angle')?.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') $('btn-rotate-apply')?.click();
+  $('btn-rotate-right').addEventListener('click', () => {
+    if (!editCanvas.width) return;
+    pipeline.addOperation({ type: 'rotate', degrees: 90 });
+    editCanvas.style.width = ''; editCanvas.style.height = '';
+    updResize(); saveEdit(); showImageHandles();
   });
   $('btn-flip-h').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'h'}); saveEdit(); });
   $('btn-flip-v').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'v'}); saveEdit(); });
@@ -277,16 +262,26 @@ function initEdit() {
     // Convert absolute px to relative coords (0-1) for pipeline
     const cw = editCanvas.width, ch = editCanvas.height;
     pipeline.addOperation({type:'crop', x: x/cw, y: y/ch, w: w/cw, h: h/ch});
+    // Reset zoom to fit new cropped dimensions
+    zoomLevel = 1; panX = 0; panY = 0;
+    const wrap = $('edit-canvas-wrap');
+    if (wrap) wrap.style.transform = '';
+    editCanvas.style.width = '';
+    editCanvas.style.height = '';
     updResize(); saveEdit();
+    showImageHandles();
   });
 
   const cropRatios = { 'btn-crop-free': null, 'btn-crop-1-1': 1, 'btn-crop-4-3': 4/3, 'btn-crop-16-9': 16/9, 'btn-crop-3-2': 3/2 };
   Object.entries(cropRatios).forEach(([id, ratio]) => {
     document.getElementById(id)?.addEventListener('click', () => {
       if (!editCanvas.width) return;
+      // Disable ribbon during crop
+      $('edit-ribbon')?.classList.add('disabled');
+      Crop._onCropEnd = () => {
+        $('edit-ribbon')?.classList.remove('disabled');
+      };
       Crop.start($('edit-canvas-wrap'), ratio);
-      $('btn-crop-apply').style.display = '';
-      $('btn-crop-cancel').style.display = '';
     });
   });
 
@@ -314,15 +309,11 @@ function initEdit() {
     }
   });
 
-  $('btn-crop-apply')?.addEventListener('click', () => {
-    Crop.apply();
-    $('btn-crop-apply').style.display = 'none';
-    $('btn-crop-cancel').style.display = 'none';
-  });
-  $('btn-crop-cancel')?.addEventListener('click', () => {
-    Crop.cancel();
-    $('btn-crop-apply').style.display = 'none';
-    $('btn-crop-cancel').style.display = 'none';
+  // Keyboard shortcuts for crop (Enter=apply, Escape=cancel)
+  document.addEventListener('keydown', (e) => {
+    if (!Crop.active) return;
+    if (e.key === 'Escape') { e.preventDefault(); Crop.cancel(); if (Crop._onCropEnd) Crop._onCropEnd(); }
+    if (e.key === 'Enter') { e.preventDefault(); Crop.apply(); }
   });
 
   // Object-based Drawing (replaces stamp-based Annotate)
@@ -409,7 +400,18 @@ function initEdit() {
     const shape = $('ann-callout-shape')?.value || 'rounded';
     const tailDir = $('ann-callout-tail')?.value || 'bottom';
     const bgColor = $('ann-bg-toggle')?.checked ? $('ann-bg-color')?.value : '#1e293b';
-    objLayer.addCallout(editCanvas.width / 2 - 100, editCanvas.height / 2 - 40, 200, 80, {
+    // Place callout at visible viewport center, not canvas center
+    const workArea = editCanvas.closest('.work-area');
+    let cx = editCanvas.width / 2 - 100, cy = editCanvas.height / 2 - 40;
+    if (workArea) {
+      const canvasRect = editCanvas.getBoundingClientRect();
+      const areaRect = workArea.getBoundingClientRect();
+      const sx = editCanvas.width / canvasRect.width;
+      const sy = editCanvas.height / canvasRect.height;
+      cx = Math.max(0, Math.min(editCanvas.width - 200, (areaRect.left + areaRect.width / 2 - canvasRect.left) * sx - 100));
+      cy = Math.max(0, Math.min(editCanvas.height - 80, (areaRect.top + areaRect.height / 2 - canvasRect.top) * sy - 40));
+    }
+    objLayer.addCallout(cx, cy, 200, 80, {
       shape, tailDir, bgColor, textColor: '#ffffff', borderColor: '#F4C430'
     });
     setActiveAnnTool('btn-ann-select');
@@ -620,11 +622,135 @@ function initEdit() {
   };
 
   // Mask filter tool
+  let _maskFilterName = 'blur';
+  let _maskAmount = 4; // blur px or pixelate block size
+  const _maskFilters = ['blur', 'pixelate', 'grayscale', 'invert', 'sepia'];
+  const _maskAmountCfg = {
+    blur:      { min: 1, max: 20, step: 1, def: 4,   label: 'Radius' },
+    pixelate:  { min: 2, max: 32, step: 2, def: 8,   label: 'Block' },
+    grayscale: { min: 5, max: 100, step: 5, def: 100, label: '%' },
+    invert:    { min: 5, max: 100, step: 5, def: 100, label: '%' },
+    sepia:     { min: 5, max: 100, step: 5, def: 100, label: '%' },
+  };
+
+  // Render mask filter preview onto crop overlay context
+  function _renderMaskPreview(oCtx, rx, ry, rw, rh) {
+    const iw = Math.round(rw), ih = Math.round(rh);
+    if (iw < 2 || ih < 2) return;
+    const ix = Math.round(rx), iy = Math.round(ry);
+    // Grab from the editor canvas (current pipeline state)
+    const srcCtx = editCanvas.getContext('2d');
+    const region = srcCtx.getImageData(ix, iy, iw, ih);
+
+    const rc = document.createElement('canvas'); rc.width = iw; rc.height = ih;
+    const rctx = rc.getContext('2d');
+    rctx.putImageData(region, 0, 0);
+
+    const out = document.createElement('canvas'); out.width = iw; out.height = ih;
+    const octx = out.getContext('2d');
+
+    if (_maskFilterName === 'pixelate') {
+      const bs = _maskAmount || 8;
+      const sw = Math.max(1, Math.round(iw / bs)), sh = Math.max(1, Math.round(ih / bs));
+      octx.imageSmoothingEnabled = false;
+      octx.drawImage(rc, 0, 0, sw, sh);
+      octx.drawImage(octx.canvas, 0, 0, sw, sh, 0, 0, iw, ih);
+    } else if (_maskFilterName === 'blur') {
+      octx.filter = `blur(${_maskAmount || 4}px)`;
+      octx.drawImage(rc, 0, 0);
+    } else {
+      const pct = _maskAmount || 100;
+      const f = { grayscale: `grayscale(${pct}%)`, invert: `invert(${pct}%)`, sepia: `sepia(${pct}%)` };
+      octx.filter = f[_maskFilterName] || '';
+      octx.drawImage(rc, 0, 0);
+    }
+
+    // Scale to overlay display size
+    const scaleX = Crop._imgDispW || Crop.overlay.width / Crop.canvas.width;
+    const scaleY = Crop._imgDispH || Crop.overlay.height / Crop.canvas.height;
+    // The overlay canvas matches the image canvas pixel dimensions, so draw 1:1
+    oCtx.drawImage(out, rx, ry);
+  }
+
   $('btn-mask-filter')?.addEventListener('click', () => {
     if (!editCanvas.width) return;
-    if (!objLayer.active) objLayer.attach($('edit-canvas-wrap'));
-    objLayer.maskFilter = 'blur'; // default mask filter
-    objLayer.startTool('mask');
+
+    $('edit-ribbon')?.classList.add('disabled');
+    Crop._onCropEnd = () => { $('edit-ribbon')?.classList.remove('disabled'); };
+
+    const origOnApply = Crop.onApply;
+    Crop.onApply = (x, y, w, h) => {
+      const op = { type: 'maskFilter', filterName: _maskFilterName, x, y, w, h, amount: _maskAmount };
+      pipeline.addOperation(op);
+      editCanvas.style.width = ''; editCanvas.style.height = '';
+      updResize(); saveEdit();
+      Crop.onApply = origOnApply;
+    };
+
+    // Set live preview callback
+    Crop._maskPreview = _renderMaskPreview;
+
+    // Build overlay toolbar: filter pills + amount slider
+    Crop.setExtraContent((row) => {
+      let sliderWrap = null;
+
+      function selectFilter(name) {
+        _maskFilterName = name;
+        // Update pill highlights
+        row.querySelectorAll('.mask-pill').forEach(b => {
+          const active = b.dataset.value === name;
+          b.style.background = active ? 'rgba(244,196,48,0.15)' : 'transparent';
+          b.style.borderColor = active ? '#F4C430' : '#334155';
+          b.style.color = active ? '#F4C430' : '#94a3b8';
+        });
+        // Update slider for selected filter
+        const cfg = _maskAmountCfg[name];
+        if (sliderWrap) {
+          const sl = sliderWrap.querySelector('input');
+          const lbl = sliderWrap.querySelector('.mask-amt-label');
+          const valEl = sliderWrap.querySelector('.mask-amt-val');
+          lbl.textContent = cfg.label;
+          sl.min = cfg.min; sl.max = cfg.max; sl.step = cfg.step;
+          _maskAmount = cfg.def; sl.value = cfg.def; valEl.textContent = cfg.def;
+        }
+        Crop.draw(); // refresh preview
+      }
+
+      // Filter pills
+      _maskFilters.forEach(f => {
+        const pill = document.createElement('button');
+        pill.className = 'mask-pill';
+        pill.textContent = f.charAt(0).toUpperCase() + f.slice(1);
+        pill.dataset.value = f;
+        const active = f === _maskFilterName;
+        pill.style.cssText = 'border:1.5px solid ' + (active ? '#F4C430' : '#334155') + ';border-radius:5px;padding:3px 10px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.12s;background:' + (active ? 'rgba(244,196,48,0.15)' : 'transparent') + ';color:' + (active ? '#F4C430' : '#94a3b8') + ';';
+        pill.addEventListener('click', () => selectFilter(f));
+        row.appendChild(pill);
+      });
+
+      // Amount slider (all filters have one)
+      sliderWrap = document.createElement('div');
+      sliderWrap.style.cssText = 'display:flex;align-items:center;gap:5px;margin-left:6px;border-left:1px solid #334155;padding-left:8px;';
+      const cfg = _maskAmountCfg[_maskFilterName];
+      const lbl = document.createElement('span');
+      lbl.className = 'mask-amt-label';
+      lbl.style.cssText = 'color:#94a3b8;font-size:0.7rem;font-weight:600;white-space:nowrap;';
+      lbl.textContent = cfg.label;
+      const sl = document.createElement('input');
+      sl.type = 'range';
+      sl.style.cssText = 'width:70px;height:14px;accent-color:#F4C430;cursor:pointer;';
+      sl.min = cfg.min; sl.max = cfg.max; sl.step = cfg.step;
+      _maskAmount = cfg.def; sl.value = _maskAmount;
+      const val = document.createElement('span');
+      val.className = 'mask-amt-val';
+      val.style.cssText = 'color:#F4C430;font-size:0.7rem;min-width:16px;text-align:right;font-variant-numeric:tabular-nums;';
+      val.textContent = _maskAmount;
+      sl.addEventListener('input', () => { _maskAmount = +sl.value; val.textContent = sl.value; Crop.draw(); });
+      sliderWrap.append(lbl, sl, val);
+      row.appendChild(sliderWrap);
+    });
+    Crop._btnApply.textContent = 'Apply';
+    Crop.start($('edit-canvas-wrap'), null);
   });
 
   // Guides toggle buttons
@@ -1646,15 +1772,29 @@ function initImageHandles() {
 
     $('bar-w').value = newW;
     $('bar-h').value = newH;
-    pipeline.setExportSize(newW, newH);
-    updResize();
+    // Visual preview only — CSS resize, no pipeline render during drag
+    editCanvas.style.width = newW + 'px';
+    editCanvas.style.height = newH + 'px';
     positionHandles();
-    if (editGuides) editGuides.render();
     showEditHint(`${newW} × ${newH} px`);
+    // Store for mouseup
+    pendingResizeW = newW;
+    pendingResizeH = newH;
   });
+
+  let pendingResizeW = 0, pendingResizeH = 0;
 
   window.addEventListener('mouseup', () => {
     if (dragHandle) {
+      // Apply resize via pipeline only on release
+      if (pendingResizeW && pendingResizeH && (pendingResizeW !== startW || pendingResizeH !== startH)) {
+        editCanvas.style.width = '';
+        editCanvas.style.height = '';
+        pipeline.setExportSize(pendingResizeW, pendingResizeH);
+        updResize();
+      }
+      pendingResizeW = 0;
+      pendingResizeH = 0;
       dragHandle = null;
       saveEdit();
       positionHandles();
@@ -1672,6 +1812,10 @@ function initImageHandles() {
 function showImageHandles() {
   const container = $('img-resize-handles');
   if (!container || !editCanvas.width) { if (container) container.style.display = 'none'; return; }
+  // Hide handles when pipeline has dimension-changing operations (crop/rotate)
+  // Resize via handles conflicts with these operations
+  const hasSizeOps = pipeline.operations?.some(op => ['crop','rotate','straighten','padding'].includes(op.type));
+  if (hasSizeOps) { container.style.display = 'none'; return; }
   // Move handles container to edit-work (not canvas-wrap, which gets CSS transformed)
   const work = $('edit-work');
   if (container.parentElement !== work) work.appendChild(container);
@@ -1689,27 +1833,34 @@ function showImageHandles() {
 // Import from Library
 // ============================================================
 
+function _doLibraryImport() {
+  if (typeof openLibraryPicker !== 'function') return;
+  openLibraryPicker(async (items) => {
+    if (!items.length) return;
+    const item = items[0];
+    const img = new Image();
+    img.src = item.dataUrl;
+    await new Promise(r => { img.onload = r; img.onerror = r; });
+    editOriginal = img;
+    editFilename = item.name || 'library-image';
+    $('file-label').textContent = editFilename;
+    pipeline.setDisplayCanvas(editCanvas);
+    pipeline.loadImage(img);
+    editCanvas.style.display = 'block';
+    $('edit-ribbon')?.classList.remove('disabled');
+    $('edit-dropzone').style.display = 'none';
+    updResize(); originalW = 0; originalH = 0; saveEdit();
+    _initEditGuides();
+    showImageHandles();
+    if (window.fitToView) window.fitToView();
+  }, { singleSelect: true });
+}
+
 function initLibraryImport() {
-  $('btn-edit-from-lib')?.addEventListener('click', () => {
-    if (typeof openLibraryPicker !== 'function') return;
-    openLibraryPicker(async (items) => {
-      if (!items.length) return;
-      const item = items[0];
-      const img = new Image();
-      img.src = item.dataUrl;
-      await new Promise(r => { img.onload = r; img.onerror = r; });
-      editOriginal = img;
-      editFilename = item.name || 'library-image';
-      $('file-label').textContent = editFilename;
-      pipeline.setDisplayCanvas(editCanvas);
-      pipeline.loadImage(img);
-      editCanvas.style.display = 'block';
-      $('edit-ribbon')?.classList.remove('disabled');
-      $('edit-dropzone').style.display = 'none';
-      updResize(); originalW = 0; originalH = 0; saveEdit();
-      _initEditGuides();
-      showImageHandles();
-    }, { singleSelect: true });
+  $('btn-edit-from-lib')?.addEventListener('click', _doLibraryImport);
+  $('btn-edit-drop-lib')?.addEventListener('click', (e) => {
+    e.stopPropagation(); // prevent dropzone click from opening file browser
+    _doLibraryImport();
   });
 }
 
@@ -1728,7 +1879,11 @@ function pulseExportButton() {
   clearTimeout(pulseTimeout);
   pulseTimeout = setTimeout(() => btn.classList.add('export-pulse'), 50);
 }
-function editUndo() { pipeline.undo(); updResize(); saveEdit(); }
+function editUndo() {
+  pipeline.undo();
+  editCanvas.style.width = ''; editCanvas.style.height = '';
+  updResize(); saveEdit(); showImageHandles();
+}
 
 // ============================================================
 // Persistent Info Bar
@@ -1795,7 +1950,6 @@ function initInfoBar() {
       newH = Math.round(originalH * +barH.value / 100);
     }
     if (!newW || !newH || newW < 1 || newH < 1) return;
-    if (newW === editCanvas.width && newH === editCanvas.height) return;
 
     // Non-destructive: pipeline resize renders from original at target size
     pipeline.setExportSize(newW, newH);
@@ -1810,10 +1964,10 @@ function initInfoBar() {
   let isPanning = false, panStartX = 0, panStartY = 0;
 
   function updateZoom() {
-    const wrap = $('edit-canvas-wrap');
-    if (!wrap) return;
-    wrap.style.transform = `scale(${zoomLevel}) translate(${panX}px, ${panY}px)`;
-    wrap.style.transformOrigin = 'center center';
+    if (!editCanvas.width) return;
+    // Just update the zoom % display — no CSS changes
+    // The work area's overflow:auto and the canvas max-width:none handles natural display
+    // Zoom is informational only (Fit/1:1 buttons clear CSS)
     const zoomEl = $('bar-zoom');
     if (zoomEl) zoomEl.textContent = Math.round(zoomLevel * 100) + '%';
     if (editGuides) editGuides.render();
@@ -1823,26 +1977,16 @@ function initInfoBar() {
   // Fit image to the work area viewport
   window.fitToView = fitToView;
   function fitToView() {
-    const work = $('edit-work');
-    if (!work || !editCanvas.width) return;
-    const workRect = work.getBoundingClientRect();
-    const margin = 40;
-    const scaleX = (workRect.width - margin) / editCanvas.width;
-    const scaleY = (workRect.height - margin) / editCanvas.height;
-    zoomLevel = Math.min(scaleX, scaleY, 1); // don't zoom in past 100%
-    panX = 0; panY = 0;
+    // Reset canvas CSS — let it display at natural pixel size
+    editCanvas.style.width = '';
+    editCanvas.style.height = '';
+    zoomLevel = 1; panX = 0; panY = 0;
     updateZoom();
   }
 
 
-  // Mousewheel zoom
-  $('edit-work')?.addEventListener('wheel', (e) => {
-    if (!editCanvas.width) return;
-    e.preventDefault();
-    const delta = e.deltaY > 0 ? 0.9 : 1.1;
-    zoomLevel = Math.max(0.1, Math.min(10, zoomLevel * delta));
-    updateZoom();
-  }, { passive: false });
+  // Mousewheel zoom disabled — causes overlay/crop/filter conflicts
+  // The work area scroll handles viewport fitting naturally
 
   // Shift+drag to pan (avoids conflicting with draw tools)
   $('edit-work')?.addEventListener('mousedown', (e) => {
@@ -1966,7 +2110,11 @@ function updateInfoBar() {
   const zoomEl = $('bar-zoom');
   if (zoomEl) zoomEl.textContent = zoom + '%';
 }
-function editRedo() { pipeline.redo(); updResize(); saveEdit(); }
+function editRedo() {
+  pipeline.redo();
+  editCanvas.style.width = ''; editCanvas.style.height = '';
+  updResize(); saveEdit(); showImageHandles();
+}
 
 // editRotate and editFlip removed — now handled by pipeline.addOperation()
 

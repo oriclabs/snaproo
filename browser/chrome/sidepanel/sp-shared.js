@@ -251,11 +251,38 @@ function showPageColorsTabs() {
   }
 }
 
+// Restricted URL patterns — content scripts can't run or shouldn't run here
+const _restrictedProtocols = ['chrome://', 'chrome-extension://', 'edge://', 'brave://', 'about:', 'devtools://', 'chrome-search://'];
+const _restrictedDomains = [
+  'chromewebstore.google.com', 'chrome.google.com/webstore',
+  'microsoftedge.microsoft.com/addons', 'addons.opera.com',
+  'accounts.google.com',
+];
+
+function isRestrictedUrl(url) {
+  if (!url) return false;
+  for (const p of _restrictedProtocols) { if (url.startsWith(p)) return true; }
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    for (const d of _restrictedDomains) { if (url.includes(d)) return true; }
+  }
+  // Not http/https and not file:// — restricted
+  if (!url.startsWith('http://') && !url.startsWith('https://') && !url.startsWith('file://')) return true;
+  return false;
+}
+
 async function checkIfEditorPage() {
   if (editorTabActive) {
     hidePageColorsTabs();
     return true;
   }
+  // Check current tab URL for restrictions
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (tab?.url && isRestrictedUrl(tab.url)) {
+      hidePageColorsTabs();
+      return true; // treat as restricted — skip scanning
+    }
+  } catch {}
   showPageColorsTabs();
   return false;
 }

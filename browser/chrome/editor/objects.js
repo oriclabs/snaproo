@@ -550,7 +550,7 @@ class ObjectLayer {
 
     // Overlay canvas for drawing objects + handles
     this.overlay = document.createElement('canvas');
-    this.overlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:default;';
+    this.overlay.style.cssText = 'position:absolute;top:0;left:0;pointer-events:auto;cursor:default;z-index:5;';
     this.overlayCtx = this.overlay.getContext('2d');
 
     // Interaction state
@@ -574,14 +574,13 @@ class ObjectLayer {
   }
 
   attach(parentEl) {
+    // Remove old overlay if re-attaching
+    if (this.overlay.parentElement) this.overlay.remove();
     this.overlay.width = this.base.width;
     this.overlay.height = this.base.height;
-    // Match visual size to base canvas (which may be CSS-scaled)
-    const baseRect = this.base.getBoundingClientRect();
-    this.overlay.style.width = baseRect.width + 'px';
-    this.overlay.style.height = baseRect.height + 'px';
     parentEl.style.position = 'relative';
     parentEl.appendChild(this.overlay);
+    requestAnimationFrame(() => this._syncOverlay());
     this.active = true;
 
     this._onDown = (e) => this._handleDown(e);
@@ -1186,8 +1185,16 @@ class ObjectLayer {
 
   // Sync overlay pixel dimensions to match base canvas
   _syncOverlay() {
-    this.overlay.width = this.base.width;
-    this.overlay.height = this.base.height;
+    if (this.overlay.width !== this.base.width) this.overlay.width = this.base.width;
+    if (this.overlay.height !== this.base.height) this.overlay.height = this.base.height;
+    // Match the canvas actual rendered size (clientWidth accounts for CSS)
+    const w = this.base.clientWidth || this.base.width;
+    const h = this.base.clientHeight || this.base.height;
+    this.overlay.style.position = 'absolute';
+    this.overlay.style.top = '0';
+    this.overlay.style.left = '0';
+    this.overlay.style.width = w + 'px';
+    this.overlay.style.height = h + 'px';
   }
 
   // --- Rendering ---

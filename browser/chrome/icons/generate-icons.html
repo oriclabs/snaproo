@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html><head><title>Generate Pixeroo Kangaroo Icons</title></head>
+<body style="background:#1e293b;color:#fff;font-family:sans-serif;padding:2rem;">
+<h2>Pixeroo Icon Generator</h2>
+<p>Click each button to download the icon PNG.</p>
+<div id="previews" style="display:flex;gap:1rem;align-items:end;margin:2rem 0;"></div>
+<script>
+const SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect width="128" height="128" rx="28" fill="#0f172a"/>
+  <g transform="translate(20,12) scale(0.68)" fill="#F4C430">
+    <ellipse cx="65" cy="95" rx="28" ry="35"/>
+    <circle cx="85" cy="42" r="16"/>
+    <ellipse cx="78" cy="22" rx="5" ry="12" transform="rotate(-15,78,22)"/>
+    <ellipse cx="92" cy="24" rx="5" ry="11" transform="rotate(10,92,24)"/>
+    <ellipse cx="78" cy="62" rx="12" ry="18" transform="rotate(-10,78,62)"/>
+    <path d="M38,100 Q15,85 20,60 Q22,50 30,52 Q25,65 35,85 Q38,92 42,98Z"/>
+    <ellipse cx="58" cy="128" rx="14" ry="8"/>
+    <rect x="48" y="115" width="18" height="18" rx="6"/>
+    <ellipse cx="88" cy="78" rx="5" ry="8" transform="rotate(-25,88,78)"/>
+    <ellipse cx="62" cy="138" rx="18" ry="6"/>
+    <circle cx="90" cy="40" r="3" fill="#0f172a"/>
+    <ellipse cx="99" cy="43" rx="3" ry="2" fill="#B8860B"/>
+  </g>
+</svg>`;
+
+const sizes = [16, 32, 48, 128];
+const container = document.getElementById('previews');
+
+sizes.forEach(size => {
+  const div = document.createElement('div');
+  div.style.textAlign = 'center';
+
+  const canvas = document.createElement('canvas');
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  const img = new Image();
+  const blob = new Blob([SVG], { type: 'image/svg+xml' });
+  img.onload = () => {
+    ctx.drawImage(img, 0, 0, size, size);
+    canvas.style.border = '1px solid #334155';
+    canvas.style.borderRadius = '4px';
+    div.appendChild(canvas);
+
+    const label = document.createElement('div');
+    label.textContent = size + 'px';
+    label.style.cssText = 'color:#94a3b8;font-size:12px;margin:4px 0;';
+    div.appendChild(label);
+
+    const btn = document.createElement('button');
+    btn.textContent = 'Download';
+    btn.style.cssText = 'background:#F4C430;color:#1e293b;border:none;border-radius:4px;padding:4px 12px;cursor:pointer;font-weight:600;';
+    btn.onclick = () => {
+      canvas.toBlob(b => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.download = 'icon' + size + '.png';
+        a.click();
+      });
+    };
+    div.appendChild(btn);
+    container.appendChild(div);
+  };
+  img.src = URL.createObjectURL(blob);
+});
+
+// Auto-download all
+setTimeout(() => {
+  const allBtn = document.createElement('button');
+  allBtn.textContent = 'Download All';
+  allBtn.style.cssText = 'background:#F4C430;color:#1e293b;border:none;border-radius:6px;padding:8px 20px;cursor:pointer;font-weight:700;font-size:14px;margin-left:2rem;';
+  allBtn.onclick = () => {
+    document.querySelectorAll('#previews button').forEach(b => b.click());
+  };
+  container.appendChild(allBtn);
+}, 500);
+</script>
+</body></html>

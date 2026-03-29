@@ -10,56 +10,116 @@ const Crop = {
   active: false,
   startX: 0, startY: 0,
   x: 0, y: 0, w: 0, h: 0,
-  handle: null, // which handle is being dragged
-  ratio: null,  // locked aspect ratio or null
+  handle: null,
+  ratio: null,
+  _container: null,
 
   init(canvas, ctx, onApply) {
     this.canvas = canvas;
     this.ctx = ctx;
     this.onApply = onApply;
+    // Create a fixed-position container with a canvas inside
+    this._container = document.createElement('div');
+    this._container.style.cssText = 'position:fixed;z-index:1000;pointer-events:auto;display:none;';
     this.overlay = document.createElement('canvas');
-    this.overlay.style.cssText = 'position:absolute;top:0;left:0;cursor:crosshair;z-index:5;';
+    this.overlay.style.cssText = 'display:block;cursor:crosshair;';
+    this._container.appendChild(this.overlay);
     this.oCtx = this.overlay.getContext('2d');
+    // Crop toolbar (Apply / Cancel buttons)
+    this._toolbar = document.createElement('div');
+    this._toolbar.style.cssText = 'position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:6px;z-index:2;';
+    // Extra row for mask filter pills (hidden by default)
+    this._extraRow = document.createElement('div');
+    this._extraRow.style.cssText = 'display:none;gap:4px;flex-wrap:wrap;justify-content:center;background:rgba(15,23,42,0.92);border:1px solid #334155;border-radius:8px;padding:5px 8px;';
+    this._toolbar.appendChild(this._extraRow);
+    // Main button row
+    this._btnRow = document.createElement('div');
+    this._btnRow.style.cssText = 'display:flex;gap:8px;';
+    this._btnApply = document.createElement('button');
+    this._btnApply.textContent = 'Apply Crop';
+    this._btnApply.style.cssText = 'background:#F4C430;color:#1e293b;border:none;border-radius:6px;padding:6px 16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+    this._btnCancel = document.createElement('button');
+    this._btnCancel.textContent = 'Cancel';
+    this._btnCancel.style.cssText = 'background:var(--slate-800,#1e293b);color:var(--slate-300,#cbd5e1);border:1px solid var(--slate-700,#334155);border-radius:6px;padding:6px 16px;font-weight:600;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);';
+    this._btnRow.appendChild(this._btnApply);
+    this._btnRow.appendChild(this._btnCancel);
+    this._toolbar.appendChild(this._btnRow);
+    this._container.appendChild(this._toolbar);
+    document.body.appendChild(this._container);
+  },
+
+  _syncPosition() {
+    const rect = this.canvas.getBoundingClientRect();
+    const w = this.canvas.clientWidth || this.canvas.width;
+    const h = this.canvas.clientHeight || this.canvas.height;
+    this._container.style.top = Math.floor(rect.top) + 'px';
+    this._container.style.left = Math.floor(rect.left) + 'px';
+    this._container.style.width = w + 'px';
+    this._container.style.height = h + 'px';
+    this.overlay.width = this.canvas.width;
+    this.overlay.height = this.canvas.height;
+    this.overlay.style.width = w + 'px';
+    this.overlay.style.height = h + 'px';
   },
 
   start(parentEl, ratio) {
     this.active = true;
     this.ratio = ratio;
-    this.overlay.width = this.canvas.width;
-    this.overlay.height = this.canvas.height;
-    // Match canvas pixel dimensions — CSS transform on wrapper handles visual scaling
-    this.overlay.style.width = this.canvas.width + 'px';
-    this.overlay.style.height = this.canvas.height + 'px';
     this.x = Math.floor(this.canvas.width * 0.1);
     this.y = Math.floor(this.canvas.height * 0.1);
     this.w = Math.floor(this.canvas.width * 0.8);
     this.h = ratio ? Math.floor(this.w / ratio) : Math.floor(this.canvas.height * 0.8);
     this.h = Math.min(this.h, Math.floor(this.canvas.height * 0.8));
 
-    parentEl.style.position = 'relative';
-    parentEl.appendChild(this.overlay);
+    this._syncPosition();
+    this._container.style.display = 'block';
     this.draw();
 
     this._onDown = (e) => this.onMouseDown(e);
     this._onMove = (e) => this.onMouseMove(e);
     this._onUp = () => this.onMouseUp();
+    this._onResize = () => { if (this.active) this.draw(); };
+    this._onApplyClick = () => this.apply();
+    this._onCancelClick = () => {
+      this.cancel();
+      if (this._onCropEnd) this._onCropEnd();
+    };
     this.overlay.addEventListener('mousedown', this._onDown);
     window.addEventListener('mousemove', this._onMove);
     window.addEventListener('mouseup', this._onUp);
+    window.addEventListener('resize', this._onResize);
+    this._btnApply.addEventListener('click', this._onApplyClick);
+    this._btnCancel.addEventListener('click', this._onCancelClick);
+  },
+
+  // Show extra content in the overlay toolbar (used by mask filter)
+  setExtraContent(buildFn) {
+    this._extraRow.innerHTML = '';
+    if (!buildFn) { this._extraRow.style.display = 'none'; return; }
+    this._extraRow.style.display = 'flex';
+    buildFn(this._extraRow);
   },
 
   cancel() {
     this.active = false;
-    this.overlay.remove();
+    this._container.style.display = 'none';
+    this._extraRow.style.display = 'none';
+    this._extraRow.innerHTML = '';
+    this._btnApply.textContent = 'Apply Crop';
+    this._maskPreview = null;
     this.overlay.removeEventListener('mousedown', this._onDown);
     window.removeEventListener('mousemove', this._onMove);
     window.removeEventListener('mouseup', this._onUp);
+    window.removeEventListener('resize', this._onResize);
+    this._btnApply.removeEventListener('click', this._onApplyClick);
+    this._btnCancel.removeEventListener('click', this._onCancelClick);
   },
 
   apply() {
     const { x, y, w, h } = this;
     this.cancel();
     if (w > 1 && h > 1) this.onApply(x, y, w, h);
+    if (this._onCropEnd) this._onCropEnd();
   },
 
   toCanvasCoords(e) {
@@ -77,6 +137,10 @@ const Crop = {
       { name: 'tr', hx: x + w, hy: y },
       { name: 'bl', hx: x, hy: y + h },
       { name: 'br', hx: x + w, hy: y + h },
+      { name: 'tm', hx: x + w / 2, hy: y },
+      { name: 'bm', hx: x + w / 2, hy: y + h },
+      { name: 'ml', hx: x, hy: y + h / 2 },
+      { name: 'mr', hx: x + w, hy: y + h / 2 },
     ];
     for (const c of corners) {
       if (Math.abs(cx - c.hx) < hs && Math.abs(cy - c.hy) < hs) return c.name;
@@ -105,7 +169,7 @@ const Crop = {
     if (!this.handle) {
       // Update cursor
       const h = this.getHandle(cx, cy);
-      const cursors = { tl: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize', br: 'nwse-resize', move: 'move' };
+      const cursors = { tl: 'nwse-resize', tr: 'nesw-resize', bl: 'nesw-resize', br: 'nwse-resize', tm: 'ns-resize', bm: 'ns-resize', ml: 'ew-resize', mr: 'ew-resize', move: 'move' };
       this.overlay.style.cursor = cursors[h] || 'crosshair';
       return;
     }
@@ -138,6 +202,16 @@ const Crop = {
       this.w = Math.max(10, this.origW - dx);
       this.h = this.ratio ? this.w / this.ratio : Math.max(10, this.origH + dy);
       this.x = this.origX + this.origW - this.w;
+    } else if (this.handle === 'tm') {
+      this.h = Math.max(10, this.origH - dy);
+      this.y = this.origY + this.origH - this.h;
+    } else if (this.handle === 'bm') {
+      this.h = Math.max(10, this.origH + dy);
+    } else if (this.handle === 'ml') {
+      this.w = Math.max(10, this.origW - dx);
+      this.x = this.origX + this.origW - this.w;
+    } else if (this.handle === 'mr') {
+      this.w = Math.max(10, this.origW + dx);
     }
 
     // Clamp
@@ -157,14 +231,19 @@ const Crop = {
   },
 
   draw() {
+    this._syncPosition();
     const c = this.oCtx;
     const cw = this.overlay.width, ch = this.overlay.height;
     c.clearRect(0, 0, cw, ch);
 
-    // Dim outside crop area
+    // Dim outside crop area (4 rectangles, +1px overlap to prevent gaps)
+    const cx = Math.floor(this.x), cy = Math.floor(this.y);
+    const cfw = Math.ceil(this.w), cfh = Math.ceil(this.h);
     c.fillStyle = 'rgba(0,0,0,0.55)';
-    c.fillRect(0, 0, cw, ch);
-    c.clearRect(this.x, this.y, this.w, this.h);
+    c.fillRect(0, 0, cw, cy); // top
+    c.fillRect(0, cy, cx, cfh); // left
+    c.fillRect(cx + cfw, cy, cw - cx - cfw, cfh); // right
+    c.fillRect(0, cy + cfh, cw, ch - cy - cfh); // bottom
 
     // Border
     c.strokeStyle = '#F4C430';
@@ -185,14 +264,16 @@ const Crop = {
       c.stroke();
     }
 
-    // Corner handles
+    // Handles (corners + edges)
     const hs = 8;
     c.fillStyle = '#F4C430';
-    const corners = [
+    const handles = [
       [this.x, this.y], [this.x + this.w, this.y],
       [this.x, this.y + this.h], [this.x + this.w, this.y + this.h],
+      [this.x + this.w / 2, this.y], [this.x + this.w / 2, this.y + this.h],
+      [this.x, this.y + this.h / 2], [this.x + this.w, this.y + this.h / 2],
     ];
-    corners.forEach(([hx, hy]) => {
+    handles.forEach(([hx, hy]) => {
       c.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
     });
 
@@ -201,6 +282,9 @@ const Crop = {
     c.font = '12px monospace';
     c.textAlign = 'center';
     c.fillText(`${Math.round(this.w)} x ${Math.round(this.h)}`, this.x + this.w / 2, this.y - 8);
+
+    // Mask preview callback — renders filtered region onto overlay
+    if (this._maskPreview) this._maskPreview(c, this.x, this.y, this.w, this.h);
   }
 };
 
