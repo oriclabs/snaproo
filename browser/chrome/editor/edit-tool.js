@@ -1,6 +1,5 @@
 // Pixeroo — Edit Tool
 function initEdit() {
-function initEdit() {
   editCanvas = document.getElementById('editor-canvas');
   editCtx = editCanvas.getContext('2d', { willReadFrequently: true });
 
