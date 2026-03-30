@@ -159,7 +159,7 @@ function initConvert() {
     if (cvtFiles.length === 0) {
       $('convert-drop').style.display = '';
       $('convert-preview').style.display = 'none';
-      $('convert-file-panel').style.display = 'none'; $('convert-actions-bar').style.display = 'none';
+      $('convert-file-panel').style.display = 'none'; $('convert-actions-bar').style.display = 'none'; $('convert-warnings-bar').style.display = 'none';
       $('btn-convert-go').disabled = true;
       $('compression-preview').innerHTML = 'Load image to see sizes';
       return;
@@ -176,7 +176,7 @@ function initConvert() {
     selectedIndex = 0;
     $('convert-drop').style.display = '';
     $('convert-preview').style.display = 'none';
-    $('convert-file-panel').style.display = 'none'; $('convert-actions-bar').style.display = 'none';
+    $('convert-file-panel').style.display = 'none'; $('convert-actions-bar').style.display = 'none'; $('convert-warnings-bar').style.display = 'none';
     $('btn-convert-go').disabled = true;
     $('compression-preview').innerHTML = 'Load image to see sizes';
     $('convert-status').textContent = '0 files';
@@ -228,24 +228,12 @@ function initConvert() {
     $('convert-output-label').textContent = fmt === 'svg' ? 'SVG Preview' : (fmt || 'PNG').toUpperCase() + ' Preview';
     $('convert-output-size').textContent = '';
 
-    // Check for warnings/issues before preview
-    const ext = file.name.split('.').pop()?.toLowerCase();
-    const inputFmt = { jpg: 'jpeg', jpeg: 'jpeg', png: 'png', webp: 'webp', bmp: 'bmp', gif: 'gif', svg: 'svg' }[ext] || '';
-    const previewWarnings = [];
+    // Block preview for unsupported formats
     if (['avif', 'tiff', 'ico'].includes(fmt)) {
       container.innerHTML = `<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100px;gap:8px;padding:1rem;"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg><span style="color:#ef4444;font-size:0.75rem;font-weight:600;">Cannot convert to ${fmt.toUpperCase()}</span><span style="color:var(--slate-400);font-size:0.65rem;">Browser does not support ${fmt.toUpperCase()} export</span></div>`;
       $('convert-output-label').textContent = 'Not Supported';
       $('convert-output-size').textContent = '';
       return;
-    }
-    if (fmt === inputFmt) {
-      previewWarnings.push({ icon: '⚠', color: '#f59e0b', text: `Input is already ${ext.toUpperCase()} — output will be identical` });
-    }
-    if (fmt === 'jpeg' && ['png', 'gif', 'svg', 'webp'].includes(ext)) {
-      previewWarnings.push({ icon: '⚠', color: '#f59e0b', text: 'Transparency will be lost in JPEG' });
-    }
-    if (fmt === 'svg' && ['jpg', 'jpeg'].includes(ext)) {
-      previewWarnings.push({ icon: '💡', color: '#3b82f6', text: 'Photo → SVG trace may be slow and produce large files. Try SVG Embed for faster, lossless output.' });
     }
 
     const img = await loadImg(file);
@@ -300,16 +288,6 @@ function initConvert() {
       $('convert-output-size').textContent = `(${_fmtSize(blob.size)})`;
     }
     wrap.style.display = '';
-
-    // Append warnings below preview
-    if (previewWarnings.length > 0) {
-      const warnDiv = document.createElement('div');
-      warnDiv.style.cssText = 'padding:6px 8px;';
-      warnDiv.innerHTML = previewWarnings.map(w =>
-        `<div style="display:flex;align-items:flex-start;gap:6px;margin-top:4px;"><span style="font-size:0.8rem;flex-shrink:0;">${w.icon}</span><span style="color:${w.color};font-size:0.65rem;line-height:1.4;">${w.text}</span></div>`
-      ).join('');
-      container.appendChild(warnDiv);
-    }
   }
 
   // Show hint for initial active format
@@ -473,28 +451,44 @@ function initConvert() {
 
   // ── Warnings ───────────────────────────────────────────
   function _updateWarnings() {
+    const bar = $('convert-warnings-bar');
     const hint = $('convert-fmt-hint');
-    if (!hint || !cvtFiles.length) return;
-    const fmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt;
-    if (!fmt) return;
+    if (!bar) return;
+
+    // Keep format hint clean
+    const globalFmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt;
+    if (hint) hint.textContent = FORMAT_INFO[globalFmt] || '';
+
+    if (!cvtFiles.length) { bar.style.display = 'none'; return; }
+
     const warnings = [];
     for (const f of cvtFiles) {
+      if (f.checked === false) continue; // skip unchecked
       const ext = f.file.name.split('.').pop()?.toLowerCase();
       const inputFmt = { jpg: 'jpeg', jpeg: 'jpeg', png: 'png', webp: 'webp', bmp: 'bmp', gif: 'gif', svg: 'svg' }[ext] || '';
+      const fmt = f.custom ? f.custom.fmt : globalFmt;
+
+      if (['avif', 'tiff', 'ico'].includes(fmt)) {
+        warnings.push({ icon: '✗', color: '#ef4444', text: `${f.file.name}: cannot convert to ${fmt.toUpperCase()} (not supported)` });
+      } else if (fmt === inputFmt) {
+        warnings.push({ icon: '⚠', color: '#f59e0b', text: `${f.file.name}: same format (${ext.toUpperCase()})` });
+      }
       if (fmt === 'jpeg' && ['png', 'gif', 'svg', 'webp'].includes(ext)) {
-        warnings.push(`${f.file.name}: transparency will be lost`);
+        warnings.push({ icon: '⚠', color: '#f59e0b', text: `${f.file.name}: transparency will be lost` });
       }
       if (fmt === 'svg' && ['jpg', 'jpeg'].includes(ext)) {
-        warnings.push(`${f.file.name}: photo → SVG trace may produce large files. Try SVG Embed instead.`);
-      }
-      if (fmt === inputFmt) {
-        warnings.push(`${f.file.name}: same format (${ext.toUpperCase()})`);
+        warnings.push({ icon: '💡', color: '#3b82f6', text: `${f.file.name}: photo → SVG trace may be slow. Try SVG Embed.` });
       }
     }
+
     if (warnings.length > 0) {
-      hint.innerHTML = (FORMAT_INFO[fmt] || '') + '<br>' + warnings.map(w => `<span style="color:#f59e0b;font-size:0.55rem;">⚠ ${w}</span>`).join('<br>');
+      bar.style.display = '';
+      bar.innerHTML = warnings.map(w =>
+        `<div style="display:flex;align-items:center;gap:6px;padding:2px 0;font-size:0.65rem;"><span style="flex-shrink:0;">${w.icon}</span><span style="color:${w.color};">${w.text}</span></div>`
+      ).join('');
     } else {
-      hint.textContent = FORMAT_INFO[fmt] || '';
+      bar.style.display = 'none';
+      bar.innerHTML = '';
     }
   }
 
