@@ -152,9 +152,9 @@ function generateQR(text) {
   if (!text || text.startsWith('chrome://') || text.startsWith('chrome-extension://') || text.startsWith('about:')) {
     canvas.width = 180; canvas.height = 180;
     ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, 180, 180);
-    ctx.fillStyle = '#64748b'; ctx.font = '12px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
+    ctx.fillStyle = '#94a3b8'; ctx.font = '12px Inter, system-ui, sans-serif'; ctx.textAlign = 'center';
     ctx.fillText('No URL available', 90, 86);
-    ctx.fillStyle = '#475569'; ctx.font = '10px Inter, system-ui, sans-serif';
+    ctx.fillStyle = '#64748b'; ctx.font = '10px Inter, system-ui, sans-serif';
     ctx.fillText('Navigate to a page first', 90, 104);
     return;
   }
@@ -168,7 +168,7 @@ function generateQR(text) {
     ctx.fillStyle = '#1e293b'; ctx.fillRect(0, 0, 180, 180);
     ctx.fillStyle = '#ef4444'; ctx.font = '11px sans-serif'; ctx.textAlign = 'center';
     ctx.fillText('URL too long for QR', 90, 86);
-    ctx.fillStyle = '#475569'; ctx.font = '10px sans-serif';
+    ctx.fillStyle = '#64748b'; ctx.font = '10px sans-serif';
     ctx.fillText('Use QR Studio in Toolkit', 90, 104);
   }
 }
