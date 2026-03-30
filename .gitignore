@@ -1,6 +1,8 @@
 research/
 .claude/
 cl.bat
+tests.md
+cg-improvements.md
 node_modules/
 dist/
 target/
