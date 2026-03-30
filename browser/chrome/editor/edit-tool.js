@@ -2051,6 +2051,8 @@ function initInfoBar() {
     }
     zoomLevel = 1; panX = 0; panY = 0;
     updateZoom();
+    // Re-sync guides overlay after CSS change
+    if (editGuides?.visible) setTimeout(() => editGuides.update(), 0);
   }
 
 
