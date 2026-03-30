@@ -2034,6 +2034,9 @@ function initInfoBar() {
   window.fitToView = fitToView;
   function fitToView() {
     if (!editCanvas.width || !editCanvas.height) return;
+    // Always clear CSS first so dimensions read correctly
+    editCanvas.style.width = '';
+    editCanvas.style.height = '';
     const workArea = editCanvas.closest('.work-area');
     if (!workArea) return;
     const areaW = workArea.clientWidth * 0.9;
@@ -2045,9 +2048,6 @@ function initInfoBar() {
       const scale = Math.min(areaW / imgW, areaH / imgH);
       editCanvas.style.width = Math.round(imgW * scale) + 'px';
       editCanvas.style.height = Math.round(imgH * scale) + 'px';
-    } else {
-      editCanvas.style.width = '';
-      editCanvas.style.height = '';
     }
     zoomLevel = 1; panX = 0; panY = 0;
     updateZoom();
