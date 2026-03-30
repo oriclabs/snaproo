@@ -32,8 +32,11 @@ let currentMode = null;
     });
     touch.target.dispatchEvent(mouseEvent);
 
-    // Prevent scroll/zoom during canvas interaction
-    if (event.target.tagName === 'CANVAS' || event.target.closest('.work-area')) {
+    // Prevent scroll/zoom during canvas interaction — but not on dropzones, buttons, inputs
+    const tag = event.target.tagName;
+    const isInteractive = tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'A' || tag === 'LABEL' ||
+      event.target.closest('.dropzone') || event.target.closest('button') || event.target.closest('select');
+    if (!isInteractive && (tag === 'CANVAS' || event.target.closest('.work-area'))) {
       event.preventDefault();
     }
   }

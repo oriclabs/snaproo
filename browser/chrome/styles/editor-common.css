@@ -300,3 +300,21 @@ body.tool-active .tool-footer { display: flex; }
   #convert-img { max-width: 85vw !important; max-height: 35vh !important; }
   #convert-output-box { max-width: 85vw !important; }
 }
+
+/* Convert table responsive */
+@media (max-width: 768px) {
+  #convert-table-wrap { overflow-x: auto; }
+  #convert-table { min-width: 500px; }
+  #convert-table th, #convert-table td { padding: 5px 3px; }
+}
+
+@media (max-width: 480px) {
+  /* Hide less critical columns on very small screens */
+  #convert-table th:nth-child(5),
+  #convert-table td:nth-child(5) { display: none; } /* Resolution */
+  #convert-table th:nth-child(6),
+  #convert-table td:nth-child(6) { display: none; } /* Arrow */
+  #convert-table th:nth-child(8),
+  #convert-table td:nth-child(8) { display: none; } /* Size */
+  #convert-table { min-width: unset; }
+}
