@@ -231,3 +231,55 @@ body.tool-active .tool-footer { display: flex; }
 
 /* Spinner animation */
 @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+
+/* ── Convert tool responsive ──────────────────────────── */
+@media (max-width: 768px) {
+  /* Actions bar: wrap buttons */
+  #convert-actions-bar { flex-wrap: wrap; gap: 4px; padding: 5px 8px; }
+  #convert-actions-bar button { padding: 5px 10px; font-size: 0.65rem; }
+
+  /* File panel: bottom strip instead of left column */
+  #convert-file-panel {
+    width: 100% !important;
+    max-height: 140px !important;
+    border-right: none !important;
+    border-bottom: 1px solid var(--slate-800);
+    flex-direction: row !important;
+  }
+  #convert-file-list {
+    display: flex !important;
+    flex-direction: row !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    gap: 6px;
+    padding: 4px 6px !important;
+  }
+  #convert-file-list > div {
+    flex-shrink: 0 !important;
+    width: 120px !important;
+    min-width: 120px !important;
+  }
+
+  /* Preview: stack vertically */
+  #convert-preview > div:first-child {
+    flex-direction: column !important;
+    align-items: center !important;
+  }
+  #convert-img { max-width: 80vw !important; max-height: 35vh !important; }
+  #convert-output-box { max-width: 80vw !important; }
+
+  /* Custom panel: full width */
+  #cvt-custom-panel { max-width: 100% !important; }
+
+  /* Work area: stack not row */
+  #mode-convert .work-area { flex-direction: column !important; }
+}
+
+@media (max-width: 480px) {
+  #convert-actions-bar button { padding: 4px 8px; font-size: 0.6rem; }
+  #convert-file-panel { max-height: 100px !important; }
+  #convert-img { max-width: 90vw !important; max-height: 30vh !important; }
+
+  /* Hide less important action buttons */
+  #btn-convert-clear-sel { display: none; }
+}

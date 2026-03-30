@@ -658,72 +658,47 @@
   <!-- ============================================================ -->
   <div class="mode-view" id="mode-convert" style="flex-direction:column;">
     <div class="edit-ribbon"><div class="ribbon-bar">
-      <!-- Output Format -->
-      <div class="ribbon-group"><div class="ribbon-tools" id="convert-formats">
-        <div class="ribbon-row" style="gap:3px;">
-          <button class="format-btn active" data-fmt="png" title="Lossless, supports transparency, larger files">PNG</button>
-          <button class="format-btn" data-fmt="jpeg" title="Lossy, small files, no transparency">JPEG</button>
-          <button class="format-btn" data-fmt="webp" title="Modern format, smallest files, good quality">WebP</button>
-          <button class="format-btn" data-fmt="bmp" title="Uncompressed bitmap, very large">BMP</button>
-          <button class="format-btn" data-fmt="svg" title="Vector trace — converts raster to SVG paths">SVG Trace</button>
-          <button class="format-btn" data-fmt="svg-embed" title="Embed raster as SVG image — lossless, fast">SVG Embed</button>
-        </div>
-        <div class="ribbon-row" style="gap:3px;">
-          <button class="format-btn disabled" data-fmt="avif" title="Not supported — browser cannot export AVIF" disabled>AVIF</button>
-          <button class="format-btn disabled" data-fmt="tiff" title="Not supported — browser cannot export TIFF" disabled>TIFF</button>
-          <button class="format-btn disabled" data-fmt="ico" title="Not supported — browser cannot export ICO" disabled>ICO</button>
-        </div>
-        <div class="ribbon-row"><span id="convert-fmt-hint" style="color:var(--slate-400);font-size:0.6rem;"></span></div>
-      </div><div class="ribbon-label">Format</div></div>
-      <div class="ribbon-sep-v"></div>
-      <!-- Quality -->
-      <div class="ribbon-group" id="convert-quality-section" style="display:none;"><div class="ribbon-tools">
+      <!-- Quality (shared across files) -->
+      <div class="ribbon-group" id="convert-quality-section"><div class="ribbon-tools">
         <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Quality">Q</span><input type="range" class="range-input" id="convert-quality" min="1" max="100" value="85" style="width:70px;"><span class="range-value" id="convert-quality-val" style="width:20px;">85</span></div>
         <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="convert-target-size">Max</label><input type="number" id="convert-max-kb" class="input-field" value="200" min="10" max="10000" style="width:55px;display:none;" title="Target max file size (KB)"><span id="convert-max-kb-unit" style="color:var(--slate-400);font-size:0.6rem;display:none;">KB</span></div>
       </div><div class="ribbon-label">Quality</div></div>
-      <!-- SVG trace options (2-column grid) -->
-      <div class="ribbon-group" id="convert-svg-section" style="display:none;"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Number of colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="8" min="2" max="32" style="width:48px;" title="Fewer = cleaner, smaller SVG"></div>
-        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Blur pre-processing">Blur</span><input type="number" id="cvt-svg-blur" class="input-field" value="1" min="0" max="5" step="1" style="width:44px;" title="0 = no blur, 5 = heavy noise reduction"><span class="ribbon-mini-label" title="Smoothness" style="margin-left:4px;">Smooth</span><input type="number" id="cvt-svg-smooth" class="input-field" value="1.5" min="0" max="3" step="0.5" style="width:58px;" title="0 = sharp corners, 3 = very smooth"></div>
-        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Min region area">Min</span><input type="number" id="cvt-svg-minarea" class="input-field" value="20" min="1" max="500" style="width:52px;" title="Skip regions smaller than this (px)"><span class="ribbon-mini-label" title="Max trace dimension" style="margin-left:4px;">Max</span><input type="number" id="cvt-svg-maxdim" class="input-field" value="400" min="50" max="2000" style="width:64px;" title="Downscale before tracing"><span style="color:var(--slate-500);font-size:0.5rem;">px</span></div>
-      </div><div class="ribbon-label">SVG Trace</div></div>
       <div class="ribbon-sep-v"></div>
-      <!-- Resize -->
-      <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Width">W</span><input type="number" id="cvt-resize-w" class="input-field" placeholder="px" style="width:58px;" title="Output width (empty = original)"><span class="ribbon-mini-label" title="Height">H</span><input type="number" id="cvt-resize-h" class="input-field" placeholder="px" style="width:58px;" title="Output height (empty = original)"><label style="color:var(--slate-400);display:flex;align-items:center;gap:2px;font-size:0.6rem;"><input type="checkbox" id="cvt-resize-lock" checked style="accent-color:var(--saffron-400);">Lock</label></div>
-      </div><div class="ribbon-label">Resize</div></div>
+      <!-- SVG trace options -->
+      <div class="ribbon-group" id="convert-svg-section" style="display:none;"><div class="ribbon-tools">
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="8" min="2" max="32" style="width:48px;"><span class="ribbon-mini-label" title="Blur" style="margin-left:4px;">Blur</span><input type="number" id="cvt-svg-blur" class="input-field" value="1" min="0" max="5" step="1" style="width:44px;"></div>
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Smooth">Smooth</span><input type="number" id="cvt-svg-smooth" class="input-field" value="1.5" min="0" max="3" step="0.5" style="width:58px;"><span class="ribbon-mini-label" title="Max dim" style="margin-left:4px;">Max</span><input type="number" id="cvt-svg-maxdim" class="input-field" value="400" min="50" max="2000" style="width:64px;"></div>
+        <div class="ribbon-row" style="gap:4px;"><span class="ribbon-mini-label" title="Min area">Min</span><input type="number" id="cvt-svg-minarea" class="input-field" value="20" min="1" max="500" style="width:52px;"><span style="color:var(--slate-500);font-size:0.5rem;">px</span></div>
+      </div><div class="ribbon-label">SVG Trace</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Options -->
       <div class="ribbon-group"><div class="ribbon-tools">
         <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="convert-strip-meta">Strip meta</label></div>
-        <div class="ribbon-row"><input type="text" id="cvt-rename" class="input-field" value="{name}" style="width:90px;" title="Output filename pattern: {name} {index} {fmt}"></div>
+        <div class="ribbon-row"><input type="text" id="cvt-rename" class="input-field" value="{name}" style="width:90px;" title="Filename: {name} {index} {fmt}"></div>
       </div><div class="ribbon-label">Options</div></div>
       <div class="ribbon-sep-v"></div>
-      <!-- Actions -->
+      <!-- Convert button -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;">
-          <button id="btn-convert-go" class="btn-primary" style="padding:3px 12px;" disabled>Convert</button>
-        </div>
+        <div class="ribbon-row"><button id="btn-convert-go" class="btn-primary" style="padding:5px 16px;font-size:0.8rem;" disabled>Convert All</button></div>
         <div class="ribbon-row"><div id="convert-progress" style="display:none;width:100%;height:3px;background:var(--slate-700);border-radius:2px;"><div id="convert-progress-bar" style="height:100%;background:var(--saffron-400);border-radius:2px;width:0%;transition:width 0.2s;"></div></div></div>
-      </div><div class="ribbon-label">Actions</div></div>
+      </div><div class="ribbon-label">Convert</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Size Preview -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div id="compression-preview" style="color:var(--slate-400);font-size:0.65rem;min-width:120px;">Load image to see sizes</div>
+        <div id="compression-preview" style="color:var(--slate-400);font-size:0.65rem;min-width:120px;">Drop images to start</div>
       </div><div class="ribbon-label">Size Preview</div></div>
     </div></div>
-    <!-- File actions bar (full width, below ribbon) -->
+    <!-- Actions bar -->
     <div id="convert-actions-bar" style="display:none;align-items:center;gap:8px;padding:6px 12px;border-bottom:1px solid var(--slate-800);background:var(--slate-900);flex-shrink:0;">
-      <button id="btn-convert-add2" title="Add more files" style="padding:6px 16px;font-size:0.75rem;font-weight:700;border:1.5px solid var(--saffron-400);border-radius:6px;background:rgba(244,196,48,0.08);color:var(--saffron-400);cursor:pointer;transition:all 0.12s;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:-2px;margin-right:4px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add Files</button>
-      <button id="btn-convert-lib" title="Import from Library" style="padding:6px 16px;font-size:0.75rem;font-weight:700;border:1.5px solid var(--slate-500);border-radius:6px;background:transparent;color:var(--slate-300);cursor:pointer;transition:all 0.12s;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px;margin-right:4px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Library</button>
-      <span style="width:1px;height:20px;background:var(--slate-700);flex-shrink:0;"></span>
-      <button id="btn-convert-selall" title="Select / Deselect all" style="padding:6px 12px;font-size:0.7rem;font-weight:600;border:1px solid var(--slate-600);border-radius:6px;background:transparent;color:var(--slate-300);cursor:pointer;">All</button>
-      <button id="btn-convert-clear-sel" title="Remove unchecked files" style="padding:6px 12px;font-size:0.7rem;font-weight:600;border:1px solid var(--slate-600);border-radius:6px;background:transparent;color:var(--slate-400);cursor:pointer;">Remove Unchecked</button>
-      <button id="btn-convert-clear2" title="Clear all files" style="padding:6px 14px;font-size:0.75rem;font-weight:700;border:1.5px solid rgba(239,68,68,0.4);border-radius:6px;background:transparent;color:#ef4444;cursor:pointer;">Clear All</button>
+      <button id="btn-convert-add2" title="Add more files" style="padding:5px 14px;font-size:0.75rem;font-weight:700;border:1.5px solid var(--saffron-400);border-radius:6px;background:rgba(244,196,48,0.08);color:var(--saffron-400);cursor:pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="display:inline;vertical-align:-2px;margin-right:3px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add</button>
+      <button id="btn-convert-lib" title="Import from Library" style="padding:5px 14px;font-size:0.75rem;font-weight:700;border:1.5px solid var(--slate-500);border-radius:6px;background:transparent;color:var(--slate-300);cursor:pointer;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:-2px;margin-right:3px;"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>Library</button>
+      <span style="width:1px;height:20px;background:var(--slate-700);"></span>
+      <button id="btn-convert-selall" title="Select all / none" style="padding:5px 10px;font-size:0.7rem;font-weight:600;border:1px solid var(--slate-600);border-radius:5px;background:transparent;color:var(--slate-300);cursor:pointer;">All</button>
+      <button id="btn-convert-clear2" title="Clear all" style="padding:5px 10px;font-size:0.7rem;font-weight:700;border:1px solid rgba(239,68,68,0.3);border-radius:5px;background:transparent;color:#ef4444;cursor:pointer;">Clear</button>
       <span id="convert-status" style="color:var(--slate-400);font-size:0.7rem;margin-left:auto;">0 files</span>
     </div>
-    <!-- Warnings/info bar (persistent, below actions bar) -->
-    <div id="convert-warnings-bar" style="display:none;padding:6px 12px;background:rgba(245,158,11,0.06);border-bottom:1px solid rgba(245,158,11,0.15);flex-shrink:0;max-height:80px;overflow-y:auto;">
+    <!-- Warnings bar -->
+    <div id="convert-warnings-bar" style="display:none;padding:4px 12px;background:rgba(245,158,11,0.05);border-bottom:1px solid rgba(245,158,11,0.12);flex-shrink:0;max-height:60px;overflow-y:auto;">
     </div>
     <div class="work-area" style="flex-direction:row;gap:0;">
       <!-- File list panel -->
@@ -742,43 +717,16 @@
         <div id="convert-preview" style="display:none;text-align:center;padding:1rem;">
           <div style="display:flex;gap:1rem;align-items:flex-start;justify-content:center;flex-wrap:wrap;">
             <div>
-              <img id="convert-img" src="" alt="" style="max-width:40vw;max-height:50vh;border-radius:8px;border:1px solid var(--slate-700);">
+              <div id="convert-img-box" style="display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid var(--slate-700);overflow:hidden;background:var(--slate-800);">
+                <img id="convert-img" src="" alt="" style="display:block;max-width:40vw;max-height:50vh;">
+              </div>
               <div style="margin-top:4px;"><span style="color:var(--slate-500);font-size:0.6rem;">Original</span><br><span id="convert-img-info" style="color:var(--slate-400);font-size:0.65rem;"></span></div>
             </div>
             <div id="convert-output-preview-wrap" style="display:none;">
-              <div id="convert-output-preview" style="max-width:40vw;max-height:50vh;border-radius:8px;border:1px solid var(--saffron-400);overflow:hidden;background:var(--slate-800);"></div>
+              <div id="convert-output-box" style="display:flex;align-items:center;justify-content:center;border-radius:8px;border:1px dashed var(--saffron-400);overflow:hidden;background:var(--slate-900);">
+                <div id="convert-output-preview" style="border:1px solid var(--saffron-400);border-radius:4px;overflow:hidden;"></div>
+              </div>
               <div style="color:var(--saffron-400);font-size:0.6rem;margin-top:4px;"><span id="convert-output-label">Output</span> <span id="convert-output-size"></span></div>
-            </div>
-          </div>
-          <!-- Per-file custom settings -->
-          <div id="cvt-custom-panel" style="display:none;margin-top:0.5rem;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:8px;padding:8px 12px;max-width:360px;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-              <label style="display:flex;align-items:center;gap:6px;color:var(--slate-300);font-size:0.7rem;font-weight:600;cursor:pointer;"><input type="checkbox" id="cvt-custom-toggle" style="accent-color:var(--saffron-400);">Custom settings for this file</label>
-              <button id="cvt-custom-copy" class="tool-btn" style="padding:2px 6px;font-size:0.6rem;" title="Copy settings from global">Copy Global</button>
-            </div>
-            <div id="cvt-custom-fields" style="display:none;">
-              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
-                <span style="color:var(--slate-400);font-size:0.65rem;">Format</span>
-                <select id="cvt-custom-fmt" class="select-field" style="width:80px;">
-                  <option value="png">PNG</option>
-                  <option value="jpeg">JPEG</option>
-                  <option value="webp">WebP</option>
-                  <option value="bmp">BMP</option>
-                  <option value="svg">SVG Trace</option>
-                  <option value="svg-embed">SVG Embed</option>
-                </select>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px;">
-                <span style="color:var(--slate-400);font-size:0.65rem;">Quality</span>
-                <input type="range" id="cvt-custom-quality" min="1" max="100" value="85" style="width:70px;accent-color:var(--saffron-400);">
-                <span id="cvt-custom-quality-val" style="color:var(--slate-300);font-size:0.65rem;">85</span>
-              </div>
-              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
-                <span style="color:var(--slate-400);font-size:0.65rem;">Size</span>
-                <input type="number" id="cvt-custom-w" class="input-field" placeholder="W" style="width:58px;">
-                <span style="color:var(--slate-500);">×</span>
-                <input type="number" id="cvt-custom-h" class="input-field" placeholder="H" style="width:58px;">
-              </div>
             </div>
           </div>
         </div>
