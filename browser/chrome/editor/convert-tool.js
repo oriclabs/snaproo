@@ -42,9 +42,31 @@ function initConvert() {
     });
   });
 
-  // Clear (panel)
+  // Clear all
   $('btn-convert-clear2')?.addEventListener('click', () => {
     $('btn-convert-clear')?.click();
+  });
+
+  // Select all / deselect all toggle
+  $('btn-convert-selall')?.addEventListener('click', () => {
+    const allChecked = cvtFiles.every(f => f.checked !== false);
+    cvtFiles.forEach(f => f.checked = !allChecked);
+    $('btn-convert-selall').textContent = allChecked ? 'All' : 'None';
+    updateFileList();
+  });
+
+  // Remove unchecked files
+  $('btn-convert-clear-sel')?.addEventListener('click', () => {
+    const unchecked = cvtFiles.filter(f => f.checked === false);
+    unchecked.forEach(f => URL.revokeObjectURL(f.objectUrl));
+    cvtFiles = cvtFiles.filter(f => f.checked !== false);
+    if (cvtFiles.length === 0) {
+      $('btn-convert-clear')?.click(); // triggers full clear UI reset
+    } else {
+      selectedIndex = Math.min(selectedIndex, cvtFiles.length - 1);
+      updateFileList();
+      selectFile(selectedIndex);
+    }
   });
 
   $('btn-convert-add')?.addEventListener('click', () => {
@@ -61,7 +83,7 @@ function initConvert() {
     }
     $('convert-drop').style.display = 'none';
     $('convert-preview').style.display = '';
-    $('convert-file-panel').style.display = 'flex';
+    $('convert-file-panel').style.display = 'flex'; $('convert-actions-bar').style.display = 'flex';
     $('btn-convert-go').disabled = false;
     updateFileList();
     selectFile(cvtFiles.length - 1);
@@ -137,7 +159,7 @@ function initConvert() {
     if (cvtFiles.length === 0) {
       $('convert-drop').style.display = '';
       $('convert-preview').style.display = 'none';
-      $('convert-file-panel').style.display = 'none';
+      $('convert-file-panel').style.display = 'none'; $('convert-actions-bar').style.display = 'none';
       $('btn-convert-go').disabled = true;
       $('compression-preview').innerHTML = 'Load image to see sizes';
       return;
@@ -154,7 +176,7 @@ function initConvert() {
     selectedIndex = 0;
     $('convert-drop').style.display = '';
     $('convert-preview').style.display = 'none';
-    $('convert-file-panel').style.display = 'none';
+    $('convert-file-panel').style.display = 'none'; $('convert-actions-bar').style.display = 'none';
     $('btn-convert-go').disabled = true;
     $('compression-preview').innerHTML = 'Load image to see sizes';
     $('convert-status').textContent = '0 files';
@@ -191,7 +213,9 @@ function initConvert() {
 
   async function _updateOutputPreview() {
     if (!cvtFiles.length) { $('convert-output-preview-wrap').style.display = 'none'; return; }
-    const fmt = document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt;
+    // Use custom format if this file has custom settings, otherwise global
+    const cc = cvtFiles[selectedIndex]?.custom;
+    const fmt = cc ? cc.fmt : (document.querySelector('#convert-formats .format-btn.active')?.dataset.fmt);
     const file = cvtFiles[selectedIndex]?.file;
     if (!file) return;
 
@@ -266,7 +290,7 @@ function initConvert() {
     } else {
       // Raster format preview
       const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp', bmp: 'image/bmp' }[fmt] || 'image/png';
-      const q = ['jpeg', 'webp'].includes(fmt) ? +$('convert-quality').value / 100 : undefined;
+      const q = cc ? cc.quality / 100 : (['jpeg', 'webp'].includes(fmt) ? +$('convert-quality').value / 100 : undefined);
       const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
       c.getContext('2d').drawImage(img, 0, 0);
       const blob = await new Promise(r => c.toBlob(r, mime, q));
@@ -400,6 +424,9 @@ function initConvert() {
       };
     }
     updateFileList();
+    // Auto-refresh preview and warnings with custom settings
+    _debounceOutputPreview();
+    if (typeof _updateWarnings === 'function') _updateWarnings();
   }
 
   // Toggle custom on/off
