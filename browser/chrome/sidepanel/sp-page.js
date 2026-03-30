@@ -225,7 +225,7 @@ async function scanPageImages() {
 
   gallery.style.display = '';
   extMsg.style.display = 'none';
-  gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-500);grid-column:1/-1;">Scanning page images...</div>';
+  gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-400);grid-column:1/-1;">Scanning page images...</div>';
 
   let tab;
   try {
@@ -289,7 +289,7 @@ async function scanPageImages() {
         extMsg.innerHTML = `
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin:0 auto 1rem;"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
           <p style="color:var(--slate-400);font-weight:600;margin-bottom:0.5rem;">Reload Required</p>
-          <p style="color:var(--slate-500);line-height:1.5;">The page was loaded before Pixeroo. Reload to enable page image scanning and color picking.</p>
+          <p style="color:var(--slate-400);line-height:1.5;">The page was loaded before Pixeroo. Reload to enable page image scanning and color picking.</p>
           <p style="color:var(--slate-400);margin-top:0.25rem;">Your <b>My Library</b> is still accessible.</p>
           <button id="btn-reload-page" style="margin-top:0.75rem;background:var(--saffron-400);color:#1e293b;border:none;border-radius:6px;padding:6px 16px;font-weight:600;cursor:pointer;">Reload Page</button>`;
         $('btn-reload-page')?.addEventListener('click', async () => {
@@ -326,7 +326,7 @@ function showScanError(text) {
   const gallery = $('gallery');
   gallery.innerHTML = `<div style="text-align:center;padding:2rem 1rem;max-width:100%;grid-column:1/-1;">
     <div style="color:var(--slate-400);margin-bottom:0.5rem;word-wrap:break-word;">${escapeHtml(text)}</div>
-    <div style="color:var(--slate-500);line-height:1.5;">Make sure you are on a website and the page has fully loaded. Try clicking Refresh.</div>
+    <div style="color:var(--slate-400);line-height:1.5;">Make sure you are on a website and the page has fully loaded. Try clicking Refresh.</div>
   </div>`;
   _setPageFooter(false);
 }
@@ -343,7 +343,7 @@ async function renderGallery() {
   gallery.innerHTML = '';
 
   if (images.length === 0) {
-    gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-500);grid-column:1/-1;">No images found</div>';
+    gallery.innerHTML = '<div style="text-align:center;padding:2rem;color:var(--slate-400);grid-column:1/-1;">No images found</div>';
     _setPageFooter(false);
     return;
   }

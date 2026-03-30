@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const qsEcc = document.getElementById('qs-qr-ecc');
   const qsView = document.getElementById('qs-view');
 
-  chrome.storage.local.get({
+  chrome.storage.sync.get({
     theme: 'dark',
     defaultFormat: 'png',
     qrDefaultEcc: 'M',
@@ -123,25 +123,25 @@ document.addEventListener('DOMContentLoaded', async () => {
     qsFormat.value = s.defaultFormat || 'png';
     qsEcc.value = s.qrDefaultEcc || 'M';
     qsView.value = s.defaultView || 'tiles';
+    document.body.classList.toggle('theme-light', qsTheme.value === 'light');
   });
 
-  // ── Save on change ─────────────────────────────────────
+  // ── Save on change (sync storage, matches settings page) ──
   qsTheme.addEventListener('change', () => {
-    chrome.storage.local.set({ theme: qsTheme.value });
-    // Apply theme immediately
+    chrome.storage.sync.set({ theme: qsTheme.value });
     document.body.classList.toggle('theme-light', qsTheme.value === 'light');
   });
 
   qsFormat.addEventListener('change', () => {
-    chrome.storage.local.set({ defaultFormat: qsFormat.value });
+    chrome.storage.sync.set({ defaultFormat: qsFormat.value });
   });
 
   qsEcc.addEventListener('change', () => {
-    chrome.storage.local.set({ qrDefaultEcc: qsEcc.value });
+    chrome.storage.sync.set({ qrDefaultEcc: qsEcc.value });
   });
 
   qsView.addEventListener('change', () => {
-    chrome.storage.local.set({ defaultView: qsView.value });
+    chrome.storage.sync.set({ defaultView: qsView.value });
   });
 });
 
