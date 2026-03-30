@@ -973,10 +973,10 @@ async function goHome() {
 }
 
 function _hasUnsavedWork() {
-  // Edit tool: check if pipeline has operations or image is loaded
+  // Edit tool: check if an image is loaded (canvas visible with content)
   if (currentMode === 'edit') {
     const c = $('editor-canvas');
-    if (c && c.width > 0 && typeof pipeline !== 'undefined' && pipeline.operations?.length > 0) return true;
+    if (c && c.width > 0 && c.style.display !== 'none') return true;
   }
   // Other tools: check if their canvas has content
   const canvasIds = {
