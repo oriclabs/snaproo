@@ -1916,7 +1916,9 @@ function initLibraryImport() {
           c.width = img.naturalWidth; c.height = img.naturalHeight;
           c.getContext('2d').drawImage(img, 0, 0);
           const dataUrl = c.toDataURL('image/png');
-          PixLibrary.add({ dataUrl, source: 'screenshot', name: editFilename, width: img.naturalWidth, height: img.naturalHeight, type: 'image', size: dataUrl.length }).catch(() => {});
+          PixLibrary.add({ dataUrl, source: 'screenshot', name: editFilename, width: img.naturalWidth, height: img.naturalHeight, type: 'image', size: dataUrl.length })
+            .then(() => { if (typeof showToast === 'function') showToast('Saved to Library', 'success'); })
+            .catch(() => {});
         }
       }).catch(() => {});
     }

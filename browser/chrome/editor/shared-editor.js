@@ -16,6 +16,25 @@ let originalW = 0, originalH = 0;
 
 let currentMode = null;
 
+// Toast notification
+function showToast(message, icon) {
+  let toast = document.querySelector('.pix-toast');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.className = 'pix-toast';
+    document.body.appendChild(toast);
+  }
+  const iconSvg = icon === 'success'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>'
+    : icon === 'info'
+    ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+    : '';
+  toast.innerHTML = iconSvg + '<span>' + message + '</span>';
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 2500);
+}
+
 let convertFiles = [];
 
 // Wrap all <input type="number"> with custom spinner buttons (cross-browser)
