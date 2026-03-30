@@ -1907,13 +1907,18 @@ function initLibraryImport() {
     if (window.fitToView) window.fitToView();
     // Save to recent files
     if (window._addRecentFile) window._addRecentFile(img, editFilename);
-    // Auto-save screenshots to library
+    // Auto-save screenshots to library (only new captures, not re-opens)
     if (editFilename.startsWith('screenshot') && typeof PixLibrary !== 'undefined') {
-      const c = document.createElement('canvas');
-      c.width = img.naturalWidth; c.height = img.naturalHeight;
-      c.getContext('2d').drawImage(img, 0, 0);
-      const dataUrl = c.toDataURL('image/png');
-      PixLibrary.add({ dataUrl, source: 'screenshot', name: editFilename, width: img.naturalWidth, height: img.naturalHeight, type: 'image', size: dataUrl.length }).catch(() => {});
+      PixLibrary.getAll().then(items => {
+        const exists = items.some(i => i.name === editFilename && i.source === 'screenshot');
+        if (!exists) {
+          const c = document.createElement('canvas');
+          c.width = img.naturalWidth; c.height = img.naturalHeight;
+          c.getContext('2d').drawImage(img, 0, 0);
+          const dataUrl = c.toDataURL('image/png');
+          PixLibrary.add({ dataUrl, source: 'screenshot', name: editFilename, width: img.naturalWidth, height: img.naturalHeight, type: 'image', size: dataUrl.length }).catch(() => {});
+        }
+      }).catch(() => {});
     }
   };
 }
