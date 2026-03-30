@@ -334,7 +334,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Drop-to-replace on all single-image tool work areas
   // (Edit mode has its own in initEdit, Collage/Batch handle multi-image differently)
   const singleImageTools = [
-    { selector: '#mode-convert .work-area', dropId: 'convert-drop', fileId: 'convert-file' },
     { selector: '#mode-info .work-area', dropId: 'info-drop', fileId: 'info-file' },
     { selector: '#mode-colors .work-area', dropId: 'colors-drop', fileId: 'colors-file' },
     { selector: '#mode-svg .work-area', dropId: 'svg-drop', fileId: 'svg-file' },
@@ -750,32 +749,8 @@ function initNavigation() {
   initRecentFiles();
 }
 
-// ── Quick Actions ────────────────────────────────────────
-function initQuickActions() {
-  // Edit Image — open edit tool
-  $('qa-open-edit')?.addEventListener('click', () => openMode('edit'));
-
-  // Resize for Social
-  $('qa-resize-social')?.addEventListener('click', () => openMode('social'));
-
-  // Convert Format
-  $('qa-convert')?.addEventListener('click', () => openMode('convert'));
-
-  // Generate QR
-  $('qa-qr')?.addEventListener('click', () => openMode('qr'));
-
-  // Collage
-  $('qa-collage')?.addEventListener('click', () => openMode('collage'));
-
-  // Meme
-  $('qa-meme')?.addEventListener('click', () => openMode('meme'));
-
-  // Showcase
-  $('qa-showcase')?.addEventListener('click', () => openMode('showcase'));
-
-  // Certificate
-  $('qa-cert')?.addEventListener('click', () => openMode('certificate'));
-}
+// ── Quick Actions (removed — essentials hero cards serve this role) ──
+function initQuickActions() {}
 
 // ── Recent Files ─────────────────────────────────────────
 function initRecentFiles() {

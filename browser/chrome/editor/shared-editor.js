@@ -16,35 +16,6 @@ let originalW = 0, originalH = 0;
 
 let currentMode = null;
 
-// ── Touch-to-Mouse event forwarding ──────────────────────
-// Makes all mousedown/mousemove/mouseup handlers work with touch
-(function() {
-  function touchHandler(event) {
-    const touch = event.changedTouches[0];
-    const type = { touchstart: 'mousedown', touchmove: 'mousemove', touchend: 'mouseup' }[event.type];
-    if (!type) return;
-
-    const mouseEvent = new MouseEvent(type, {
-      bubbles: true, cancelable: true,
-      clientX: touch.clientX, clientY: touch.clientY,
-      screenX: touch.screenX, screenY: touch.screenY,
-      button: 0, buttons: type === 'mouseup' ? 0 : 1,
-    });
-    touch.target.dispatchEvent(mouseEvent);
-
-    // Prevent scroll/zoom during canvas interaction — but not on dropzones, buttons, inputs
-    const tag = event.target.tagName;
-    const isInteractive = tag === 'BUTTON' || tag === 'INPUT' || tag === 'SELECT' || tag === 'A' || tag === 'LABEL' ||
-      event.target.closest('.dropzone') || event.target.closest('button') || event.target.closest('select');
-    if (!isInteractive && (tag === 'CANVAS' || event.target.closest('.work-area'))) {
-      event.preventDefault();
-    }
-  }
-  document.addEventListener('touchstart', touchHandler, { passive: false });
-  document.addEventListener('touchmove', touchHandler, { passive: false });
-  document.addEventListener('touchend', touchHandler, { passive: false });
-})();
-
 // Toast notification
 function showToast(message, icon) {
   let toast = document.querySelector('.pix-toast');
@@ -205,6 +176,126 @@ function triggerDrop(dropId, inputId, file) {
   const input = document.getElementById(inputId);
   input.files = dt.files;
   input.dispatchEvent(new Event('change'));
+}
+
+// Direct download via <a> tag — avoids blob URL issues with background script
+function directDownload(blob, filename) {
+  const url = URL.createObjectURL(blob instanceof Blob ? blob : new Blob([blob]));
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+// Sanitize filename: spaces → hyphens, strip illegal chars, collapse hyphens
+function sanitizeFilename(name) {
+  return name.replace(/\s+/g, '-').replace(/[<>:"/\\|?*]+/g, '').replace(/-{2,}/g, '-');
+}
+
+// Shared Rename Popover — reusable across Convert, Batch, etc.
+// opts: { inputId, tokens: [{token, label?}], getSampleFn: () => { name, ext } }
+// Returns { popoverEl, getValue, destroy }
+function createRenamePopover(anchorBtn, opts) {
+  const { inputId, tokens, getSampleFn } = opts;
+  const hiddenInput = $(inputId);
+
+  // Build popover DOM
+  const popover = document.createElement('div');
+  popover.id = inputId + '-popover';
+  popover.style.cssText = 'display:none;position:absolute;top:100%;left:50%;transform:translateX(-50%);z-index:100;margin-top:4px;background:var(--slate-900);border:1px solid var(--slate-700);border-radius:10px;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:14px 16px;width:320px;';
+
+  const title = document.createElement('div');
+  title.style.cssText = 'color:var(--slate-300);font-size:0.75rem;font-weight:600;margin-bottom:10px;';
+  title.textContent = 'Output Filename Pattern';
+  popover.appendChild(title);
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.id = inputId + '-popover-input';
+  input.className = 'input-field';
+  input.value = hiddenInput?.value || '{name}';
+  input.style.cssText = 'width:100%;padding:6px 10px;font-size:0.8rem;font-family:monospace;box-sizing:border-box;margin-bottom:8px;';
+  popover.appendChild(input);
+
+  // Token chips
+  const chipRow = document.createElement('div');
+  chipRow.style.cssText = 'display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap;';
+  tokens.forEach(t => {
+    const chip = document.createElement('button');
+    chip.textContent = t.token;
+    chip.title = t.label || t.token;
+    chip.style.cssText = 'padding:4px 10px;font-size:0.7rem;border:1px solid var(--slate-600);border-radius:4px;background:var(--slate-800);color:var(--slate-300);cursor:pointer;font-family:monospace;';
+    chip.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const start = input.selectionStart;
+      const end = input.selectionEnd;
+      input.value = input.value.slice(0, start) + t.token + input.value.slice(end);
+      input.selectionStart = input.selectionEnd = start + t.token.length;
+      input.focus();
+      updatePreview();
+    });
+    chipRow.appendChild(chip);
+  });
+  popover.appendChild(chipRow);
+
+  // Preview
+  const previewLabel = document.createElement('div');
+  previewLabel.style.cssText = 'color:var(--slate-500);font-size:0.65rem;margin-bottom:4px;';
+  previewLabel.textContent = 'Preview:';
+  popover.appendChild(previewLabel);
+
+  const previewEl = document.createElement('div');
+  previewEl.style.cssText = 'color:var(--slate-300);font-size:0.75rem;font-family:monospace;background:var(--slate-800);border-radius:4px;padding:6px 10px;word-break:break-all;';
+  popover.appendChild(previewEl);
+
+  // Insert into DOM
+  anchorBtn.style.position = 'relative';
+  anchorBtn.parentElement.style.position = 'relative';
+  anchorBtn.parentElement.appendChild(popover);
+
+  function updatePreview() {
+    const pattern = input.value || '{name}';
+    if (hiddenInput) hiddenInput.value = pattern;
+    const sample = getSampleFn ? getSampleFn(pattern) : null;
+    if (sample) {
+      previewEl.textContent = sanitizeFilename(sample.name) + '.' + sample.ext;
+    } else {
+      previewEl.textContent = sanitizeFilename(pattern.replace(/\{name\}/g, 'photo').replace(/\{index\}/g, '001').replace(/\{[^}]+\}/g, '')) + '.webp';
+    }
+  }
+
+  input.addEventListener('input', updatePreview);
+
+  // Toggle popover
+  anchorBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const show = popover.style.display === 'none';
+    popover.style.display = show ? '' : 'none';
+    if (show) {
+      input.value = hiddenInput?.value || '{name}';
+      updatePreview();
+      input.focus();
+      input.select();
+    }
+  });
+
+  // Close on outside click
+  document.addEventListener('click', (e) => {
+    if (popover.style.display !== 'none' && !popover.contains(e.target) && e.target !== anchorBtn && !anchorBtn.contains(e.target)) {
+      if (hiddenInput) hiddenInput.value = input.value || '{name}';
+      popover.style.display = 'none';
+    }
+  });
+
+  return {
+    popoverEl: popover,
+    getValue: () => input.value || '{name}',
+    updatePreview,
+    destroy: () => { popover.remove(); },
+  };
 }
 
 function steppedResize(source, targetW, targetH) {

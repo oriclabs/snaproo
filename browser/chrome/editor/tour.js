@@ -197,10 +197,13 @@ const tourSteps = {
     { target: '#btn-batch-save-preset', title: 'Presets', text: 'Save all current settings as a named preset. Load it later for repeatable workflows.' },
   ],
   convert: [
-    { target: '#convert-drop', title: 'Drop Images', text: 'Drop image(s) to convert between formats. Batch supported.' },
-    { target: '.format-btn', title: 'Format Selection', text: 'Click the target format: PNG, JPEG, WebP, AVIF, BMP, ICO, TIFF.' },
-    { target: '#convert-quality', title: 'Quality', text: 'Quality slider for lossy formats (JPEG, WebP). Higher = larger file, better quality.' },
-    { target: '#btn-convert-go', title: 'Convert', text: 'Click to convert and download. Batch mode processes all dropped images.' },
+    { target: '#convert-table-wrap', title: 'File Table', text: 'Drop images here or click Add. Each file gets its own row with format, size, and warnings.' },
+    { target: '#btn-convert-add2', title: 'Add Files', text: 'Click to browse for images, or import from your Library. Drop files directly onto the table.' },
+    { target: '#convert-table th:nth-child(7)', title: 'Target Format', text: 'Pick a different output format per file. The source format is excluded automatically.' },
+    { target: '#convert-table th:nth-child(10)', title: 'Preview & Settings', text: 'Click the eye icon to open a live preview with format-specific settings (quality, SVG trace options).' },
+    { target: '#btn-convert-rename', title: 'Rename Pattern', text: 'Set output filename pattern. Use {name}, {index}, {fmt} placeholders. Live preview shows the result.' },
+    { target: '#convert-strip-meta', title: 'Strip EXIF', text: 'Toggle to remove EXIF, GPS, and camera metadata from output files.' },
+    { target: '#btn-convert-go', title: 'Convert & Download', text: 'Converts all checked files. Multiple files are bundled into a ZIP. Progress bar shows at the bottom.' },
   ],
   generate: [
     { target: '#gen-w', title: 'Canvas Size', text: 'Set width and height for the generated image.' },

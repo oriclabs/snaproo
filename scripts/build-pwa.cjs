@@ -6,6 +6,7 @@ const path = require('path');
 
 const SRC = path.join(__dirname, '..', 'browser', 'chrome');
 const DEST = path.join(__dirname, '..', 'website', 'pwa', 'app');
+const OVERRIDES = path.join(__dirname, '..', 'website', 'pwa', 'overrides');
 
 // Clean and create dest
 if (fs.existsSync(DEST)) fs.rmSync(DEST, { recursive: true });
@@ -81,6 +82,32 @@ html = html.replace(
   '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
   '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">'
 );
+
+// Inject PWA mobile overrides (responsive.css + mobile.js)
+if (fs.existsSync(OVERRIDES)) {
+  const overrideCss = fs.readdirSync(OVERRIDES).filter(f => f.endsWith('.css'));
+  const overrideJs = fs.readdirSync(OVERRIDES).filter(f => f.endsWith('.js'));
+
+  // Copy override files to dest
+  for (const f of overrideCss) {
+    fs.copyFileSync(path.join(OVERRIDES, f), path.join(DEST, 'styles', f));
+  }
+  for (const f of overrideJs) {
+    fs.copyFileSync(path.join(OVERRIDES, f), path.join(DEST, f));
+  }
+
+  // Inject CSS links before </head>
+  if (overrideCss.length) {
+    const cssLinks = overrideCss.map(f => `  <link rel="stylesheet" href="styles/${f}">`).join('\n');
+    html = html.replace('</head>', `${cssLinks}\n</head>`);
+  }
+
+  // Inject JS scripts before </body> (after service worker)
+  if (overrideJs.length) {
+    const jsTags = overrideJs.map(f => `  <script src="${f}"></script>`).join('\n');
+    html = html.replace('</body>', `${jsTags}\n</body>`);
+  }
+}
 
 fs.writeFileSync(path.join(DEST, 'index.html'), html);
 

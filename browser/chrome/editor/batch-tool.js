@@ -162,31 +162,32 @@ function initBatch() {
     $('btn-batch-preview').disabled = checked === 0;
   }
 
-  function updateRenamePreview() {
-    const preview = $('batch-rename-preview');
-    if (!preview) return;
-    if (!batchFiles.length) { preview.textContent = ''; return; }
-    const fmt = $('batch-format')?.value || 'png';
-    const ext = fmt === 'original' ? batchFiles[0].file.name.split('.').pop() : (fmt === 'jpeg' ? 'jpg' : fmt);
-    const w = +($('batch-w')?.value) || batchFiles[0].img.naturalWidth;
-    const h = +($('batch-h')?.value) || batchFiles[0].img.naturalHeight;
-    const name = batchFilename(batchFiles[0], 0, w, h, ext);
-    preview.textContent = name;
-    preview.title = name;
-  }
-
-  // Update rename preview on input
-  $('batch-rename')?.addEventListener('input', updateRenamePreview);
-
-  // Token insert buttons
-  $$('#batch-rename-tokens [data-token]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const input = $('batch-rename');
-      if (!input) return;
-      input.value += btn.dataset.token;
-      input.dispatchEvent(new Event('input'));
+  // ── Rename popover (shared component) ───────────────────
+  if ($('btn-batch-rename')) {
+    createRenamePopover($('btn-batch-rename'), {
+      inputId: 'batch-rename',
+      tokens: [
+        { token: '{name}', label: 'Original filename' },
+        { token: '{index}', label: 'File number (001, 002…)' },
+        { token: '{date}', label: 'Today\'s date (YYYY-MM-DD)' },
+        { token: '{w}', label: 'Output width' },
+        { token: '{h}', label: 'Output height' },
+        { token: '{ext}', label: 'Original extension' },
+      ],
+      getSampleFn: (pattern) => {
+        if (!batchFiles.length) return { name: pattern.replace(/\{name\}/g, 'photo').replace(/\{index\}/g, '001').replace(/\{date\}/g, new Date().toISOString().slice(0,10)).replace(/\{w\}/g, '800').replace(/\{h\}/g, '600').replace(/\{ext\}/g, 'png'), ext: 'png' };
+        const fmt = $('batch-format')?.value || 'png';
+        const ext = fmt === 'original' ? batchFiles[0].file.name.split('.').pop() : (fmt === 'jpeg' ? 'jpg' : fmt);
+        const w = +($('batch-w')?.value) || batchFiles[0].img.naturalWidth;
+        const h = +($('batch-h')?.value) || batchFiles[0].img.naturalHeight;
+        const baseName = batchFiles[0].file.name.replace(/\.[^.]+$/, '');
+        const origExt = batchFiles[0].file.name.split('.').pop();
+        const date = new Date().toISOString().slice(0, 10);
+        const name = pattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, '001').replace(/\{i\}/g, '1').replace(/\{date\}/g, date).replace(/\{w\}/g, w).replace(/\{h\}/g, h).replace(/\{ext\}/g, origExt);
+        return { name, ext };
+      },
     });
-  });
+  }
 
   // --- 1. Import Pipeline from Edit mode ---
   $('btn-batch-import-pipeline')?.addEventListener('click', () => {
@@ -259,15 +260,15 @@ function initBatch() {
     const baseName = bf.file.name.replace(/\.[^.]+$/, '');
     const origExt = bf.file.name.split('.').pop();
     const date = new Date().toISOString().slice(0, 10);
-    return pattern
+    const raw = pattern
       .replace(/\{name\}/g, baseName)
       .replace(/\{index\}/g, String(index + 1).padStart(3, '0'))
       .replace(/\{i\}/g, String(index + 1))
       .replace(/\{date\}/g, date)
       .replace(/\{w\}/g, w)
       .replace(/\{h\}/g, h)
-      .replace(/\{ext\}/g, origExt)
-      + '.' + ext;
+      .replace(/\{ext\}/g, origExt);
+    return sanitizeFilename(raw) + '.' + ext;
   }
 
   // --- Watermark with position ---
@@ -659,15 +660,14 @@ function initBatch() {
         await zip.addBlob(r.filename, r.blob);
       }
       const zipBlob = zip.toBlob();
-      const zipUrl = URL.createObjectURL(zipBlob);
-      Platform.download(zipUrl, 'snaproo/batch-export.zip', true);
+      directDownload(zipBlob, 'batch-export.zip');
       const origTotal = checked.reduce((s, bf) => s + bf.file.size, 0);
       const pctSaved = origTotal > 0 ? Math.round((1 - zipBlob.size / origTotal) * 100) : 0;
       text.textContent = `Done! ${allResults.length} files zipped (${(zipBlob.size / 1024 / 1024).toFixed(1)} MB) | Original: ${(origTotal/1024/1024).toFixed(1)} MB \u2192 ${pctSaved}% ${pctSaved >= 0 ? 'smaller' : 'larger'}`;
     } else {
       // Individual downloads
       for (const r of allResults) {
-        Platform.download(URL.createObjectURL(r.blob), `snaproo/batch/${r.filename}`, false);
+        directDownload(r.blob, r.filename);
         await new Promise(res => setTimeout(res, 50));
       }
       const origTotal = checked.reduce((s, bf) => s + bf.file.size, 0);
@@ -723,7 +723,7 @@ function initBatch() {
     if (useZip && window._batchZip) {
       await window._batchZip.addBlob(filename, blob);
     } else {
-      Platform.download(URL.createObjectURL(blob), `snaproo/batch/${filename}`, false);
+      directDownload(blob, filename);
       await new Promise(r => setTimeout(r, 50));
     }
   }
@@ -740,7 +740,7 @@ function initBatch() {
   async function finishBatchZip(label) {
     if (window._batchZip) {
       const zipBlob = window._batchZip.toBlob();
-      Platform.download(URL.createObjectURL(zipBlob), `snaproo/${label}.zip`, true);
+      directDownload(zipBlob, `${label}.zip`);
       const footer = $('footer-status');
       if (footer) footer.textContent = `${label}: ${(zipBlob.size / 1024 / 1024).toFixed(1)} MB zip`;
       window._batchZip = null;
