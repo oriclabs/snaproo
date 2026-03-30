@@ -17,10 +17,6 @@ function initConvert() {
     addFiles([file]);
   }, { multiple: true });
 
-  $('convert-file')?.addEventListener('change', (e) => {
-    if (e.target.files?.length) addFiles([...e.target.files]);
-  });
-
   // Add more button
   $('btn-convert-add')?.addEventListener('click', () => {
     const input = document.createElement('input');
@@ -233,6 +229,10 @@ function initConvert() {
     bar.style.width = '0%';
 
     const total = cvtFiles.length;
+    const useZip = total > 1 && typeof ZipWriter !== 'undefined';
+    const zip = useZip ? new ZipWriter() : null;
+    const results = []; // { filename, blob } for single-file download
+
     for (let i = 0; i < total; i++) {
       const f = cvtFiles[i];
       const img = await loadImg(f.file);
@@ -251,18 +251,23 @@ function initConvert() {
       const c = (w !== img.naturalWidth || h !== img.naturalHeight) ?
         (typeof steppedResize === 'function' ? steppedResize(srcC, w, h) : (() => { const t = document.createElement('canvas'); t.width = w; t.height = h; t.getContext('2d').drawImage(srcC, 0, 0, w, h); return t; })()) : srcC;
 
+      const baseName = f.file.name.replace(/\.[^.]+$/, '');
+
       // SVG trace
       if (isSvg) {
         if (typeof ImageTracer === 'undefined') { continue; }
         const imgd = c.getContext('2d').getImageData(0, 0, c.width, c.height);
         const opts = ImageTracer.optionpresets[svgPreset] ? { ...ImageTracer.optionpresets[svgPreset] } : {};
         opts.numberofcolors = svgColors;
-        opts.strokewidth = Math.max(1, opts.strokewidth || 1); // prevent gaps between paths
+        opts.strokewidth = Math.max(1, opts.strokewidth || 1);
         const svgStr = ImageTracer.imagedataToSVG(imgd, opts);
-        const svgBlob = new Blob([svgStr], { type: 'image/svg+xml' });
-        const baseName = f.file.name.replace(/\.[^.]+$/, '');
         const filename = renamePattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, String(i + 1).padStart(3, '0')).replace(/\{fmt\}/g, 'svg') + '.svg';
-        chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(svgBlob), filename: `snaproo/${filename}`, saveAs: total === 1 });
+        if (useZip) {
+          zip.addFile(filename, new TextEncoder().encode(svgStr));
+        } else {
+          const svgBlob = new Blob([svgStr], { type: 'image/svg+xml' });
+          chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(svgBlob), filename: `snaproo/${filename}`, saveAs: true });
+        }
         bar.style.width = Math.round((i + 1) / total * 100) + '%';
         continue;
       }
@@ -280,22 +285,26 @@ function initConvert() {
         }
       }
 
-      // Filename
-      const baseName = f.file.name.replace(/\.[^.]+$/, '');
       const filename = renamePattern
         .replace(/\{name\}/g, baseName)
         .replace(/\{index\}/g, String(i + 1).padStart(3, '0'))
         .replace(/\{fmt\}/g, fmt)
         + '.' + ext;
 
-      chrome.runtime.sendMessage({
-        action: 'download',
-        url: URL.createObjectURL(blob),
-        filename: `snaproo/${filename}`,
-        saveAs: total === 1,
-      });
+      if (useZip) {
+        const buf = await blob.arrayBuffer();
+        zip.addFile(filename, new Uint8Array(buf));
+      } else {
+        chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${filename}`, saveAs: true });
+      }
 
       bar.style.width = Math.round((i + 1) / total * 100) + '%';
+    }
+
+    // Download ZIP for multiple files
+    if (useZip) {
+      const zipBlob = zip.finish();
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: `snaproo/converted-${ext}.zip`, saveAs: true });
     }
 
     setTimeout(() => { progress.style.display = 'none'; bar.style.width = '0%'; }, 1500);
