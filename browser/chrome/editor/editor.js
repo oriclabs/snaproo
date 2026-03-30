@@ -944,6 +944,12 @@ function openMode(mode) {
   const labels = { edit:'Edit', convert:'Convert', store:'Store Assets', info:'Info', qr:'QR Code', colors:'Colors', svg:'SVG Tools', compare:'Compare', generate:'Generate', showcase:'Showcase', meme:'Meme', certificate:'Certificate', gif:'GIF Creator', collage:'Collage', batch:'Batch Edit', social:'Social Media', watermark:'Watermark', callout:'Callout' };
   $('mode-label').textContent = labels[mode] || '';
 
+  // Restore undo/redo visibility for edit mode
+  if (mode === 'edit') {
+    $('btn-undo').style.display = '';
+    $('btn-redo').style.display = '';
+  }
+
   // Apply saved ribbon group visibility preferences
   if (panel) applyRibbonPrefs(panel);
 }
