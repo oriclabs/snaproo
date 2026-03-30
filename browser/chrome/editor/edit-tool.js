@@ -1842,10 +1842,8 @@ function initImageHandles() {
 function showImageHandles() {
   const container = $('img-resize-handles');
   if (!container || !editCanvas.width) { if (container) container.style.display = 'none'; return; }
-  // Hide handles when pipeline has dimension-changing operations (crop/rotate)
-  // Resize via handles conflicts with these operations
-  const hasSizeOps = pipeline.operations?.some(op => ['crop','rotate','straighten','padding'].includes(op.type));
-  if (hasSizeOps) { container.style.display = 'none'; return; }
+  // Hide handles only during active crop overlay
+  if (Crop?.active) { container.style.display = 'none'; return; }
   // Move handles container to edit-work (not canvas-wrap, which gets CSS transformed)
   const work = $('edit-work');
   if (container.parentElement !== work) work.appendChild(container);
