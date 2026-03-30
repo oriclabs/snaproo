@@ -177,14 +177,14 @@ function initEdit() {
   $('btn-rotate-left').addEventListener('click', () => {
     if (!editCanvas.width) return;
     pipeline.addOperation({ type: 'rotate', degrees: -90 });
-    editCanvas.style.width = ''; editCanvas.style.height = '';
     updResize(); saveEdit(); showImageHandles();
+    if (window.fitToView) window.fitToView();
   });
   $('btn-rotate-right').addEventListener('click', () => {
     if (!editCanvas.width) return;
     pipeline.addOperation({ type: 'rotate', degrees: 90 });
-    editCanvas.style.width = ''; editCanvas.style.height = '';
     updResize(); saveEdit(); showImageHandles();
+    if (window.fitToView) window.fitToView();
   });
   $('btn-flip-h').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'h'}); saveEdit(); });
   $('btn-flip-v').addEventListener('click', () => { pipeline.addOperation({type:'flip', direction:'v'}); saveEdit(); });
@@ -267,10 +267,9 @@ function initEdit() {
     zoomLevel = 1; panX = 0; panY = 0;
     const wrap = $('edit-canvas-wrap');
     if (wrap) wrap.style.transform = '';
-    editCanvas.style.width = '';
-    editCanvas.style.height = '';
     updResize(); saveEdit();
     showImageHandles();
+    if (window.fitToView) window.fitToView();
   });
 
   const cropRatios = { 'btn-crop-free': null, 'btn-crop-1-1': 1, 'btn-crop-4-3': 4/3, 'btn-crop-16-9': 16/9, 'btn-crop-3-2': 3/2 };
@@ -683,8 +682,9 @@ function initEdit() {
     Crop.onApply = (x, y, w, h) => {
       const op = { type: 'maskFilter', filterName: _maskFilterName, x, y, w, h, amount: _maskAmount };
       pipeline.addOperation(op);
-      editCanvas.style.width = ''; editCanvas.style.height = '';
       updResize(); saveEdit();
+      // Re-fit to preserve zoom level (don't reset CSS width/height)
+      if (window.fitToView) window.fitToView();
       Crop.onApply = origOnApply;
     };
 
@@ -1819,10 +1819,9 @@ function initImageHandles() {
     if (dragHandle) {
       // Apply resize via pipeline only on release
       if (pendingResizeW && pendingResizeH && (pendingResizeW !== startW || pendingResizeH !== startH)) {
-        editCanvas.style.width = '';
-        editCanvas.style.height = '';
         pipeline.setExportSize(pendingResizeW, pendingResizeH);
         updResize();
+        if (window.fitToView) window.fitToView();
       }
       pendingResizeW = 0;
       pendingResizeH = 0;
@@ -1938,8 +1937,8 @@ function pulseExportButton() {
 }
 function editUndo() {
   pipeline.undo();
-  editCanvas.style.width = ''; editCanvas.style.height = '';
   updResize(); saveEdit(); showImageHandles();
+  if (window.fitToView) window.fitToView();
 }
 
 // ============================================================
@@ -2182,8 +2181,8 @@ function updateInfoBar() {
 }
 function editRedo() {
   pipeline.redo();
-  editCanvas.style.width = ''; editCanvas.style.height = '';
   updResize(); saveEdit(); showImageHandles();
+  if (window.fitToView) window.fitToView();
 }
 
 // editRotate and editFlip removed — now handled by pipeline.addOperation()
