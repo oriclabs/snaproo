@@ -2026,9 +2026,22 @@ function initInfoBar() {
   // Fit image to the work area viewport
   window.fitToView = fitToView;
   function fitToView() {
-    // Reset canvas CSS — let it display at natural pixel size
-    editCanvas.style.width = '';
-    editCanvas.style.height = '';
+    if (!editCanvas.width || !editCanvas.height) return;
+    const workArea = editCanvas.closest('.work-area');
+    if (!workArea) return;
+    const areaW = workArea.clientWidth * 0.9;
+    const areaH = workArea.clientHeight * 0.9;
+    const imgW = editCanvas.width;
+    const imgH = editCanvas.height;
+    // Only scale down if image is larger than work area
+    if (imgW > areaW || imgH > areaH) {
+      const scale = Math.min(areaW / imgW, areaH / imgH);
+      editCanvas.style.width = Math.round(imgW * scale) + 'px';
+      editCanvas.style.height = Math.round(imgH * scale) + 'px';
+    } else {
+      editCanvas.style.width = '';
+      editCanvas.style.height = '';
+    }
     zoomLevel = 1; panX = 0; panY = 0;
     updateZoom();
   }
