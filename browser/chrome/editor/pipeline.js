@@ -34,7 +34,6 @@ class EditPipeline {
     this.originalHeight = img.naturalHeight || img.height;
     this.exportWidth = this.originalWidth;
     this.exportHeight = this.originalHeight;
-    this._manualResize = false;
     this.operations = [];
     this.undoneOps = [];
     this.render();
@@ -70,15 +69,17 @@ class EditPipeline {
     this.undoneOps = [];
     this.exportWidth = this.originalWidth;
     this.exportHeight = this.originalHeight;
-    this._manualResize = false;
     this.render();
   }
 
-  // Set export dimensions (non-destructive resize)
+  // Set export dimensions via resize operation (undoable)
   setExportSize(w, h) {
-    this.exportWidth = w;
-    this.exportHeight = h;
-    this._manualResize = (w !== this.originalWidth || h !== this.originalHeight);
+    // Remove any existing resize operation and add new one
+    this.operations = this.operations.filter(op => op.type !== 'resize');
+    if (w !== this.originalWidth || h !== this.originalHeight) {
+      this.operations.push({ type: 'resize', w, h });
+    }
+    this.undoneOps = [];
     this.render();
   }
 
@@ -91,43 +92,27 @@ class EditPipeline {
     const c = this.displayCanvas;
     const ctx = this.displayCtx;
 
-    // Always start from original dimensions — operations change canvas size as needed
-    const startW = this._manualResize ? this.exportWidth : this.originalWidth;
-    const startH = this._manualResize ? this.exportHeight : this.originalHeight;
-    const resized = startW !== this.originalWidth || startH !== this.originalHeight;
+    // Always start from original
+    c.width = this.originalWidth; c.height = this.originalHeight;
+    ctx.drawImage(this.original, 0, 0);
 
-    if (resized) {
-      c.width = startW; c.height = startH;
-      if (typeof steppedResize === 'function' &&
-          (this.exportWidth < this.originalWidth / 2 || this.exportHeight < this.originalHeight / 2)) {
-        const tmp = document.createElement('canvas');
-        tmp.width = this.originalWidth; tmp.height = this.originalHeight;
-        tmp.getContext('2d').drawImage(this.original, 0, 0);
-        ctx.drawImage(steppedResize(tmp, this.exportWidth, this.exportHeight), 0, 0);
-      } else {
-        ctx.drawImage(this.original, 0, 0, this.exportWidth, this.exportHeight);
-      }
-    } else {
-      c.width = this.originalWidth; c.height = this.originalHeight;
-      ctx.drawImage(this.original, 0, 0);
-    }
-
-    // Apply each operation — ops may change canvas dimensions
+    // Apply each operation in order (including resize)
     for (const op of this.operations) {
       this._applyOp(ctx, c, op);
     }
-    // Don't sync export dimensions from operations — they're recalculated each render
-    // Only manual resize (setExportSize) sets persistent export dimensions
+
+    // Update export dimensions from final canvas state
+    this.exportWidth = c.width;
+    this.exportHeight = c.height;
   }
 
-  // Render at full resolution for export (may differ from display)
-  renderForExport(targetW, targetH) {
+  // Render at full resolution for export
+  renderForExport() {
     const c = document.createElement('canvas');
-    c.width = targetW || this.exportWidth;
-    c.height = targetH || this.exportHeight;
+    c.width = this.originalWidth;
+    c.height = this.originalHeight;
     const ctx = c.getContext('2d');
-
-    ctx.drawImage(this.original, 0, 0, c.width, c.height);
+    ctx.drawImage(this.original, 0, 0);
 
     for (const op of this.operations) {
       this._applyOp(ctx, c, op);
@@ -138,6 +123,19 @@ class EditPipeline {
 
   _applyOp(ctx, canvas, op) {
     switch (op.type) {
+      case 'resize': {
+        const { w, h } = op;
+        const tmp = document.createElement('canvas');
+        tmp.width = canvas.width; tmp.height = canvas.height;
+        tmp.getContext('2d').drawImage(canvas, 0, 0);
+        canvas.width = w; canvas.height = h;
+        if (typeof steppedResize === 'function' && (w < tmp.width / 2 || h < tmp.height / 2)) {
+          ctx.drawImage(steppedResize(tmp, w, h), 0, 0);
+        } else {
+          ctx.drawImage(tmp, 0, 0, w, h);
+        }
+        break;
+      }
       case 'rotate': {
         const tmp = document.createElement('canvas');
         const tc = tmp.getContext('2d');

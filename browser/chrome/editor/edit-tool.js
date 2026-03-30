@@ -171,6 +171,7 @@ function initEdit() {
     if (!w || !h || (w === editCanvas.width && h === editCanvas.height)) return;
     pipeline.setExportSize(w, h);
     updResize(); saveEdit();
+    if (window.fitToView) window.fitToView();
   });
 
   // Transform (non-destructive via pipeline)
@@ -2012,9 +2013,10 @@ function initInfoBar() {
     }
     if (!newW || !newH || newW < 1 || newH < 1) return;
 
-    // Non-destructive: pipeline resize renders from original at target size
+    // Non-destructive: pipeline resize as undoable operation
     pipeline.setExportSize(newW, newH);
     updResize(); saveEdit();
+    if (window.fitToView) window.fitToView();
   }
 
   barApply?.addEventListener('click', applyBarResize);
@@ -2108,6 +2110,7 @@ function initInfoBar() {
     const origH = editOriginal.naturalHeight || editOriginal.height;
     pipeline.setExportSize(origW, origH);
     updResize(); saveEdit();
+    if (window.fitToView) window.fitToView();
   });
 
   // Size presets
@@ -2147,6 +2150,7 @@ function initInfoBar() {
       }
       pipeline.setExportSize(newW, newH);
       updResize(); saveEdit();
+      if (window.fitToView) window.fitToView();
     }
     e.target.value = ''; // reset to "Presets" label
   });
