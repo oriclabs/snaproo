@@ -187,7 +187,7 @@ function initConvert() {
     $('convert-table-wrap').style.display = 'none';
     $('convert-actions-bar').style.display = 'none';
     $('convert-warnings-bar').style.display = 'none';
-    $('convert-preview-panel').style.display = 'none';
+    $('convert-preview-overlay').style.display = 'none';
     $('btn-convert-go').disabled = true;
     $('convert-status').textContent = '0 files';
     $('compression-preview').innerHTML = 'Drop images to start';
@@ -214,7 +214,7 @@ function initConvert() {
   function _showPreview(idx) {
     previewIdx = idx;
     renderTable(); // re-highlight row
-    const panel = $('convert-preview-panel');
+    const panel = $('convert-preview-overlay');
     if (idx < 0 || !cvtFiles[idx]) {
       panel.style.display = 'none';
       return;
@@ -228,6 +228,17 @@ function initConvert() {
   }
 
   $('cvt-close-preview')?.addEventListener('click', () => _showPreview(-1));
+  // Close on backdrop click
+  $('convert-preview-overlay')?.addEventListener('click', (e) => {
+    if (e.target === $('convert-preview-overlay')) _showPreview(-1);
+  });
+  // Close on Escape
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && previewIdx >= 0 && $('convert-preview-overlay')?.style.display !== 'none') {
+      e.stopPropagation();
+      _showPreview(-1);
+    }
+  });
 
   async function _updateOutputPreview(f) {
     const fmt = f.fmt;
@@ -278,15 +289,15 @@ function initConvert() {
       $('convert-output-size').textContent = `(${_fmtSize(blob.size)})`;
     }
 
-    // Sync preview box sizes
+    // Match output box height to original box
     requestAnimationFrame(() => {
       const origBox = $('convert-img-box');
       const outBox = $('convert-output-box');
       if (origBox && outBox) {
         const r = origBox.getBoundingClientRect();
         if (r.width > 0 && r.height > 0) {
-          outBox.style.width = r.width + 'px';
-          outBox.style.height = r.height + 'px';
+          outBox.style.minHeight = r.height + 'px';
+          outBox.style.minWidth = r.width + 'px';
         }
       }
     });

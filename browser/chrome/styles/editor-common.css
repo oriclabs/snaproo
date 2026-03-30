@@ -283,3 +283,20 @@ body.tool-active .tool-footer { display: flex; }
   /* Hide less important action buttons */
   #btn-convert-clear-sel { display: none; }
 }
+
+/* Convert preview overlay responsive */
+@media (max-width: 768px) {
+  #convert-preview-overlay > div { margin: 0.5rem; border-radius: 8px; }
+  #convert-preview-overlay > div > div:last-child {
+    flex-direction: column !important;
+    align-items: center !important;
+    padding: 0.75rem !important;
+    gap: 1rem !important;
+  }
+  #convert-preview-overlay > div > div:last-child > div {
+    max-width: 90vw !important;
+    min-width: unset !important;
+  }
+  #convert-img { max-width: 85vw !important; max-height: 35vh !important; }
+  #convert-output-box { max-width: 85vw !important; }
+}
