@@ -1,4 +1,4 @@
-// Pixeroo E2E — Individual tool smoke tests
+// Snaproo E2E — Individual tool smoke tests
 import { test, expect } from '@playwright/test';
 import { getExtensionId, docScreenshot } from './helpers.js';
 

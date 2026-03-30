@@ -1,4 +1,4 @@
-// Pixeroo E2E — Editor tool flows
+// Snaproo E2E — Editor tool flows
 import { test, expect } from '@playwright/test';
 import { getEditorPage, getExtensionId, loadImageInEditor, openTool, goHome, getCanvasDims, docScreenshot, FIXTURES } from './helpers.js';
 import path from 'path';
@@ -99,7 +99,7 @@ test.describe('Editor Tool', () => {
     await page.click('#btn-back');
     await page.waitForTimeout(500);
     // pixDialog is custom, not native — check if dialog overlay appeared
-    const dialogVisible = await page.locator('.pixeroo-dialog-backdrop:visible').count().catch(() => 0);
+    const dialogVisible = await page.locator('.snaproo-dialog-backdrop:visible').count().catch(() => 0);
     // Accept or the mode-edit might still be visible
     await docScreenshot(page, '05-back-unsaved-prompt', browserName);
   });

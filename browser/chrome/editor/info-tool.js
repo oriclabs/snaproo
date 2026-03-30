@@ -1,4 +1,4 @@
-// Pixeroo — Info Tool
+// Snaproo — Info Tool
 function initInfo() {
   setupDropzone($('info-drop'), $('info-file'), async (file) => {
     $('info-drop').style.display = 'none';

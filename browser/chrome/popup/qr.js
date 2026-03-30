@@ -1,5 +1,5 @@
 // QR Code wrapper — uses qrcode-generator by Kazuhiko Arase (MIT)
-// Provides the QR.encode(text, eccLevel) API used throughout Pixeroo
+// Provides the QR.encode(text, eccLevel) API used throughout Snaproo
 
 const QR = (() => {
   'use strict';

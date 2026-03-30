@@ -1,4 +1,4 @@
-// Pixeroo Editor - Extended Tools Part 2
+// Snaproo Editor - Extended Tools Part 2
 // Canvas ops, color ops, generators, social presets, analysis, quality
 
 // ============================================================

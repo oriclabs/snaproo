@@ -1,4 +1,4 @@
-// Pixeroo — Store Tool
+// Snaproo — Store Tool
 const STORE_SPECS = {
   play: [
     { name: 'App Icon', w: 512, h: 512, type: 'icon' },
@@ -184,7 +184,7 @@ function renderStoreAssets(filter) {
         card.addEventListener('click', () => {
           item.canvas.toBlob(blob => {
             const name = `${store}-${spec.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${spec.w}x${spec.h}.png`;
-            chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/store-assets/${name}`, saveAs: true });
+            chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/store-assets/${name}`, saveAs: true });
           });
         });
       }
@@ -204,7 +204,7 @@ async function exportStoreZip() {
     for (const item of items) {
       const name = `${store}-${item.spec.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${item.spec.w}x${item.spec.h}.png`;
       const blob = await new Promise(r => item.canvas.toBlob(r));
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/store-assets/${name}`, saveAs: false });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/store-assets/${name}`, saveAs: false });
     }
   }
 }

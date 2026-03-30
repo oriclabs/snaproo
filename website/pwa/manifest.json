@@ -1,6 +1,6 @@
 {
-  "name": "Pixeroo",
-  "short_name": "Pixeroo",
+  "name": "Snaproo",
+  "short_name": "Snaproo",
   "description": "Private Image Experience Engine. Read. Optimise. Output.",
   "start_url": "/website/pwa/index.html",
   "display": "standalone",

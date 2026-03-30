@@ -1,4 +1,4 @@
-// Pixeroo Editor - Home screen + tool mode initialization
+// Snaproo Editor - Home screen + tool mode initialization
 // Navigation, global drop, workspace, help system, library picker
 
 // ── Help System: per-tool popovers + shortcuts overlay ──
@@ -29,7 +29,7 @@ const toolHelp = {
   colors: { Colors: ['Drop image, click any pixel to pick color', 'Dominant palette extracted automatically', 'Adjust palette count with slider'] },
   svg: { SVG: ['Drop SVG to inspect source, export as raster', 'Drop image to trace into SVG (vectorize)', 'Trace presets: Logo, Sketch, Photo, Artistic, etc.', 'Grid overlay to check trace accuracy'] },
   compare: { Compare: ['Drop two images (A and B)', 'Diff: highlights pixel differences in red', 'Slider: drag to compare before/after', 'Center guides toggle for alignment check'] },
-  batch: { Batch: ['Drop multiple images, apply same operations to all', 'Resize, filter, watermark, format conversion', 'Click thumbnails to remove, + to add more', 'Process All downloads everything to pixeroo/batch/'] },
+  batch: { Batch: ['Drop multiple images, apply same operations to all', 'Resize, filter, watermark, format conversion', 'Click thumbnails to remove, + to add more', 'Process All downloads everything to snaproo/batch/'] },
 };
 
 function showHelpPopover(btn, mode, group) {
@@ -400,7 +400,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Load saved settings into popover
-  chrome.storage.sync.get({ defaultFormat: 'png', downloadPrefix: 'pixeroo', fontSize: 100, fontFamily: 'jetbrains' }, (r) => {
+  chrome.storage.sync.get({ defaultFormat: 'png', downloadPrefix: 'snaproo', fontSize: 100, fontFamily: 'jetbrains' }, (r) => {
     const fmtEl = $('qs-format'); if (fmtEl) fmtEl.value = r.defaultFormat;
     const folderEl = $('qs-folder'); if (folderEl) folderEl.value = r.downloadPrefix;
     const ffEl = $('qs-font-family'); if (ffEl) ffEl.value = r.fontFamily || 'system';
@@ -431,7 +431,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // === Workspace Save / Load ===
 
   function collectWorkspace() {
-    const ws = { version: 1, timestamp: Date.now(), name: 'Pixeroo Workspace' };
+    const ws = { version: 1, timestamp: Date.now(), name: 'Snaproo Workspace' };
 
     function val(id) {
       const el = document.getElementById(id);
@@ -570,7 +570,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     const timestamp = new Date().toISOString().slice(0, 10);
-    a.href = url; a.download = `pixeroo-workspace-${timestamp}.json`; a.click();
+    a.href = url; a.download = `snaproo-workspace-${timestamp}.json`; a.click();
     URL.revokeObjectURL(url);
     $('settings-popover').style.display = 'none';
   });
@@ -590,7 +590,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (ok) {
         await pixDialog.alert('Workspace Loaded', `Settings restored from "${file.name}".`);
       } else {
-        await pixDialog.alert('Invalid Workspace', 'This file is not a valid Pixeroo workspace.');
+        await pixDialog.alert('Invalid Workspace', 'This file is not a valid Snaproo workspace.');
       }
     } catch {
       await pixDialog.alert('Error', 'Could not read workspace file.');
@@ -605,14 +605,14 @@ document.addEventListener('DOMContentLoaded', () => {
     clearTimeout(wsAutoSaveTimer);
     wsAutoSaveTimer = setTimeout(() => {
       const ws = collectWorkspace();
-      chrome.storage.local.set({ 'pixeroo-last-workspace': ws }).catch(() => {});
+      chrome.storage.local.set({ 'snaproo-last-workspace': ws }).catch(() => {});
     }, 30000);
   }
 
   // Load last workspace on startup
-  chrome.storage.local.get('pixeroo-last-workspace', (r) => {
-    if (r['pixeroo-last-workspace']) {
-      applyWorkspace(r['pixeroo-last-workspace']);
+  chrome.storage.local.get('snaproo-last-workspace', (r) => {
+    if (r['snaproo-last-workspace']) {
+      applyWorkspace(r['snaproo-last-workspace']);
     }
   });
 
@@ -644,10 +644,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for region capture transfer
   if (params.get('fromRegion')) {
-    chrome.storage.local.get('pixeroo-region', (r) => {
-      const data = r['pixeroo-region'];
+    chrome.storage.local.get('snaproo-region', (r) => {
+      const data = r['snaproo-region'];
       if (!data?.dataUrl || !data?.region) return;
-      chrome.storage.local.remove('pixeroo-region');
+      chrome.storage.local.remove('snaproo-region');
       const { x, y, w, h } = data.region;
       const fullImg = new Image();
       fullImg.src = data.dataUrl;
@@ -670,10 +670,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for screenshot transfer (from popup Quick Action)
   if (params.get('fromScreenshot')) {
-    chrome.storage.local.get('pixeroo-screenshot', (r) => {
-      const data = r['pixeroo-screenshot'];
+    chrome.storage.local.get('snaproo-screenshot', (r) => {
+      const data = r['snaproo-screenshot'];
       if (!data?.dataUrl) return;
-      chrome.storage.local.remove('pixeroo-screenshot');
+      chrome.storage.local.remove('snaproo-screenshot');
       openMode('edit');
       const img = new Image();
       img.src = data.dataUrl;
@@ -686,11 +686,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Check for library transfer (images sent from side panel)
   if (params.get('fromLib')) {
-    chrome.storage.local.get('pixeroo-lib-transfer', async (r) => {
-      const data = r['pixeroo-lib-transfer'];
+    chrome.storage.local.get('snaproo-lib-transfer', async (r) => {
+      const data = r['snaproo-lib-transfer'];
       if (!data?.images?.length) return;
       // Clean up transfer data
-      chrome.storage.local.remove('pixeroo-lib-transfer');
+      chrome.storage.local.remove('snaproo-lib-transfer');
 
       const tool = data.tool || 'edit';
       if (tool === 'edit') {

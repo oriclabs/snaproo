@@ -1,9 +1,9 @@
-// Pixeroo Settings
+// Snaproo Settings
 
 const DEFAULTS = {
   theme: 'dark',
   defaultFormat: 'png',
-  downloadPrefix: 'pixeroo',
+  downloadPrefix: 'snaproo',
   qrDefaultEcc: 'M',
   defaultView: 'tiles',
   defaultSort: 'position',

@@ -1,4 +1,4 @@
-// Pixeroo — Compare Tool
+// Snaproo — Compare Tool
 function initCompare() {
   let iA=null, iB=null;
   setupDropzone($('compare-drop-a'),$('compare-file-a'),async(f)=>{iA=await loadImg(f);if(!iA)return;const c=$('compare-canvas-a');c.style.display='block';c.width=iA.naturalWidth;c.height=iA.naturalHeight;c.getContext('2d').drawImage(iA,0,0);$('compare-drop-a').style.display='none';$('compare-info-a').textContent=`${iA.naturalWidth}x${iA.naturalHeight} | ${f.name}`;});

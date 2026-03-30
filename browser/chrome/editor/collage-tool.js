@@ -1,4 +1,4 @@
-// Pixeroo — Collage Tool
+// Snaproo — Collage Tool
 function initCollage() {
   const canvas = $('collage-canvas');
   if (!canvas) return;
@@ -1641,12 +1641,12 @@ function initCollage() {
       trimCanvas.width = b.w; trimCanvas.height = b.h;
       trimCanvas.getContext('2d').drawImage(canvas, b.x, b.y, b.w, b.h, 0, 0, b.w, b.h);
       trimCanvas.toBlob(blob => {
-        chrome.runtime.sendMessage({ action:'download', url:URL.createObjectURL(blob), filename:`pixeroo/collage.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
+        chrome.runtime.sendMessage({ action:'download', url:URL.createObjectURL(blob), filename:`snaproo/collage.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
         selected = savedSel; snapGuides = savedSnap; selection = savedSel ? [savedSel] : []; render();
       }, mime, q);
     } else {
       canvas.toBlob(blob => {
-        chrome.runtime.sendMessage({ action:'download', url:URL.createObjectURL(blob), filename:`pixeroo/collage.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
+        chrome.runtime.sendMessage({ action:'download', url:URL.createObjectURL(blob), filename:`snaproo/collage.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
         selected = savedSel; snapGuides = savedSnap; selection = savedSel ? [savedSel] : []; render();
       }, mime, q);
     }
@@ -1680,7 +1680,7 @@ function initCollage() {
     const json = JSON.stringify(project);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    chrome.runtime.sendMessage({ action: 'download', url, filename: 'pixeroo/collage-project.pixeroo', saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url, filename: 'snaproo/collage-project.snaproo', saveAs: true });
     if (footer) footer.textContent = `Project saved (${(json.length / 1024).toFixed(0)} KB)`;
   });
 

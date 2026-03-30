@@ -1,4 +1,4 @@
-// Pixeroo — Convert Tool
+// Snaproo — Convert Tool
 // convertFiles is declared in shared-editor.js
 
 function initConvert() {
@@ -47,7 +47,7 @@ function initConvert() {
       srcC.getContext('2d').drawImage(img, 0, 0);
       const c = (w !== img.naturalWidth || h !== img.naturalHeight) ? steppedResize(srcC, w, h) : srcC;
       const blob = await new Promise(r => c.toBlob(r, mime, q));
-      chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`pixeroo/${file.name.replace(/\.[^.]+$/,'')}.${fmt==='jpeg'?'jpg':fmt}`, saveAs: convertFiles.length === 1 });
+      chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`snaproo/${file.name.replace(/\.[^.]+$/,'')}.${fmt==='jpeg'?'jpg':fmt}`, saveAs: convertFiles.length === 1 });
     }
   });
 

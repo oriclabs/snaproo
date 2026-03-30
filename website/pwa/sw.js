@@ -1,6 +1,6 @@
-// Pixeroo Service Worker - Offline-first PWA
+// Snaproo Service Worker - Offline-first PWA
 
-const CACHE_NAME = 'pixeroo-v0.1.0';
+const CACHE_NAME = 'snaproo-v0.1.0';
 const ASSETS = [
   '/website/pwa/index.html',
   '/website/pwa/app.js',

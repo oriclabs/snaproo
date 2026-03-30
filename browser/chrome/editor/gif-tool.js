@@ -1,4 +1,4 @@
-// Pixeroo — GIF Creator Tool
+// Snaproo — GIF Creator Tool
 
 function initGif() {
   const preview = $('gif-preview');
@@ -248,7 +248,7 @@ function initGif() {
       encoder.addFrame(c, delay);
     }
     const blob = encoder.finish();
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/animation.gif`, saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/animation.gif`, saveAs: true });
   });
 
   $('btn-gif-save-lib')?.addEventListener('click', async () => {

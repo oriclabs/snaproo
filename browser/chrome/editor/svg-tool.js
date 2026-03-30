@@ -1,4 +1,4 @@
-// Pixeroo — SVG Tool
+// Snaproo — SVG Tool
 function initSVG() {
   let svgSrc = '';
   setupDropzone($('svg-drop'), $('svg-file'), (file) => {
@@ -26,7 +26,7 @@ function initSVG() {
     const img=new Image(); img.onload=()=>{
       const c=document.createElement('canvas');c.width=w;c.height=h;const x=c.getContext('2d');
       if(fmt==='jpeg'){x.fillStyle='#fff';x.fillRect(0,0,w,h);}x.drawImage(img,0,0,w,h);
-      c.toBlob(b=>{chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(b),filename:`pixeroo/svg-export.${fmt==='jpeg'?'jpg':fmt}`,saveAs:true});},{png:'image/png',jpeg:'image/jpeg',webp:'image/webp'}[fmt],0.9);
+      c.toBlob(b=>{chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(b),filename:`snaproo/svg-export.${fmt==='jpeg'?'jpg':fmt}`,saveAs:true});},{png:'image/png',jpeg:'image/jpeg',webp:'image/webp'}[fmt],0.9);
     }; img.src='data:image/svg+xml;charset=utf-8,'+encodeURIComponent(svgSrc);
   });
   $('btn-svg-copy-source').addEventListener('click', () => { if(svgSrc) navigator.clipboard.writeText(svgSrc); });
@@ -84,7 +84,7 @@ function initSVG() {
   $('btn-trace-download')?.addEventListener('click', () => {
     if (!traceSvg) return;
     const blob = new Blob([traceSvg], { type: 'image/svg+xml' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: 'pixeroo/traced.svg', saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: 'snaproo/traced.svg', saveAs: true });
   });
 
   $('btn-trace-copy')?.addEventListener('click', () => {

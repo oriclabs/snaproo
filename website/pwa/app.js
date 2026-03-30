@@ -1,4 +1,4 @@
-// Pixeroo PWA - Main Application
+// Snaproo PWA - Main Application
 
 document.addEventListener('DOMContentLoaded', () => {
   initToolTabs();

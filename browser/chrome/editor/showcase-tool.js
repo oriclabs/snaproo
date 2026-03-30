@@ -1,4 +1,4 @@
-// Pixeroo — Showcase Tool (unified Screenshot Beautifier + Device Mockup)
+// Snaproo — Showcase Tool (unified Screenshot Beautifier + Device Mockup)
 
 function initShowcase() {
   const canvas = $('sc-canvas');
@@ -562,7 +562,7 @@ function initShowcase() {
     const fmt = $('sc-export-fmt')?.value || 'png';
     const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/showcase.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/showcase.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, 0.92);
   });
   $('btn-sc-save-lib')?.addEventListener('click', async () => {

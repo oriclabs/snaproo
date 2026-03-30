@@ -1,4 +1,4 @@
-// Pixeroo - Object-based Drawing System
+// Snaproo - Object-based Drawing System
 // Replaces stamp-based annotations with selectable, movable, resizable objects.
 //
 // Usage:

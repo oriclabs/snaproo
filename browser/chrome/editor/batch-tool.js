@@ -1,4 +1,4 @@
-// Pixeroo — Batch Edit Tool
+// Snaproo — Batch Edit Tool
 function initBatch() {
   let batchFiles = [];
   let importedPipeline = null;
@@ -660,14 +660,14 @@ function initBatch() {
       }
       const zipBlob = zip.toBlob();
       const zipUrl = URL.createObjectURL(zipBlob);
-      chrome.runtime.sendMessage({ action: 'download', url: zipUrl, filename: 'pixeroo/batch-export.zip', saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: zipUrl, filename: 'snaproo/batch-export.zip', saveAs: true });
       const origTotal = checked.reduce((s, bf) => s + bf.file.size, 0);
       const pctSaved = origTotal > 0 ? Math.round((1 - zipBlob.size / origTotal) * 100) : 0;
       text.textContent = `Done! ${allResults.length} files zipped (${(zipBlob.size / 1024 / 1024).toFixed(1)} MB) | Original: ${(origTotal/1024/1024).toFixed(1)} MB \u2192 ${pctSaved}% ${pctSaved >= 0 ? 'smaller' : 'larger'}`;
     } else {
       // Individual downloads
       for (const r of allResults) {
-        chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(r.blob), filename: `pixeroo/batch/${r.filename}`, saveAs: false });
+        chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(r.blob), filename: `snaproo/batch/${r.filename}`, saveAs: false });
         await new Promise(res => setTimeout(res, 50));
       }
       const origTotal = checked.reduce((s, bf) => s + bf.file.size, 0);
@@ -723,7 +723,7 @@ function initBatch() {
     if (useZip && window._batchZip) {
       await window._batchZip.addBlob(filename, blob);
     } else {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/batch/${filename}`, saveAs: false });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/batch/${filename}`, saveAs: false });
       await new Promise(r => setTimeout(r, 50));
     }
   }
@@ -740,7 +740,7 @@ function initBatch() {
   async function finishBatchZip(label) {
     if (window._batchZip) {
       const zipBlob = window._batchZip.toBlob();
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: `pixeroo/${label}.zip`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: `snaproo/${label}.zip`, saveAs: true });
       const footer = $('footer-status');
       if (footer) footer.textContent = `${label}: ${(zipBlob.size / 1024 / 1024).toFixed(1)} MB zip`;
       window._batchZip = null;
@@ -805,8 +805,8 @@ function initBatch() {
   // --- 3. Processing Report ---
   $('btn-batch-report')?.addEventListener('click', async () => {
     const checked = getChecked(); if (!checked.length) return;
-    let html = '<!DOCTYPE html><html><head><title>Pixeroo Batch Report</title><style>body{font-family:Inter,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:2rem;max-width:900px;margin:0 auto;}table{width:100%;border-collapse:collapse;margin:1rem 0;}th,td{padding:8px 12px;border-bottom:1px solid #334155;text-align:left;font-size:0.875rem;}th{color:#94a3b8;font-weight:600;}img{max-height:60px;border-radius:4px;}</style></head><body>';
-    html += `<h1>Pixeroo Batch Report</h1><p style="color:#94a3b8;">${new Date().toLocaleString()} | ${checked.length} images</p>`;
+    let html = '<!DOCTYPE html><html><head><title>Snaproo Batch Report</title><style>body{font-family:Inter,system-ui,sans-serif;background:#0f172a;color:#e2e8f0;padding:2rem;max-width:900px;margin:0 auto;}table{width:100%;border-collapse:collapse;margin:1rem 0;}th,td{padding:8px 12px;border-bottom:1px solid #334155;text-align:left;font-size:0.875rem;}th{color:#94a3b8;font-weight:600;}img{max-height:60px;border-radius:4px;}</style></head><body>';
+    html += `<h1>Snaproo Batch Report</h1><p style="color:#94a3b8;">${new Date().toLocaleString()} | ${checked.length} images</p>`;
     html += '<table><tr><th>#</th><th>Preview</th><th>Filename</th><th>Dimensions</th><th>Format</th><th>Size</th></tr>';
     checked.forEach((bf, i) => {
       const thumb = bf.canvas.toDataURL('image/jpeg', 0.3);

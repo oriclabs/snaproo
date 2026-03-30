@@ -1,4 +1,4 @@
-// Pixeroo E2E — Edit operations (from tests.md scenarios)
+// Snaproo E2E — Edit operations (from tests.md scenarios)
 import { test, expect } from '@playwright/test';
 import { getExtensionId, getCanvasDims, docScreenshot, FIXTURES } from './helpers.js';
 import path from 'path';
@@ -13,7 +13,7 @@ test.describe('Edit Operations', () => {
       await page.click('#btn-back');
       await page.waitForTimeout(300);
       // Handle unsaved dialog
-      try { const ok = page.locator('.pixeroo-dialog-backdrop button.btn-primary:visible'); if (await ok.count()) await ok.click(); } catch {}
+      try { const ok = page.locator('.snaproo-dialog-backdrop button.btn-primary:visible'); if (await ok.count()) await ok.click(); } catch {}
       await page.waitForTimeout(300);
     }
     await page.click('[data-mode="edit"]');
@@ -157,7 +157,7 @@ test.describe('Edit Operations', () => {
 
     // Check object layer is active
     const hasObjects = await page.evaluate(() => {
-      return window._pixerooObjLayer?.objects?.length || 0;
+      return window._snaprooObjLayer?.objects?.length || 0;
     });
     // Objects may or may not be added via click — just verify the tool activated
     await page.click('#btn-ann-select'); // back to select

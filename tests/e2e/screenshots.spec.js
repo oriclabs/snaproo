@@ -1,4 +1,4 @@
-// Pixeroo E2E — Screenshot capture for store/docs
+// Snaproo E2E — Screenshot capture for store/docs
 // Run with: npm run test:e2e:screenshots
 // Outputs to tests/screenshots/{browser}/
 import { test } from '@playwright/test';
@@ -57,7 +57,7 @@ test.describe('Store & Doc Screenshots', () => {
     await page.waitForTimeout(500);
     // Handle unsaved work dialog if it appears
     try {
-      const okBtn = page.locator('.pixeroo-dialog-backdrop button.btn-primary:visible');
+      const okBtn = page.locator('.snaproo-dialog-backdrop button.btn-primary:visible');
       if (await okBtn.count() > 0) await okBtn.click();
     } catch {}
     await page.waitForTimeout(300);

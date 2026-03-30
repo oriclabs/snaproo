@@ -1,4 +1,4 @@
-// Pixeroo — Callout Tool
+// Snaproo — Callout Tool
 // Uses shared callout rendering from objects.js (DrawObject + ObjectLayer)
 
 const CALLOUT_TEMPLATES = {
@@ -78,7 +78,7 @@ function initCallout() {
     coObjLayer.objects.forEach(obj => obj.draw(oc));
     out.toBlob(blob => {
       const url = URL.createObjectURL(blob);
-      chrome.runtime.sendMessage({ action: 'download', url, filename: 'pixeroo/callout-annotated.png', saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url, filename: 'snaproo/callout-annotated.png', saveAs: true });
     }, 'image/png');
   });
 

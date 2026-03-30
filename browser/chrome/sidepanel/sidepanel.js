@@ -1,4 +1,4 @@
-// Pixeroo Side Panel — Core init (loads last, after all sp-*.js modules)
+// Snaproo Side Panel — Core init (loads last, after all sp-*.js modules)
 
 document.addEventListener('DOMContentLoaded', () => {
   restoreSession().then(() => {
@@ -72,7 +72,7 @@ function initSPQuickActions() {
       const response = await chrome.runtime.sendMessage({ action: 'captureTab' });
       if (response?.dataUrl) {
         const name = 'screenshot-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
-        await chrome.storage.local.set({ 'pixeroo-screenshot': { dataUrl: response.dataUrl, name } });
+        await chrome.storage.local.set({ 'snaproo-screenshot': { dataUrl: response.dataUrl, name } });
         // Auto-save to library
         if (typeof PixLibrary !== 'undefined') {
           const img = new Image(); img.src = response.dataUrl;

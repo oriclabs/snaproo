@@ -1,4 +1,4 @@
-// Pixeroo — Certificate / Badge Generator Tool
+// Snaproo — Certificate / Badge Generator Tool
 
 function initCertificate() {
   const canvas = $('cert-canvas');
@@ -287,7 +287,7 @@ function initCertificate() {
     const fmt = $('cert-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/certificate.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/certificate.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, 0.92);
   });
 

@@ -1,4 +1,4 @@
-// Pixeroo — Colors Tool
+// Snaproo — Colors Tool
 function initColors() {
   let cImg = null;
   const cc = $('colors-canvas'), cx = cc.getContext('2d', { willReadFrequently: true });

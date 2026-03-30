@@ -1,4 +1,4 @@
-// Pixeroo E2E — Navigation flows
+// Snaproo E2E — Navigation flows
 import { test, expect } from '@playwright/test';
 import { getExtensionId, docScreenshot } from './helpers.js';
 

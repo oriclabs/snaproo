@@ -1,4 +1,4 @@
-// Pixeroo - image-utils.js tests
+// Snaproo - image-utils.js tests
 // Run with: node --test tests/utils/image-utils.test.js
 
 import { describe, it } from 'node:test';

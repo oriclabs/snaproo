@@ -1,24 +1,24 @@
-// Pixeroo - Firefox Background Script
+// Snaproo - Firefox Background Script
 // Firefox uses sidebar_action instead of sidePanel, and event pages instead of service workers
 
 // --- Context Menu Setup ---
 browser.runtime.onInstalled.addListener(() => {
   browser.contextMenus.create({
-    id: 'pixeroo',
-    title: 'Pixeroo',
+    id: 'snaproo',
+    title: 'Snaproo',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'pixeroo-info',
-    parentId: 'pixeroo',
+    id: 'snaproo-info',
+    parentId: 'snaproo',
     title: 'View Image Info',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'pixeroo-saveas',
-    parentId: 'pixeroo',
+    id: 'snaproo-saveas',
+    parentId: 'snaproo',
     title: 'Save As...',
     contexts: ['image']
   });
@@ -26,44 +26,44 @@ browser.runtime.onInstalled.addListener(() => {
   const formats = ['PNG', 'JPEG', 'WebP', 'AVIF', 'BMP', 'ICO'];
   formats.forEach(fmt => {
     browser.contextMenus.create({
-      id: `pixeroo-save-${fmt.toLowerCase()}`,
-      parentId: 'pixeroo-saveas',
+      id: `snaproo-save-${fmt.toLowerCase()}`,
+      parentId: 'snaproo-saveas',
       title: fmt,
       contexts: ['image']
     });
   });
 
   browser.contextMenus.create({
-    id: 'pixeroo-copy-png',
-    parentId: 'pixeroo',
+    id: 'snaproo-copy-png',
+    parentId: 'snaproo',
     title: 'Copy as PNG',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'pixeroo-read-qr',
-    parentId: 'pixeroo',
+    id: 'snaproo-read-qr',
+    parentId: 'snaproo',
     title: 'Read QR Code',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'pixeroo-edit',
-    parentId: 'pixeroo',
+    id: 'snaproo-edit',
+    parentId: 'snaproo',
     title: 'Open in Editor',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'pixeroo-separator',
-    parentId: 'pixeroo',
+    id: 'snaproo-separator',
+    parentId: 'snaproo',
     type: 'separator',
     contexts: ['image']
   });
 
   browser.contextMenus.create({
-    id: 'pixeroo-extract-colors',
-    parentId: 'pixeroo',
+    id: 'snaproo-extract-colors',
+    parentId: 'snaproo',
     title: 'Extract Colors',
     contexts: ['image']
   });
@@ -73,19 +73,19 @@ browser.runtime.onInstalled.addListener(() => {
 browser.contextMenus.onClicked.addListener((info, tab) => {
   const { menuItemId, srcUrl } = info;
 
-  if (menuItemId === 'pixeroo-info') {
+  if (menuItemId === 'snaproo-info') {
     browser.tabs.sendMessage(tab.id, { action: 'showImageInfo', src: srcUrl });
-  } else if (menuItemId.startsWith('pixeroo-save-')) {
-    const format = menuItemId.replace('pixeroo-save-', '');
+  } else if (menuItemId.startsWith('snaproo-save-')) {
+    const format = menuItemId.replace('snaproo-save-', '');
     browser.tabs.sendMessage(tab.id, { action: 'convertAndSave', src: srcUrl, format });
-  } else if (menuItemId === 'pixeroo-copy-png') {
+  } else if (menuItemId === 'snaproo-copy-png') {
     browser.tabs.sendMessage(tab.id, { action: 'copyAsPng', src: srcUrl });
-  } else if (menuItemId === 'pixeroo-read-qr') {
+  } else if (menuItemId === 'snaproo-read-qr') {
     browser.tabs.sendMessage(tab.id, { action: 'readQR', src: srcUrl });
-  } else if (menuItemId === 'pixeroo-edit') {
+  } else if (menuItemId === 'snaproo-edit') {
     const editorUrl = browser.runtime.getURL(`editor/editor.html?src=${encodeURIComponent(srcUrl)}`);
     browser.tabs.create({ url: editorUrl });
-  } else if (menuItemId === 'pixeroo-extract-colors') {
+  } else if (menuItemId === 'snaproo-extract-colors') {
     browser.tabs.sendMessage(tab.id, { action: 'extractColors', src: srcUrl });
   }
 });
@@ -105,7 +105,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === 'download') {
     return browser.downloads.download({
       url: message.url,
-      filename: message.filename || 'pixeroo-image',
+      filename: message.filename || 'snaproo-image',
       saveAs: message.saveAs !== false
     }).then(downloadId => ({ success: true, downloadId }));
   }

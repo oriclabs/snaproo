@@ -1,4 +1,4 @@
-// Pixeroo - Shared Theme & Font System
+// Snaproo - Shared Theme & Font System
 // Include this script in every HTML page (popup, sidepanel, editor, settings, help)
 
 (function () {

@@ -1,4 +1,4 @@
-// Pixeroo — Meme Generator Tool
+// Snaproo — Meme Generator Tool
 
 function initMeme() {
   const canvas = $('meme-canvas');
@@ -238,7 +238,7 @@ function initMeme() {
     const fmt = $('meme-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/meme.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/meme.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, 0.92);
   });
 

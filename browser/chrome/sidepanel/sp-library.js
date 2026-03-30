@@ -114,12 +114,12 @@ async function initLibrary() {
 
   // Export library as ZIP
   $('btn-lib-export-selected')?.addEventListener('click', () => {
-    if (libSelectedIds.size) exportLibraryAsZip([...libSelectedIds], 'pixeroo-selected.zip');
+    if (libSelectedIds.size) exportLibraryAsZip([...libSelectedIds], 'snaproo-selected.zip');
   });
   $('btn-lib-export-all')?.addEventListener('click', async () => {
     const allItems = await PixLibrary.getAll();
     const ids = allItems.filter(item => item.dataUrl).map(item => item.id);
-    if (ids.length) exportLibraryAsZip(ids, 'pixeroo-library.zip');
+    if (ids.length) exportLibraryAsZip(ids, 'snaproo-library.zip');
   });
 
   // Select all / deselect all in library
@@ -346,7 +346,7 @@ async function sendLibToTool(tool) {
   if (!images.length) return;
 
   // Pass via chrome.storage.local (sessionStorage doesn't cross pages)
-  await chrome.storage.local.set({ 'pixeroo-lib-transfer': { tool, images } });
+  await chrome.storage.local.set({ 'snaproo-lib-transfer': { tool, images } });
   chrome.runtime.sendMessage({ action: 'openEditor', mode: tool, fromLib: true });
 }
 
@@ -427,7 +427,7 @@ $('lib-gallery')?.addEventListener('contextmenu', (e) => {
       action: async () => {
         const item = await PixLibrary.get(id);
         if (!item?.dataUrl) return;
-        await chrome.storage.local.set({ 'pixeroo-lib-transfer': { tool: 'edit', images: [item.dataUrl] } });
+        await chrome.storage.local.set({ 'snaproo-lib-transfer': { tool: 'edit', images: [item.dataUrl] } });
         chrome.runtime.sendMessage({ action: 'openEditor', mode: 'edit', fromLib: true });
       }
     },
@@ -437,7 +437,7 @@ $('lib-gallery')?.addEventListener('contextmenu', (e) => {
       action: async () => {
         const item = await PixLibrary.get(id);
         if (!item?.dataUrl) return;
-        await chrome.storage.local.set({ 'pixeroo-lib-transfer': { tool: 'collage', images: [item.dataUrl] } });
+        await chrome.storage.local.set({ 'snaproo-lib-transfer': { tool: 'collage', images: [item.dataUrl] } });
         chrome.runtime.sendMessage({ action: 'openEditor', mode: 'collage', fromLib: true });
       }
     },
@@ -447,7 +447,7 @@ $('lib-gallery')?.addEventListener('contextmenu', (e) => {
       action: async () => {
         const item = await PixLibrary.get(id);
         if (!item?.dataUrl) return;
-        await chrome.storage.local.set({ 'pixeroo-lib-transfer': { tool: 'batch', images: [item.dataUrl] } });
+        await chrome.storage.local.set({ 'snaproo-lib-transfer': { tool: 'batch', images: [item.dataUrl] } });
         chrome.runtime.sendMessage({ action: 'openEditor', mode: 'batch', fromLib: true });
       }
     },
@@ -462,7 +462,7 @@ $('lib-gallery')?.addEventListener('contextmenu', (e) => {
         chrome.runtime.sendMessage({
           action: 'download',
           url: item.dataUrl,
-          filename: 'pixeroo/' + (item.name || `library-image.${ext}`),
+          filename: 'snaproo/' + (item.name || `library-image.${ext}`),
           saveAs: true
         });
       }

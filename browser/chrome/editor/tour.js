@@ -1,4 +1,4 @@
-// Pixeroo — Guided Tour System
+// Snaproo — Guided Tour System
 // Shared engine. Each tool defines its own step array.
 //
 // Usage:

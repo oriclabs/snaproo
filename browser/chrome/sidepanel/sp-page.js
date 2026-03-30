@@ -281,7 +281,7 @@ async function scanPageImages() {
         $('image-count').textContent = '';
         _setPageFooter(false);
       } else if (isConnectionErr) {
-        // Normal page loaded before Pixeroo — show reload button
+        // Normal page loaded before Snaproo — show reload button
         showPageColorsTabs();
         gallery.style.display = 'none';
         extMsg.style.display = 'block';
@@ -289,7 +289,7 @@ async function scanPageImages() {
         extMsg.innerHTML = `
           <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--slate-600)" stroke-width="1.5" style="margin:0 auto 1rem;"><path d="M1 4v6h6"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
           <p style="color:var(--slate-400);font-weight:600;margin-bottom:0.5rem;">Reload Required</p>
-          <p style="color:var(--slate-400);line-height:1.5;">The page was loaded before Pixeroo. Reload to enable page image scanning and color picking.</p>
+          <p style="color:var(--slate-400);line-height:1.5;">The page was loaded before Snaproo. Reload to enable page image scanning and color picking.</p>
           <p style="color:var(--slate-400);margin-top:0.25rem;">Your <b>My Library</b> is still accessible.</p>
           <button id="btn-reload-page" style="margin-top:0.75rem;background:var(--saffron-400);color:#1e293b;border:none;border-radius:6px;padding:6px 16px;font-weight:600;cursor:pointer;">Reload Page</button>`;
         $('btn-reload-page')?.addEventListener('click', async () => {
@@ -414,12 +414,12 @@ async function renderGallery() {
 function initDownload() {
   $('btn-dl-selected').addEventListener('click', () => {
     const images = allImages.filter(img => selectedSet.has(img.src));
-    if (images.length > 0) downloadImagesAsZip(images, 'pixeroo-selected.zip');
+    if (images.length > 0) downloadImagesAsZip(images, 'snaproo-selected.zip');
   });
 
   $('btn-dl-all').addEventListener('click', () => {
     const images = getFilteredImages();
-    if (images.length > 0) downloadImagesAsZip(images, 'pixeroo-images.zip');
+    if (images.length > 0) downloadImagesAsZip(images, 'snaproo-images.zip');
   });
 }
 
@@ -491,7 +491,7 @@ async function captureScreenshot() {
     if (response?.error) {
       const isPermission = response.error.includes('activeTab') || response.error.includes('permission');
       const msg = isPermission
-        ? 'Click the Pixeroo icon in the toolbar first, then try again. This grants permission to capture the current tab.'
+        ? 'Click the Snaproo icon in the toolbar first, then try again. This grants permission to capture the current tab.'
         : 'Could not capture this page. Some pages (chrome://, new tab, web store) do not support screenshots.';
       await pixDialog.alert('Screenshot Failed', msg);
       return;
@@ -521,7 +521,7 @@ function downloadScreenshot() {
   chrome.runtime.sendMessage({
     action: 'download',
     url: lastScreenshotDataUrl,
-    filename: `pixeroo/screenshot-${timestamp}.png`,
+    filename: `snaproo/screenshot-${timestamp}.png`,
     saveAs: true
   });
 }
@@ -714,7 +714,7 @@ async function captureRegionScreenshot() {
   } catch (e) {
     const isPermission = (e.message || '').includes('permission') || (e.message || '').includes('Cannot access');
     const msg = isPermission
-      ? 'Click the Pixeroo icon in the toolbar first, then try again. This grants permission to access the current page.'
+      ? 'Click the Snaproo icon in the toolbar first, then try again. This grants permission to access the current page.'
       : 'Could not inject region selector on this page. Some pages do not allow extensions to run scripts.';
     pixDialog.alert('Region Screenshot Failed', msg);
   }
@@ -803,7 +803,7 @@ $('gallery')?.addEventListener('contextmenu', (e) => {
         chrome.runtime.sendMessage({
           action: 'download',
           url: img.src,
-          filename: 'pixeroo/' + (img.filename || extractFilename(img.src) || 'image'),
+          filename: 'snaproo/' + (img.filename || extractFilename(img.src) || 'image'),
           saveAs: true
         });
       }
@@ -832,7 +832,7 @@ $('gallery')?.addEventListener('contextmenu', (e) => {
       label: 'Open in Editor',
       icon: _ctxIcons.edit,
       action: async () => {
-        await chrome.storage.local.set({ 'pixeroo-lib-transfer': { tool: 'edit', images: [img.src] } });
+        await chrome.storage.local.set({ 'snaproo-lib-transfer': { tool: 'edit', images: [img.src] } });
         chrome.runtime.sendMessage({ action: 'openEditor', mode: 'edit', fromLib: true });
       }
     },

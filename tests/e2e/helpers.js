@@ -1,4 +1,4 @@
-// Pixeroo E2E Test Helpers
+// Snaproo E2E Test Helpers
 import path from 'path';
 import { fileURLToPath } from 'url';
 

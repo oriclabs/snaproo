@@ -1,4 +1,4 @@
-// Pixeroo Popup - QR + launchers + quick settings
+// Snaproo Popup - QR + launchers + quick settings
 
 document.addEventListener('DOMContentLoaded', async () => {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
       const name = 'screenshot-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
       // Store for editor to pick up
-      await chrome.storage.local.set({ 'pixeroo-screenshot': { dataUrl, name } });
+      await chrome.storage.local.set({ 'snaproo-screenshot': { dataUrl, name } });
       // Screenshot will be auto-saved to recent files when editor loads it
       chrome.runtime.sendMessage({ action: 'openEditor', params: 'fromScreenshot=1' });
       window.close();

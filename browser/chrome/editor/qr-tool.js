@@ -1,4 +1,4 @@
-// Pixeroo — QR Code Tool
+// Snaproo — QR Code Tool
 function initQR() {
   let qrLogo = null;   // Image element for center logo
   let qrBgImg = null;  // Background image behind QR
@@ -162,7 +162,7 @@ function initQR() {
   // --- Export: PNG download ---
   $('btn-qr-download').addEventListener('click', () => {
     $('qr-canvas').toBlob(b => {
-      chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(b),filename:'pixeroo/qrcode.png',saveAs:true});
+      chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(b),filename:'snaproo/qrcode.png',saveAs:true});
     });
   });
 
@@ -189,7 +189,7 @@ function initQR() {
         }
       }
       svg += '</svg>';
-      chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})),filename:'pixeroo/qrcode.svg',saveAs:true});
+      chrome.runtime.sendMessage({action:'download',url:URL.createObjectURL(new Blob([svg],{type:'image/svg+xml'})),filename:'snaproo/qrcode.svg',saveAs:true});
     } catch {}
   });
 
@@ -211,7 +211,7 @@ function initQR() {
     }
     const zipBlob = zip.toBlob();
     const url = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a'); a.href = url; a.download = 'pixeroo-qr-sizes.zip'; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'snaproo-qr-sizes.zip'; a.click();
     URL.revokeObjectURL(url);
   });
 
@@ -258,7 +258,7 @@ function initQR() {
     }
     const zipBlob = zip.toBlob();
     const url = URL.createObjectURL(zipBlob);
-    const a = document.createElement('a'); a.href = url; a.download = 'pixeroo-qr-bulk.zip'; a.click();
+    const a = document.createElement('a'); a.href = url; a.download = 'snaproo-qr-bulk.zip'; a.click();
     URL.revokeObjectURL(url);
   });
 
@@ -497,7 +497,7 @@ function initQR() {
         } catch {}
       }},
       { label: 'Download PNG', action: () => {
-        chrome.runtime.sendMessage({ action: 'download', url: item.dataUrl, filename: 'pixeroo/qr-history.png', saveAs: true });
+        chrome.runtime.sendMessage({ action: 'download', url: item.dataUrl, filename: 'snaproo/qr-history.png', saveAs: true });
       }},
       'sep',
       { label: 'Remove from History', action: () => {

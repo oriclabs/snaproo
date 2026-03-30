@@ -1,4 +1,4 @@
-// Pixeroo - Content Script (detector.js) Logic Tests
+// Snaproo - Content Script (detector.js) Logic Tests
 // Run with: node --test tests/extension/detector.test.js
 //
 // These test the pure functions extracted from detector.js

@@ -1,4 +1,4 @@
-// Pixeroo — Image-to-SVG Tracer
+// Snaproo — Image-to-SVG Tracer
 // Adapted from imagetracerjs (Public Domain / Unlicense)
 // Stripped: Node.js, CLI, AMD, DOM helpers. Kept: core vectorization algorithm.
 // API: traceCanvas(canvas, options) → SVG string
@@ -17,7 +17,7 @@ const PixTrace = (function () {
       viewbox: true, desc: false, lcpr: 0, qcpr: 0,
       blurradius: 0, blurdelta: 20
     },
-    // --- Pixeroo presets ---
+    // --- Snaproo presets ---
     logo:       { colorsampling: 0, numberofcolors: 4, blurradius: 2, pathomit: 4, qtres: 0.5, ltres: 0.5 },
     sketch:     { colorsampling: 0, numberofcolors: 2, ltres: 0.5, qtres: 1, blurradius: 1 },
     photo:      { numberofcolors: 24, blurradius: 3, blurdelta: 40, pathomit: 4 },

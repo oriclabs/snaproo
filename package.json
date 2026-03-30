@@ -1,7 +1,7 @@
 {
-  "name": "pixeroo",
+  "name": "snaproo",
   "version": "0.1.0",
-  "description": "Pixeroo - Private Image Experience Engine. Read. Optimise. Output.",
+  "description": "Snaproo - Free offline image toolkit. Snap. Render. Optimise. Output.",
   "private": true,
   "type": "module",
   "scripts": {

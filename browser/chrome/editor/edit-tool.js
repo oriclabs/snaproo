@@ -1,4 +1,4 @@
-// Pixeroo — Edit Tool
+// Snaproo — Edit Tool
 
 // Shared state for zoom (used by initInfoBar + initImageHandles)
 let zoomLevel = 1;
@@ -391,7 +391,7 @@ function initEdit() {
   };
 
   // Attach object layer when image loads (called from image load handlers)
-  window._pixerooObjLayer = objLayer;
+  window._snaprooObjLayer = objLayer;
 
   const annTools = { 'btn-ann-rect': 'rect', 'btn-ann-arrow': 'arrow', 'btn-ann-text': 'text', 'btn-ann-pen': 'pen', 'btn-ann-highlighter': 'highlighter', 'btn-ann-redact': 'redact' };
   const allAnnBtns = ['btn-ann-select', ...Object.keys(annTools)];
@@ -1164,7 +1164,7 @@ function initEdit() {
     const zipBlob = await zip.toBlob();
     const url = URL.createObjectURL(zipBlob);
     const a = document.createElement('a');
-    a.href = url; a.download = 'pixeroo-slices.zip'; a.click();
+    a.href = url; a.download = 'snaproo-slices.zip'; a.click();
     URL.revokeObjectURL(url);
   });
 
@@ -1208,7 +1208,7 @@ function initEdit() {
     const tiles = splitImage(editCanvas, dir, parts);
     for (let i = 0; i < tiles.length; i++) {
       const blob = await new Promise(r => tiles[i].toBlob(r, 'image/png'));
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}-${dir[0]}${i+1}.png`, saveAs: false });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-${dir[0]}${i+1}.png`, saveAs: false });
     }
   }
 
@@ -1319,14 +1319,14 @@ function initEdit() {
   $('btn-strip-meta')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
     const blob = await stripMetadata(editCanvas, 'png');
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}-clean.png`, saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-clean.png`, saveAs: true });
   });
 
   // Image to PDF
   $('btn-to-pdf')?.addEventListener('click', async () => {
     if (!editCanvas.width) return;
-    const blob = await imageToPdf([editCanvas], 'pixeroo-export');
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}.pdf`, saveAs: true });
+    const blob = await imageToPdf([editCanvas], 'snaproo-export');
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}.pdf`, saveAs: true });
   });
 
   // Export
@@ -1350,24 +1350,24 @@ function initEdit() {
     else { sw = src.width; sh = sw / ta; sx = 0; sy = (src.height - sh) / 2; }
     octx.drawImage(src, sx, sy, sw, sh, 0, 0, tw, th);
     // Flatten annotations if present
-    if (window._pixerooObjLayer?.hasObjects()) {
-      window._pixerooObjLayer.renderTo(octx, tw / src.width, th / src.height);
+    if (window._snaprooObjLayer?.hasObjects()) {
+      window._snaprooObjLayer.renderTo(octx, tw / src.width, th / src.height);
     }
     const fmt = $('export-format').value || 'png';
     const quality = +($('export-quality')?.value || 85) / 100;
     const mime = { png:'image/png', jpeg:'image/jpeg', webp:'image/webp' }[fmt] || 'image/png';
     out.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}-${name}.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-${name}.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, quality);
     $('export-preset').value = '';
   });
 
   // Export annotations as SVG overlay
   $('btn-export-annotations-svg')?.addEventListener('click', () => {
-    if (!window._pixerooObjLayer?.hasObjects()) return;
-    const svg = window._pixerooObjLayer.exportAsSVG(editCanvas.width, editCanvas.height);
+    if (!window._snaprooObjLayer?.hasObjects()) return;
+    const svg = window._snaprooObjLayer.exportAsSVG(editCanvas.width, editCanvas.height);
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}-annotations.svg`, saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-annotations.svg`, saveAs: true });
   });
 
   // --- Save/Load Edit Project ---
@@ -1394,7 +1394,7 @@ function initEdit() {
 
     const json = JSON.stringify(project);
     const blob = new Blob([json], { type: 'application/json' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}-project.pixeroo`, saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}-project.snaproo`, saveAs: true });
     if (footer) footer.textContent = `Project saved (${(json.length / 1024).toFixed(0)} KB)`;
   });
 
@@ -1452,8 +1452,8 @@ function initEdit() {
     const hasImage = !!editOriginal;
     const hasOps = pipeline.operations.length > 0;
     const hasUndone = pipeline.undoneOps.length > 0;
-    const hasObjects = window._pixerooObjLayer?.hasObjects();
-    const selObj = window._pixerooObjLayer?.selected;
+    const hasObjects = window._snaprooObjLayer?.hasObjects();
+    const selObj = window._snaprooObjLayer?.selected;
 
     const items = [
       { label: 'Undo', shortcut: 'Ctrl+Z', enabled: hasOps, action: editUndo },
@@ -1480,8 +1480,8 @@ function initEdit() {
       { label: 'Export', shortcut: 'Ctrl+S', enabled: hasImage, action: editExport },
       { sep: true },
       { header: 'Annotations', enabled: hasObjects },
-      { label: 'Flatten Annotations', enabled: hasObjects, action: () => { window._pixerooObjLayer.flatten(); saveEdit(); } },
-      { label: 'Delete Selected', enabled: !!selObj, action: () => { window._pixerooObjLayer.deleteSelected(); window._pixerooObjLayer.render(); } },
+      { label: 'Flatten Annotations', enabled: hasObjects, action: () => { window._snaprooObjLayer.flatten(); saveEdit(); } },
+      { label: 'Delete Selected', enabled: !!selObj, action: () => { window._snaprooObjLayer.deleteSelected(); window._snaprooObjLayer.render(); } },
       { label: 'Export as SVG', enabled: hasObjects, action: () => $('btn-export-annotations-svg')?.click() },
     ];
 
@@ -2224,21 +2224,21 @@ function editRedo() {
 function editExport() {
   if (!editCanvas.width) return;
   // Flatten any drawn objects into the canvas before export
-  if (window._pixerooObjLayer?.hasObjects()) window._pixerooObjLayer.flatten();
+  if (window._snaprooObjLayer?.hasObjects()) window._snaprooObjLayer.flatten();
   const fmt = $('export-format').value;
 
   // SVG trace export
   if (fmt === 'svg') {
     const svg = PixTrace.traceCanvas(editCanvas, 'default');
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${editFilename}.svg`, saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${editFilename}.svg`, saveAs: true });
     return;
   }
 
   const mime = {png:'image/png',jpeg:'image/jpeg',webp:'image/webp',bmp:'image/bmp'}[fmt] || 'image/png';
   const q = ['jpeg','webp'].includes(fmt) ? +($('export-quality')?.value || 85) / 100 : undefined;
   editCanvas.toBlob(blob => {
-    chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`pixeroo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
+    chrome.runtime.sendMessage({ action:'download', url: URL.createObjectURL(blob), filename:`snaproo/${editFilename}.${fmt==='jpeg'?'jpg':fmt}`, saveAs:true });
   }, mime, q);
 }
 

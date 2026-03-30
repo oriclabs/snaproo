@@ -1,4 +1,4 @@
-// Pixeroo - Non-destructive Editing Pipeline
+// Snaproo - Non-destructive Editing Pipeline
 //
 // Architecture:
 //   Original Image (immutable, full resolution)

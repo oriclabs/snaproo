@@ -1,4 +1,4 @@
-// Pixeroo — Library Manager (editor topbar)
+// Snaproo — Library Manager (editor topbar)
 
 function initLibraryManager() {
   const grid = $('lm-grid');
@@ -309,7 +309,7 @@ function initLibraryManager() {
       zip.addFile(`${item.name || 'image'}.${ext}`, new Uint8Array(buf));
     }
     const blob = zip.finish();
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: 'pixeroo/library-export.zip', saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: 'snaproo/library-export.zip', saveAs: true });
   });
 
   // ── Delete selected ────────────────────────────────────

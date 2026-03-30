@@ -1,4 +1,4 @@
-// Pixeroo — Placeholder Image Generator Tool
+// Snaproo — Placeholder Image Generator Tool
 
 function initPlaceholder() {
   const canvas = $('ph-canvas');
@@ -169,7 +169,7 @@ function initPlaceholder() {
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
       const w = canvas.width, h = canvas.height;
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/placeholder-${w}x${h}.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/placeholder-${w}x${h}.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, 0.92);
   });
 
@@ -225,7 +225,7 @@ function initPlaceholder() {
     svg += `</svg>`;
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/placeholder-${w}x${h}.svg`, saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/placeholder-${w}x${h}.svg`, saveAs: true });
   }
 
   // ── Batch generation ────────────────────────────────────
@@ -262,7 +262,7 @@ function initPlaceholder() {
     render();
 
     const zipBlob = zip.finish();
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: 'pixeroo/placeholders.zip', saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: 'snaproo/placeholders.zip', saveAs: true });
   });
 
   // ── Save to Library ─────────────────────────────────────

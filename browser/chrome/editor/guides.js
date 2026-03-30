@@ -1,4 +1,4 @@
-// Pixeroo — Ruler & Grid Overlay System
+// Snaproo — Ruler & Grid Overlay System
 // Non-destructive: renders on a dedicated overlay, never touches the image canvas.
 // Rulers sit OUTSIDE the image (offset margin) — no image pixels are covered.
 //

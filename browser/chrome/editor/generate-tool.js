@@ -1,4 +1,4 @@
-// Pixeroo — Generate Tool
+// Snaproo — Generate Tool
 function initGenerate() {
   const genCanvas = $('gen-canvas');
   if (!genCanvas) return;
@@ -91,7 +91,7 @@ function initGenerate() {
       zip.addFile(`placeholder-${sw}x${sh}.${fmt==='jpeg'?'jpg':fmt}`, new Uint8Array(buf));
     }
     const zipBlob = zip.finish();
-    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: 'pixeroo/placeholders.zip', saveAs: true });
+    chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(zipBlob), filename: 'snaproo/placeholders.zip', saveAs: true });
   });
 
   // Populate social banner presets dropdown
@@ -153,7 +153,7 @@ function initGenerate() {
     const fmt = $('gen-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     genCanvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/generated.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/generated.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, 0.92);
   });
 }

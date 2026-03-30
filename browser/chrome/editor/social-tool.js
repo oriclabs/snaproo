@@ -1,4 +1,4 @@
-// Pixeroo — Social Media Tool
+// Snaproo — Social Media Tool
 const SOCIAL_PLATFORM_PRESETS = {
   'tw-header':    { w: 1500, h: 500,  name: 'twitter-header' },
   'tw-post':      { w: 1200, h: 675,  name: 'twitter-post' },
@@ -144,7 +144,7 @@ function initSocial() {
     const name = preset ? preset.name : 'social';
     canvas.toBlob((blob) => {
       if (!blob) return;
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/${name}.png`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/${name}.png`, saveAs: true });
     }, 'image/png');
   });
 

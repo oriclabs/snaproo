@@ -3,7 +3,7 @@ const $ = id => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
 const on = (el, evt, fn) => el?.addEventListener(evt, fn);
 
-// Pixeroo — Shared Editor Utilities
+// Snaproo — Shared Editor Utilities
 
 // ── Shared mutable globals ──
 let editCanvas, editCtx, editOriginal, editFilename = 'edited';

@@ -1,7 +1,7 @@
 const $ = id => document.getElementById(id);
 const $$ = sel => document.querySelectorAll(sel);
 
-// Pixeroo Side Panel - Shared Globals & Utilities
+// Snaproo Side Panel - Shared Globals & Utilities
 
 let allImages = [];
 let selectedSet = new Set();

@@ -1,4 +1,4 @@
-// Pixeroo Editor - Extended Tools
+// Snaproo Editor - Extended Tools
 // Interactive crop, annotations, watermark, batch resize, compression optimizer,
 // base64, frame extraction, image hash, DPI, QR reader
 

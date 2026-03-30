@@ -1,4 +1,4 @@
-// Pixeroo — Minimal ZIP file creator (pure JS, no dependencies)
+// Snaproo — Minimal ZIP file creator (pure JS, no dependencies)
 // Uses "store" mode (no compression) — images are already compressed.
 // Supports files up to 4GB total (ZIP32 format).
 //

@@ -1,4 +1,4 @@
-// Pixeroo — Device Mockup Tool
+// Snaproo — Device Mockup Tool
 
 function initMockup() {
   const canvas = $('mockup-canvas');
@@ -335,7 +335,7 @@ function initMockup() {
     const fmt = $('mockup-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/mockup.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/mockup.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, 0.92);
   });
 

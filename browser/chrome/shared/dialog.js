@@ -1,4 +1,4 @@
-// Pixeroo - Custom dialog (replaces confirm/alert/prompt)
+// Snaproo - Custom dialog (replaces confirm/alert/prompt)
 // Usage:
 //   await pixDialog.alert('Title', 'Message');
 //   const ok = await pixDialog.confirm('Title', 'Are you sure?');

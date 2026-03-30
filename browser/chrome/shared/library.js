@@ -1,4 +1,4 @@
-// Pixeroo — Image Library (IndexedDB)
+// Snaproo — Image Library (IndexedDB)
 // Persistent cross-tab image collection. Stores images as blobs.
 //
 // Usage:
@@ -10,7 +10,7 @@
 //   const usage = await PixLibrary.getUsage(); // { count, bytes }
 
 const PixLibrary = {
-  DB_NAME: 'pixeroo-library',
+  DB_NAME: 'snaproo-library',
   STORE: 'images',
   MAX_BYTES: 100 * 1024 * 1024, // 100MB limit
 

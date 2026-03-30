@@ -1,4 +1,4 @@
-// Pixeroo — Screenshot Beautifier Tool
+// Snaproo — Screenshot Beautifier Tool
 
 function initScreenshotBeautifier() {
   const canvas = $('ss-canvas');
@@ -295,7 +295,7 @@ function initScreenshotBeautifier() {
     const fmt = $('ss-export-fmt')?.value || 'png';
     const mime = { png: 'image/png', jpeg: 'image/jpeg', webp: 'image/webp' }[fmt] || 'image/png';
     canvas.toBlob(blob => {
-      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `pixeroo/screenshot-beautified.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
+      chrome.runtime.sendMessage({ action: 'download', url: URL.createObjectURL(blob), filename: `snaproo/screenshot-beautified.${fmt === 'jpeg' ? 'jpg' : fmt}`, saveAs: true });
     }, mime, 0.92);
   });
 
