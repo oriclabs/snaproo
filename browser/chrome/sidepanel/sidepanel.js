@@ -71,7 +71,14 @@ function initSPQuickActions() {
     try {
       const response = await chrome.runtime.sendMessage({ action: 'captureTab' });
       if (response?.dataUrl) {
-        await chrome.storage.local.set({ 'pixeroo-screenshot': { dataUrl: response.dataUrl, name: 'screenshot-' + new Date().toISOString().slice(0, 10) } });
+        const name = 'screenshot-' + new Date().toISOString().slice(0, 19).replace(/[T:]/g, '-');
+        await chrome.storage.local.set({ 'pixeroo-screenshot': { dataUrl: response.dataUrl, name } });
+        // Auto-save to library
+        if (typeof PixLibrary !== 'undefined') {
+          const img = new Image(); img.src = response.dataUrl;
+          await new Promise(r => { img.onload = r; img.onerror = r; });
+          await PixLibrary.add({ dataUrl: response.dataUrl, source: 'screenshot', name, width: img.naturalWidth, height: img.naturalHeight, type: 'image', size: response.dataUrl.length });
+        }
         chrome.runtime.sendMessage({ action: 'openEditor', params: 'fromScreenshot=1' });
       }
     } catch {}

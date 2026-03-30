@@ -379,9 +379,9 @@
         <!-- Size -->
         <div class="ribbon-group"><div class="ribbon-tools">
           <div class="ribbon-row">
-            <span class="ribbon-mini-label" title="Width">W</span><input type="number" id="bar-w" class="input-field" value="800" style="width:52px;" title="Width">
+            <span class="ribbon-mini-label" title="Width">W</span><input type="number" id="bar-w" class="input-field" value="800" style="width:62px;" title="Width">
             <span style="color:var(--slate-500);">×</span>
-            <span class="ribbon-mini-label" title="Height">H</span><input type="number" id="bar-h" class="input-field" value="600" style="width:52px;" title="Height">
+            <span class="ribbon-mini-label" title="Height">H</span><input type="number" id="bar-h" class="input-field" value="600" style="width:62px;" title="Height">
             <button id="bar-unit" class="tool-btn" title="Toggle pixels / percent" style="border:1px solid var(--slate-700);border-radius:3px;">px</button>
             <button id="bar-lock" class="tool-btn" title="Lock aspect ratio" style="color:var(--saffron-400);"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></button>
           </div>
@@ -549,7 +549,7 @@
         <div class="ribbon-group"><div class="ribbon-tools">
           <div class="ribbon-row">
             <button class="tool-btn" id="btn-padding" title="Add uniform padding around image">Pad</button>
-            <input type="number" id="pad-size" class="input-field" value="20" min="1" max="500" style="width:44px;" title="Padding size (px)">
+            <input type="number" id="pad-size" class="input-field" value="20" min="1" max="500" style="width:48px;" title="Padding size (px)">
             <input type="color" id="pad-color" value="#ffffff" style="width:18px;height:16px;border:none;cursor:pointer;" title="Padding color">
           </div>
           <div class="ribbon-row">
@@ -1157,7 +1157,7 @@
       <div class="ribbon-sep-v"></div>
       <!-- Size -->
       <div class="ribbon-group"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Width (0 = auto)">W</span><input type="number" id="gif-w" class="input-field" value="0" min="0" max="2048" title="Width (0 = match first frame)" style="width:52px;"><span class="ribbon-mini-label" title="Height (0 = auto)">H</span><input type="number" id="gif-h" class="input-field" value="0" min="0" max="2048" title="Height (0 = match first frame)" style="width:52px;"></div>
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Width (0 = auto)">W</span><input type="number" id="gif-w" class="input-field" value="0" min="0" max="2048" title="Width (0 = match first frame)" style="width:58px;"><span class="ribbon-mini-label" title="Height (0 = auto)">H</span><input type="number" id="gif-h" class="input-field" value="0" min="0" max="2048" title="Height (0 = match first frame)" style="width:58px;"></div>
       </div><div class="ribbon-label">Size</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Export -->
@@ -1627,7 +1627,7 @@
       <div class="ribbon-group"><div class="ribbon-tools">
         <div class="ribbon-row"><select id="batch-format" class="select-field" style="width:72px;"><option value="png">PNG</option><option value="jpeg">JPEG</option><option value="webp">WebP</option><option value="original">Original</option></select><span class="ribbon-mini-label">Q</span><input type="range" id="batch-quality" class="range-input" min="1" max="100" value="85" style="width:40px;"><span class="range-value" id="batch-quality-val">85</span></div>
         <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="batch-strip-meta">Strip meta</label><label class="toggle-chip"><input type="checkbox" id="batch-add-copyright">Copyright</label><input type="text" id="batch-copyright-text" class="input-field" value="© {year} All Rights Reserved" style="width:110px;display:none;" title="Copyright text. {year} = current year"></div>
-        <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="batch-target-size">Max size</label><input type="number" id="batch-max-kb" class="input-field" value="200" min="10" max="10000" style="width:52px;display:none;" title="Target max file size in KB"><span id="batch-max-kb-unit" style="color:var(--slate-400);font-size:0.6rem;display:none;">KB</span></div>
+        <div class="ribbon-row"><label class="toggle-chip"><input type="checkbox" id="batch-target-size">Max size</label><input type="number" id="batch-max-kb" class="input-field" value="200" min="10" max="10000" style="width:62px;display:none;" title="Target max file size in KB"><span id="batch-max-kb-unit" style="color:var(--slate-400);font-size:0.6rem;display:none;">KB</span></div>
       </div><div class="ribbon-label">Output</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Rename -->
@@ -1662,10 +1662,10 @@
       <div class="ribbon-group"><div class="ribbon-tools">
         <div class="ribbon-row">
           <span class="ribbon-mini-label">Crop</span>
-          <input type="number" id="batch-crop-t" class="input-field" value="0" min="0" style="width:40px;" title="Crop top (px)">
-          <input type="number" id="batch-crop-r" class="input-field" value="0" min="0" style="width:40px;" title="Crop right (px)">
-          <input type="number" id="batch-crop-b" class="input-field" value="0" min="0" style="width:40px;" title="Crop bottom (px)">
-          <input type="number" id="batch-crop-l" class="input-field" value="0" min="0" style="width:40px;" title="Crop left (px)">
+          <input type="number" id="batch-crop-t" class="input-field" value="0" min="0" style="width:48px;" title="Crop top (px)">
+          <input type="number" id="batch-crop-r" class="input-field" value="0" min="0" style="width:48px;" title="Crop right (px)">
+          <input type="number" id="batch-crop-b" class="input-field" value="0" min="0" style="width:48px;" title="Crop bottom (px)">
+          <input type="number" id="batch-crop-l" class="input-field" value="0" min="0" style="width:48px;" title="Crop left (px)">
         </div>
         <div class="ribbon-row">
           <button class="tool-btn" id="btn-batch-save-preset" title="Save current settings as preset">Save Preset</button>
