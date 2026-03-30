@@ -13,3 +13,6 @@ pkg/
 Thumbs.db
 *.log
 browser/dist/*.zip
+tests/screenshots/
+test-results/
+playwright-report/

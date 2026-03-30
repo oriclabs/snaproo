@@ -8,15 +8,28 @@
     "build:css": "npx tailwindcss -i ./shared/styles/input.css -o ./shared/styles/output.css --minify",
     "watch:css": "npx tailwindcss -i ./shared/styles/input.css -o ./shared/styles/output.css --watch",
     "build:wasm": "cd crates && wasm-pack build --target web --out-dir ../shared/wasm/pkg",
-    "test": "node --test tests/**/*.test.js",
-    "test:js": "node --test tests/utils/*.test.js tests/extension/*.test.js tests/pwa/*.test.js",
-    "test:rust": "cd crates && cargo test",
-    "test:all": "npm run test:js && npm run test:rust",
+    "test": "npx jest",
+    "test:unit": "npx jest",
+    "test:e2e": "npx playwright test",
+    "test:e2e:chrome": "npx playwright test --project=chrome",
+    "test:e2e:edge": "npx playwright test --project=edge",
+    "test:e2e:screenshots": "npx playwright test --project=chrome tests/e2e/screenshots.spec.js",
+    "test:all": "npm run test:unit && npm run test:e2e",
+    "test:legacy": "node --test tests/utils/*.test.js tests/extension/*.test.js tests/pwa/*.test.js",
     "dev": "npm run watch:css"
   },
-  "keywords": ["image", "chrome-extension", "wasm", "rust", "qr-code", "converter"],
+  "keywords": [
+    "image",
+    "chrome-extension",
+    "qr-code",
+    "converter",
+    "editor",
+    "screenshot"
+  ],
   "license": "MIT",
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "jest": "^30.3.0",
     "tailwindcss": "^4.0"
   }
 }
