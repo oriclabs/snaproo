@@ -72,6 +72,13 @@ function initEdit() {
     if (!ok) return;
     // Non-destructive reset: pipeline replays from original
     pipeline.resetAll();
+    // Clear all draw objects
+    if (objLayer) {
+      objLayer.objects = [];
+      objLayer.selected = null;
+      objLayer.selectedObjects = [];
+      objLayer.render();
+    }
     updResize();
     saveEdit();
     resetAdjustmentSliders();
