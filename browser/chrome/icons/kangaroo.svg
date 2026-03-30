@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
   <rect width="128" height="128" rx="28" fill="#0f172a"/>
   <!-- Crop marks -->
-  <g stroke="#F4C430" stroke-width="5.5" fill="none" opacity="0.8" stroke-linecap="round">
-    <path d="M18,38 L18,18 L38,18"/>
-    <path d="M90,18 L110,18 L110,38"/>
-    <path d="M110,90 L110,110 L90,110"/>
-    <path d="M38,110 L18,110 L18,90"/>
+  <g stroke="#F4C430" stroke-width="8" fill="none" opacity="1" stroke-linecap="round">
+    <path d="M15,42 L15,15 L42,15"/>
+    <path d="M86,15 L113,15 L113,42"/>
+    <path d="M113,86 L113,113 L86,113"/>
+    <path d="M42,113 L15,113 L15,86"/>
   </g>
   <!-- Kangaroo silhouette — centered within crop marks area -->
   <!-- Original bounds: ~x:579-2088, y:398-1607 = ~1509w x 1209h -->
