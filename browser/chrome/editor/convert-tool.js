@@ -117,12 +117,11 @@ function initConvert() {
     _debounceOutputPreview();
   }));
 
-  // SVG slider value displays + live preview on change
-  $('cvt-svg-smooth')?.addEventListener('input', (e) => { $('cvt-svg-smooth-val').textContent = e.target.value; _debounceOutputPreview(); });
-  $('cvt-svg-blur')?.addEventListener('input', (e) => { $('cvt-svg-blur-val').textContent = e.target.value; _debounceOutputPreview(); });
-  $('cvt-svg-colors')?.addEventListener('change', _debounceOutputPreview);
-  $('cvt-svg-minarea')?.addEventListener('change', _debounceOutputPreview);
-  $('cvt-svg-maxdim')?.addEventListener('change', _debounceOutputPreview);
+  // SVG spinner changes → live preview
+  ['cvt-svg-smooth', 'cvt-svg-blur', 'cvt-svg-colors', 'cvt-svg-minarea', 'cvt-svg-maxdim'].forEach(id => {
+    $(id)?.addEventListener('change', _debounceOutputPreview);
+    $(id)?.addEventListener('input', _debounceOutputPreview);
+  });
 
   let _previewTimer = null;
   function _debounceOutputPreview() { clearTimeout(_previewTimer); _previewTimer = setTimeout(_updateOutputPreview, 400); }
