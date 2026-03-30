@@ -642,6 +642,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const mode = params.get('mode');
   if (mode) openMode(mode);
 
+  // Check for screenshot transfer (from popup Quick Action)
+  if (params.get('fromScreenshot')) {
+    chrome.storage.local.get('pixeroo-screenshot', (r) => {
+      const data = r['pixeroo-screenshot'];
+      if (!data?.dataUrl) return;
+      chrome.storage.local.remove('pixeroo-screenshot');
+      openMode('edit');
+      const img = new Image();
+      img.src = data.dataUrl;
+      img.onload = () => {
+        if (typeof window._loadEditImage === 'function')
+          window._loadEditImage(img, data.name || 'screenshot');
+      };
+    });
+  }
+
   // Check for library transfer (images sent from side panel)
   if (params.get('fromLib')) {
     chrome.storage.local.get('pixeroo-lib-transfer', async (r) => {
@@ -710,105 +726,11 @@ function initNavigation() {
 
 // ── Quick Actions ────────────────────────────────────────
 function initQuickActions() {
-  // Screenshot & Annotate — capture tab via background, open in editor
-  $('qa-screenshot')?.addEventListener('click', async () => {
-    // Show capture options
-    if (typeof pixDialog !== 'undefined') {
-      const ok = await pixDialog.confirm('Screenshot Capture',
-        '<div style="display:flex;flex-direction:column;gap:8px;margin-top:8px;">' +
-        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="_sc_mode" value="visible" checked style="accent-color:var(--saffron-400);">Visible Tab — capture what you see now</label>' +
-        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="_sc_mode" value="region" style="accent-color:var(--saffron-400);">Region — select an area on the page</label>' +
-        '<label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="radio" name="_sc_mode" value="fullpage" style="accent-color:var(--saffron-400);">Full Page — scroll and stitch</label>' +
-        '</div>', { okText: 'Capture', html: true });
-      if (!ok) return;
-      const choice = document.querySelector('input[name="_sc_mode"]:checked')?.value || 'visible';
-      if (choice === 'region') { _captureRegion(); return; }
-      if (choice === 'fullpage') { _captureFullPage(); return; }
-    }
-    // Default: capture visible tab
-    _captureVisibleTab();
-  });
-
-  async function _captureVisibleTab() {
-    try {
-      const response = await chrome.runtime.sendMessage({ action: 'captureTab' });
-      if (response?.dataUrl) {
-        openMode('edit');
-        const img = new Image();
-        img.src = response.dataUrl;
-        img.onload = () => {
-          if (typeof window._loadEditImage === 'function')
-            window._loadEditImage(img, 'screenshot-' + new Date().toISOString().slice(0, 10));
-        };
-      } else { openMode('edit'); }
-    } catch { openMode('edit'); }
-  }
-
-  async function _captureRegion() {
-    try {
-      // Tell content script to show region selector
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) { _captureVisibleTab(); return; }
-      chrome.tabs.sendMessage(tab.id, { action: 'startRegionCapture' });
-      // Listen for the result
-      const handler = (msg) => {
-        if (msg.action === 'regionCaptured' && msg.dataUrl && msg.region) {
-          chrome.runtime.onMessage.removeListener(handler);
-          const { x, y, w, h } = msg.region;
-          const fullImg = new Image();
-          fullImg.src = msg.dataUrl;
-          fullImg.onload = () => {
-            // Crop to region
-            const c = document.createElement('canvas');
-            c.width = w; c.height = h;
-            const dpr = window.devicePixelRatio || 1;
-            c.getContext('2d').drawImage(fullImg, x * dpr, y * dpr, w * dpr, h * dpr, 0, 0, w, h);
-            openMode('edit');
-            setTimeout(() => {
-              const cropped = new Image();
-              cropped.src = c.toDataURL('image/png');
-              cropped.onload = () => {
-                if (typeof window._loadEditImage === 'function')
-                  window._loadEditImage(cropped, 'screenshot-region');
-              };
-            }, 100);
-          };
-        }
-      };
-      chrome.runtime.onMessage.addListener(handler);
-      // Timeout cleanup
-      setTimeout(() => chrome.runtime.onMessage.removeListener(handler), 30000);
-    } catch { _captureVisibleTab(); }
-  }
-
-  async function _captureFullPage() {
-    try {
-      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-      if (!tab?.id) { _captureVisibleTab(); return; }
-      // Send message to content script to get full page dimensions and scroll-capture
-      chrome.tabs.sendMessage(tab.id, { action: 'startFullPageCapture' });
-      const handler = (msg) => {
-        if (msg.action === 'fullPageCaptured' && msg.dataUrl) {
-          chrome.runtime.onMessage.removeListener(handler);
-          openMode('edit');
-          const img = new Image();
-          img.src = msg.dataUrl;
-          img.onload = () => {
-            if (typeof window._loadEditImage === 'function')
-              window._loadEditImage(img, 'screenshot-fullpage');
-          };
-        }
-      };
-      chrome.runtime.onMessage.addListener(handler);
-      setTimeout(() => chrome.runtime.onMessage.removeListener(handler), 60000);
-    } catch { _captureVisibleTab(); }
-  }
+  // Edit Image — open edit tool
+  $('qa-open-edit')?.addEventListener('click', () => openMode('edit'));
 
   // Resize for Social
   $('qa-resize-social')?.addEventListener('click', () => openMode('social'));
-
-  // Compress Image — open convert tool (it handles quality/compression)
-  $('qa-compress')?.addEventListener('click', () => openMode('convert'));
 
   // Convert Format
   $('qa-convert')?.addEventListener('click', () => openMode('convert'));
@@ -816,20 +738,17 @@ function initQuickActions() {
   // Generate QR
   $('qa-qr')?.addEventListener('click', () => openMode('qr'));
 
-  // Blur / Redact — open edit (user drops image, uses mask or redact tool)
-  $('qa-blur')?.addEventListener('click', () => openMode('edit'));
-
-  // YouTube Thumbnail — open social with YT preset
-  $('qa-thumbnail')?.addEventListener('click', () => {
-    openMode('social');
-    setTimeout(() => {
-      const sel = $('social-platform');
-      if (sel) { sel.value = 'yt-thumb'; sel.dispatchEvent(new Event('change')); }
-    }, 100);
-  });
-
   // Collage
   $('qa-collage')?.addEventListener('click', () => openMode('collage'));
+
+  // Meme
+  $('qa-meme')?.addEventListener('click', () => openMode('meme'));
+
+  // Showcase
+  $('qa-showcase')?.addEventListener('click', () => openMode('showcase'));
+
+  // Certificate
+  $('qa-cert')?.addEventListener('click', () => openMode('certificate'));
 }
 
 // ── Recent Files ─────────────────────────────────────────

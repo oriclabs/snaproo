@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   $('btn-refresh').addEventListener('click', scanPageImages);
+  initSPQuickActions();
 
   // Delegated click-to-copy for .copyable elements
   document.addEventListener('click', (e) => {
@@ -59,6 +60,46 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 });
+
+// ============================================================
+// Side Panel Quick Actions
+// ============================================================
+
+function initSPQuickActions() {
+  // Screenshot — capture visible tab, send to editor
+  $('sp-qa-screenshot')?.addEventListener('click', async () => {
+    try {
+      const response = await chrome.runtime.sendMessage({ action: 'captureTab' });
+      if (response?.dataUrl) {
+        await chrome.storage.local.set({ 'pixeroo-screenshot': { dataUrl: response.dataUrl, name: 'screenshot-' + new Date().toISOString().slice(0, 10) } });
+        chrome.runtime.sendMessage({ action: 'openEditor', params: 'fromScreenshot=1' });
+      }
+    } catch {}
+  });
+
+  // Region — start region selection on the page
+  $('sp-qa-region')?.addEventListener('click', async () => {
+    try {
+      const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+      if (tab?.id) chrome.tabs.sendMessage(tab.id, { action: 'startRegionCapture' });
+    } catch {}
+  });
+
+  // Edit — open editor
+  $('sp-qa-edit')?.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'openEditor', mode: 'edit' });
+  });
+
+  // Convert — open convert tool
+  $('sp-qa-convert')?.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'openEditor', mode: 'convert' });
+  });
+
+  // QR — open QR tool
+  $('sp-qa-qr')?.addEventListener('click', () => {
+    chrome.runtime.sendMessage({ action: 'openEditor', mode: 'qr' });
+  });
+}
 
 // ============================================================
 // Main Tabs (Images / Colors)

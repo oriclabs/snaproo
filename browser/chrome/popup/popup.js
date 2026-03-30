@@ -31,6 +31,50 @@ document.addEventListener('DOMContentLoaded', async () => {
     window.close();
   });
 
+  // ── Quick Actions ─────────────────────────────────────
+  // Screenshot — capture visible tab, open in editor
+  document.getElementById('pqa-screenshot')?.addEventListener('click', async () => {
+    try {
+      const dataUrl = await chrome.tabs.captureVisibleTab(null, { format: 'png' });
+      // Store in local storage for editor to pick up
+      await chrome.storage.local.set({ 'pixeroo-screenshot': { dataUrl, name: 'screenshot-' + new Date().toISOString().slice(0, 10) } });
+      chrome.runtime.sendMessage({ action: 'openEditor', params: 'fromScreenshot=1' });
+      window.close();
+    } catch (e) {
+      // Fallback: just open editor
+      chrome.runtime.sendMessage({ action: 'openEditor' });
+      window.close();
+    }
+  });
+
+  // Region — tell content script to show selector, then capture
+  document.getElementById('pqa-region')?.addEventListener('click', async () => {
+    try {
+      if (tab?.id) {
+        // Inject region selector into the page
+        await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['content/detector.js'] }).catch(() => {});
+        await new Promise(r => setTimeout(r, 100));
+        chrome.tabs.sendMessage(tab.id, { action: 'startRegionCapture' });
+      }
+      window.close();
+    } catch {
+      window.close();
+    }
+  });
+
+  // Pick Color — open side panel with colors tab
+  document.getElementById('pqa-color')?.addEventListener('click', () => {
+    if (tab?.id) chrome.sidePanel.open({ tabId: tab.id }).catch(() => {});
+    // Signal to switch to colors tab
+    chrome.runtime.sendMessage({ action: 'switchToColors' });
+    window.close();
+  });
+
+  // QR Page — scroll to QR section (already visible, just focus)
+  document.getElementById('pqa-qr-page')?.addEventListener('click', () => {
+    document.getElementById('qr-output')?.scrollIntoView({ behavior: 'smooth' });
+  });
+
   // Copy QR
   document.getElementById('btn-copy-qr').addEventListener('click', () => {
     document.getElementById('qr-output').toBlob((blob) => {

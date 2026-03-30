@@ -149,8 +149,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       const mode = message.mode || '';
       const fromLib = message.fromLib || false;
+      const extraParams = message.params || '';
       const editorUrl = chrome.runtime.getURL('editor/editor.html');
-      const url = mode ? `${editorUrl}?mode=${mode}${fromLib ? '&fromLib=1' : ''}` : editorUrl;
+      let qs = [];
+      if (mode) qs.push('mode=' + mode);
+      if (fromLib) qs.push('fromLib=1');
+      if (extraParams) qs.push(extraParams);
+      const url = qs.length ? `${editorUrl}?${qs.join('&')}` : editorUrl;
 
       // Find existing editor tab — from tracked IDs or by searching all tabs
       let existingId = editorTabIds.size > 0 ? [...editorTabIds][0] : null;
