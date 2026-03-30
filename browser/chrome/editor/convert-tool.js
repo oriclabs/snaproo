@@ -256,10 +256,21 @@ function initConvert() {
       // SVG trace
       if (isSvg) {
         if (typeof ImageTracer === 'undefined') { continue; }
-        const imgd = c.getContext('2d').getImageData(0, 0, c.width, c.height);
+        // Downscale for cleaner/faster tracing
+        const maxDim = +($('cvt-svg-maxdim')?.value) || 400;
+        let traceC = c;
+        if (c.width > maxDim || c.height > maxDim) {
+          const scale = Math.min(maxDim / c.width, maxDim / c.height);
+          const tw = Math.round(c.width * scale), th = Math.round(c.height * scale);
+          traceC = document.createElement('canvas'); traceC.width = tw; traceC.height = th;
+          traceC.getContext('2d').drawImage(c, 0, 0, tw, th);
+        }
+        const imgd = traceC.getContext('2d').getImageData(0, 0, traceC.width, traceC.height);
         const opts = ImageTracer.optionpresets[svgPreset] ? { ...ImageTracer.optionpresets[svgPreset] } : {};
         opts.numberofcolors = svgColors;
         opts.strokewidth = Math.max(1, opts.strokewidth || 1);
+        opts.pathomit = 8; // skip tiny paths (noise)
+        opts.blurradius = 1; // slight blur to reduce noise
         const svgStr = ImageTracer.imagedataToSVG(imgd, opts);
         const filename = renamePattern.replace(/\{name\}/g, baseName).replace(/\{index\}/g, String(i + 1).padStart(3, '0')).replace(/\{fmt\}/g, 'svg') + '.svg';
         if (useZip) {

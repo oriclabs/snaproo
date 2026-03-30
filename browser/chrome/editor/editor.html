@@ -679,16 +679,16 @@
       </div><div class="ribbon-label">Quality</div></div>
       <!-- SVG trace options -->
       <div class="ribbon-group" id="convert-svg-section" style="display:none;"><div class="ribbon-tools">
-        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Number of colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="16" min="2" max="64" style="width:44px;" title="Number of colors in trace"></div>
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Number of colors">Colors</span><input type="number" id="cvt-svg-colors" class="input-field" value="8" min="2" max="32" style="width:44px;" title="Fewer = cleaner, smaller SVG"></div>
         <div class="ribbon-row" style="gap:5px;"><select id="cvt-svg-preset" class="select-field" style="width:90px;" title="Trace preset">
           <option value="default">Default</option>
           <option value="posterized1">Posterized</option>
           <option value="curvy">Curvy</option>
           <option value="sharp">Sharp</option>
-          <option value="detailed">Detailed</option>
           <option value="smoothed">Smoothed</option>
           <option value="grayscale">Grayscale</option>
         </select></div>
+        <div class="ribbon-row" style="gap:5px;"><span class="ribbon-mini-label" title="Max dimension">Max</span><input type="number" id="cvt-svg-maxdim" class="input-field" value="400" min="50" max="2000" style="width:52px;" title="Downscale before tracing (smaller = faster, cleaner)"><span style="color:var(--slate-500);font-size:0.55rem;">px</span></div>
       </div><div class="ribbon-label">SVG Trace</div></div>
       <div class="ribbon-sep-v"></div>
       <!-- Resize -->
